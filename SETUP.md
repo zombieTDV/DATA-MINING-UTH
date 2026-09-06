@@ -43,12 +43,14 @@
 | File | What to replace / configure |
 | :--- | :--- |
 | [`README.md`](README.md) | `[PROJECT_NAME]`, project description, architecture overview |
+| [`agents/rules/FOLDER_STRUCTURE.md`](agents/rules/FOLDER_STRUCTURE.md) | Select architectural archetype: Single-Track vs Multi-Track |
 | [`docs/PURPOSE.md`](docs/PURPOSE.md) | The project brief / objective (Step 2 of the setup SOP) |
+| [`docs/OVERVIEW.md`](docs/OVERVIEW.md) | Living roadmap and phase/track index |
 | [`configs/config.yaml.example`](configs/config.yaml.example) | Copy to `configs/config.yaml` and specify dataset/training params |
 | [`pyproject.toml`](pyproject.toml) | `name`, `description`, package find rules |
 | [`requirements.txt`](requirements.txt) | Point to appropriate tiered requirements |
-| [`agents/rules/FOLDER_STRUCTURE.md`](agents/rules/FOLDER_STRUCTURE.md) | Revisit after every phase — it tracks module growth |
 | [`agents/rules/RESULTS_REPORTING.md`](agents/rules/RESULTS_REPORTING.md) | Define your specific domain metrics in §3 |
+
 
 ---
 

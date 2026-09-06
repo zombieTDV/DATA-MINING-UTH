@@ -48,11 +48,18 @@ Brief verdict: what is strong (≤3 bullets) and what blocks maturity (≤3 bull
 
 ## 2. Findings Summary
 
-| ID | Area | Severity | Title | Section |
-|---|---|---|---|---|
-| `<ID>-1` | Code quality | **High** | <short title> | [3. Code Quality](#3-code-quality) |
-| `<ID>-2` | Security | **Medium** | <short title> | [4. Security Vulnerabilities](#4-security-vulnerabilities) |
-| ... | ... | ... | ... | ... |
+> ### Finding Resolution Status Vocabulary
+> The **Status** column tracks whether **that specific finding/defect** has been remediated, independent of whether the broader audit or milestone is complete:
+> - **`RESOLVED`**: The specific defect/risk has been completely remediated, validated by automated tests or physical inspection, and verified on disk.
+> - **`PARTIALLY RESOLVED`**: An interim mitigation, partial patch, or workaround has been applied, but remaining work or pending verification is required for complete resolution.
+> - **`NOT RESOLVED`**: The finding has been diagnosed and documented, but no corrective engineering action has yet been taken.
+
+| ID | Area | Severity | Status | Title | Section |
+|---|---|---|---|---|---|
+| `<ID>-1` | Code quality | **High** | `NOT RESOLVED` | <short title> | [3. Code Quality](#3-code-quality) |
+| `<ID>-2` | Security | **Medium** | `PARTIALLY RESOLVED` | <short title> | [4. Security Vulnerabilities](#4-security-vulnerabilities) |
+| `<ID>-3` | Dependencies | **Low** | `RESOLVED` | <short title> | [5. Dependency Health](#5-dependency-health) |
+| ... | ... | ... | ... | ... | ... |
 
 Cross-reference: severity totals by area → [risk analysis §10](#10-detailed-risk-analysis) and [compliance §9](#9-compliance-with-policies-and-procedures).
 
@@ -67,9 +74,12 @@ Cross-reference: severity totals by area → [risk analysis §10](#10-detailed-r
 
 ### `<ID>-1`: <Short title>
 - **Severity:** [Critical | High | Medium | Low | Info]
+- **Status:** [RESOLVED | PARTIALLY RESOLVED | NOT RESOLVED]
 - **Description:** <what the issue is and why it matters>
 - **Affected:** <file(s) / component(s)>
 - **Remediation:** <concrete fix> — tracked in [Action P1.x](#12-prioritized-action-plan)
+- **Resolution Evidence:** <if RESOLVED/PARTIALLY RESOLVED: commit hash, test run, or verification diff>
+
 
 > Repeat for each finding. Positive findings use severity `Info`.
 
@@ -79,9 +89,11 @@ Cross-reference: severity totals by area → [risk analysis §10](#10-detailed-r
 
 ### `<ID>-2`: <Short title>
 - **Severity:** ...
+- **Status:** [RESOLVED | PARTIALLY RESOLVED | NOT RESOLVED]
 - **Description:** ...
 - **Affected:** ...
 - **Remediation:** ... — tracked in [Action P0.x](#12-prioritized-action-plan)
+- **Resolution Evidence:** ...
 
 ---
 
@@ -89,9 +101,11 @@ Cross-reference: severity totals by area → [risk analysis §10](#10-detailed-r
 
 ### `<ID>-3`: <Short title>
 - **Severity:** ...
+- **Status:** [RESOLVED | PARTIALLY RESOLVED | NOT RESOLVED]
 - **Description:** ...
 - **Affected:** ...
 - **Remediation:** ... — tracked in [Action P0.x](#12-prioritized-action-plan)
+- **Resolution Evidence:** ...
 
 ---
 
@@ -99,9 +113,11 @@ Cross-reference: severity totals by area → [risk analysis §10](#10-detailed-r
 
 ### `<ID>-4`: <Short title>
 - **Severity:** ...
+- **Status:** [RESOLVED | PARTIALLY RESOLVED | NOT RESOLVED]
 - **Description:** ...
 - **Affected:** ...
 - **Remediation:** ... — tracked in [Action P1.x](#12-prioritized-action-plan)
+- **Resolution Evidence:** ...
 
 ---
 
@@ -109,9 +125,11 @@ Cross-reference: severity totals by area → [risk analysis §10](#10-detailed-r
 
 ### `<ID>-5`: <Short title>
 - **Severity:** ...
+- **Status:** [RESOLVED | PARTIALLY RESOLVED | NOT RESOLVED]
 - **Description:** ...
 - **Affected:** ...
 - **Remediation:** ... — tracked in [Action P0.x](#12-prioritized-action-plan)
+- **Resolution Evidence:** ...
 
 ---
 
@@ -119,11 +137,14 @@ Cross-reference: severity totals by area → [risk analysis §10](#10-detailed-r
 
 ### `<ID>-6`: <Short title>
 - **Severity:** ...
+- **Status:** [RESOLVED | PARTIALLY RESOLVED | NOT RESOLVED]
 - **Description:** ...
 - **Affected:** ...
-- **Remediation:** ... — tracked in [Action P2.x](#12-prioritized-action-plan)
+- **Remediation:** ... — tracked in [Action P1.x](#12-prioritized-action-plan)
+- **Resolution Evidence:** ...
 
 ---
+
 
 ## 9. Compliance with Policies and Procedures
 

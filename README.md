@@ -69,6 +69,8 @@ Key engineering guarantees:
 
 ## 📁 Repository Structure
 
+The template supports both **Single-Track** (default monolithic layout shown below) and **Multi-Track / Feature-Modular** layouts (for multi-lab coursework or modular research tracks). See [agents/rules/FOLDER_STRUCTURE.md](agents/rules/FOLDER_STRUCTURE.md) for full principles and placement rules.
+
 ```text
 [PROJECT_NAME]/
 ├── agents/                    # Constitutional AI Governance (Immutable rules & templates)
@@ -76,13 +78,16 @@ Key engineering guarantees:
 │   ├── rules/                 # Binding standards (AGENT_AI, FOLDER_STRUCTURE, MD, etc.)
 │   └── templates/             # Reusable skeletons (BUG, AUDIT, EXP, PHASE, PROGRESS)
 │
-├── docs/                      # Evolving Project Research & Memory
+├── docs/                      # Evolving Project Research & Memory (Global)
 │   ├── README.md              # Master research index
+│   ├── PURPOSE.md             # Project brief & locked success criteria
+│   ├── OVERVIEW.md            # Living roadmap indexing all tracks/phases
 │   ├── shared/                # Universal SOPs (HOW_TO_SETUP_AI_AGENT, HANDOFF_TEMPLATE)
 │   ├── phases/                # Pipeline phase technical specifications
 │   ├── progress/              # Live phase status tracking (*_STATUS.md)
 │   ├── experiments/           # Experiment plans and comparative writeups
-│   └── bugs/                  # Resolved and active bug reports
+│   ├── bugs/                  # Resolved and active bug reports
+│   └── references/            # Reusable technical guides (Git, Optuna, etc.)
 │
 ├── configs/                   # Configuration files (YAML)
 │   └── config.yaml.example    # Configuration skeleton
@@ -91,7 +96,7 @@ Key engineering guarantees:
 │   ├── raw/                   # Immutable raw inputs (never written by scripts)
 │   └── processed/             # Cleaned splits and extracted features
 │
-├── src/                       # Maintained Python packages
+├── src/                       # Maintained Python packages (or partitioned into tracks/)
 │   ├── data/                  # Loading, transforms, dataloaders
 │   ├── models/                # Neural network architectures
 │   ├── training/              # Script-only training entry points
@@ -101,14 +106,19 @@ Key engineering guarantees:
 │
 ├── notebooks/                 # Exploratory analysis & demo notebooks (NEVER train)
 │
-├── experiments/               # Experiment runtime outputs
+├── experiments/               # Experiment runtime outputs (runs/ & results/ gitignored)
 │   ├── runs/<ts>_<run>/       # checkpoints/ logs/ metrics/ tensorboard/
 │   └── results/               # Consolidated metrics & export plots
 │
+├── requirements/              # Multi-tier dependency specs (base.txt, dev.txt)
+├── requirements.txt           # Unified dependency proxy (-r requirements/dev.txt)
 ├── pyproject.toml             # Build system & package discovery config
-├── requirements.txt           # Unified dependency proxy
 └── tests/                     # Unit and integration test suite
 ```
+
+> [!TIP]
+> **Multi-Track / Feature-Modular Projects:** When work naturally divides into distinct labs, features, or research questions, code, tests, configs, and experiment specs can be **colocated** within that unit (e.g. `tracks/<name>/` or `labs/<name>/`), while keeping `/agents`, global roadmap (`docs/OVERVIEW.md`), and base dependencies centralized.
+
 
 ---
 
