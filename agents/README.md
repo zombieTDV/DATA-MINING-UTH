@@ -20,6 +20,7 @@ agents/
 ├── rules/                             # What the AI agent MUST consistently do
 │   ├── AGENT_AI.md                    # Core behavior layer, 6-stage workflow & prompting rules
 │   ├── CODEBASE_AUDIT.md              # Drift audit procedure & gate
+│   ├── COMMIT_CONVENTION.md           # Commit messages & Companion-Doc standard
 │   ├── FOLDER_STRUCTURE.md            # Canonical repository directory layout
 │   ├── LOGGING_CHECKPOINT_RULES.md    # Script-only training & full-state checkpoint rules
 │   ├── MD_CONVENTION.md               # Markdown formatting, timestamps & clickable link standards

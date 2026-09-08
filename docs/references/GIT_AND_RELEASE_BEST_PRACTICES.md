@@ -96,7 +96,20 @@ Examples:
 - Follow the [5W1H reporting](../rules/RESULTS_REPORTING.md) spirit for any numbers in
   the body: state split, seed, and how a metric was computed.
 
-### 2.4 Scope discipline (one logical change per commit)
+### 2.4 Companion Markdown Document Rule & Git Trailers
+Per [agents/rules/COMMIT_CONVENTION.md](../../agents/rules/COMMIT_CONVENTION.md), every non-trivial commit (Tier 1: refactors, PR merges, multi-file features, bug incident fixes, audits) MUST have a companion Markdown document in `docs/` staged and committed together with the code changes.
+
+Every such commit MUST include a standard Git trailer in the footer:
+```text
+Companion-Doc: docs/<path_to_document>.md
+```
+Optional secondary trailers:
+- `Report: docs/<path_to_report>.md`
+- `Fixes: docs/bugs/BUG_<NN>_<NAME>.md`
+
+For minor single-line chores or typos (Tier 2), cite an existing tracking doc (e.g. `docs/progress/<PHASE>_STATUS.md`) or omit if purely self-describing.
+
+### 2.5 Scope discipline (one logical change per commit)
 - A commit should contain **one logical change**. Do not mix an unrelated
   bug fix with a doc update in the same commit.
 - Split mixed working trees into separate commits (e.g. fix + results refresh +
@@ -105,12 +118,12 @@ Examples:
   `git add -A` that could sweep unintended files (secrets, generated outputs)
   into the commit.
 
-### 2.5 Avoid shell-quoting pitfalls
+### 2.6 Avoid shell-quoting pitfalls
 Multi-line messages with quotes or em-dashes are easily mangled by PowerShell.
 Write the message to a file and commit with `git commit -F <file>`; do not
 inline complex messages in `git commit -m "..."`.
 
-### 2.6 Good vs bad
+### 2.7 Good vs bad
 - Good: `fix(<feature>): raise finetune base LR to 1e-3 so head trains`
 - Bad: `did stuff`, `update`, `fixed the thing that was broken earlier and also
   changed docs and bumped epochs`
