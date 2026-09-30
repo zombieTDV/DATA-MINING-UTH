@@ -68,7 +68,7 @@ def test_documentation_files_exist():
         "docs/OVERVIEW.md",
         "docs/shared/HOW_TO_SETUP_AI_AGENT.md",
         "docs/shared/HANDOFF_TEMPLATE.md",
-        "agents/rules/FOLDER_STRUCTURE.md",
+        "agents/templates/CREATE_FOLDER_STRUCTURE_TEMPLATE.md",
         "agents/rules/LOGGING_CHECKPOINT_RULES.md",
         "agents/rules/RESULTS_REPORTING.md",
         "agents/rules/CODEBASE_AUDIT.md",

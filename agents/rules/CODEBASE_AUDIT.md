@@ -4,7 +4,7 @@
 - **Purpose**: Define the mandatory pre-task codebase audit checklist to catch drift between documentation claims and physical repository state before performing non-trivial modifications.
 - **Overview Pipeline**: Executed at the start of a session or prior to any multi-file refactor.
 - **Detailed Plan**: §1 Audit Scope; §2 Five-Step Inspection Checklist; §3 Output Format; §4 Hard Acceptance Gate; §5 Audit Lifecycle & Logging.
-- **References**: `agents/rules/FOLDER_STRUCTURE.md`, `agents/templates/CODEBASE_AUDIT_TEMPLATE.md`.
+- **References**: `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`, `agents/templates/CODEBASE_AUDIT_TEMPLATE.md`.
 - **Created**: 2026-07-25T00:00:00+07:00
 - **Last Updated**: 2026-09-06T21:15:00+07:00
 
@@ -34,8 +34,8 @@
 
 ## 2. Five-Step Inspection Checklist
 
-1. **Filesystem vs FOLDER_STRUCTURE.md:**
-   - List files in `src/`, `tests/`, `configs/`, and `docs/` (or track/unit directories). Compare against [agents/rules/FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md).
+1. **Filesystem vs CREATE_FOLDER_STRUCTURE_TEMPLATE.md:**
+   - List files in `src/`, `tests/`, `configs/`, and `docs/` (or track/unit directories). Compare against [agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md](CREATE_FOLDER_STRUCTURE_TEMPLATE.md).
    - Identify any unversioned, undocumented files or stale directory layouts.
 2. **Import & Module Integrity:**
    - Inspect package imports across `src/` and `tests/`.

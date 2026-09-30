@@ -45,6 +45,8 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
+Desktop.ini
 
 # Jupyter
 .ipynb_checkpoints/

@@ -1,4 +1,4 @@
-# FOLDER_STRUCTURE.md — Repository Directory Layout & Organizational Principles
+# CREATE_FOLDER_STRUCTURE_TEMPLATE.md — Repository Directory Layout & Organizational Principles
 
 - **Motivation/Background**: Deep learning projects vary widely in scale — from focused single-track investigations to large multi-lab coursework or multi-track research suites. Forcing every project into one rigid global folder layout causes either confusion for small projects or massive scattering and namespace collisions for modular projects.
 - **Purpose**: Establish clear architectural principles, boundaries, and decision rules governing what must be global/shared versus what should be colocated within self-contained features, labs, or research units, while ensuring constitutional governance (`/agents`) remains permanently discoverable at the repository root.

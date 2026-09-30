@@ -48,4 +48,4 @@ Document reusable architectural guides, external API quirks, tool configurations
 ## 5. Related Documentation
 
 - Master References Index: [docs/references/README.md](../../docs/references/README.md)
-- Constitutional Rules: [agents/rules/FOLDER_STRUCTURE.md](../rules/FOLDER_STRUCTURE.md)
+- Constitutional Rules: [agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md](../rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md)

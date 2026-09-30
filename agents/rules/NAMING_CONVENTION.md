@@ -4,7 +4,7 @@
 - **Purpose**: Define strict naming rules for Python files, modules, classes, functions, notebooks, configs, and experiment runs.
 - **Overview Pipeline**: Applied whenever creating or refactoring files in the repository.
 - **Detailed Plan**: §1 File & Directory Naming; §2 Code Identifiers; §3 Experiment & Run Identifiers; §4 Prohibited Practices.
-- **References**: `agents/rules/FOLDER_STRUCTURE.md`.
+- **References**: `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`.
 - **Created**: 2026-07-25T00:00:00+07:00
 - **Last Updated**: 2026-09-06T20:55:00+07:00
 
@@ -24,7 +24,7 @@
 - **Python Scripts & Modules:** `snake_case.py` (e.g. `train_model.py`, `dataloader.py`).
 - **Tests:** `test_<module_name>.py` (e.g. `test_transforms.py`, `test_loaders.py`).
 - **Notebooks:** `NN_<short_purpose>.ipynb` (e.g. `01_data_exploration.ipynb`, `02_baseline_evaluation.ipynb`).
-- **Documentation:** `UPPER_SNAKE_CASE.md` (e.g. `FOLDER_STRUCTURE.md`, `DATA_PREPARATION.md`).
+- **Documentation:** `UPPER_SNAKE_CASE.md` (e.g. `CREATE_FOLDER_STRUCTURE_TEMPLATE.md`, `DATA_PREPARATION.md`).
 - **Configs:** `config.yaml` or `config_<feature_name>.yaml`.
 
 ---

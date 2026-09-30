@@ -8,7 +8,7 @@
 - **Overview Pipeline**: `src/data` → `src/models` → `src/training` →
   `src/eval`; `src/experiments` orchestrates; `src/utils` shared helpers.
 - **Detailed Plan**: one section per layer with its responsibility and links.
-- **References**: `agents/rules/FOLDER_STRUCTURE.md`,
+- **References**: `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`,
   `agents/rules/LOGGING_CHECKPOINT_RULES.md`.
 
 ---

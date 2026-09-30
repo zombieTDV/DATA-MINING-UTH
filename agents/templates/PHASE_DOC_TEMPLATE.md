@@ -4,7 +4,7 @@
 - **Purpose**: Provide a comprehensive specification of a single pipeline phase, including I/O contracts, execution commands, and edge cases.
 - **Overview Pipeline**: Copy to `docs/phases/<PHASE_NAME>.md` when planning a new pipeline stage.
 - **Detailed Plan**: §1 Name & Scope; §2 Input & Output Contracts; §3 Execution Pipeline; §4 Technical Specification & Edge Cases; §5 Associated Links.
-- **References**: `agents/rules/MD_CONVENTION.md`, `agents/rules/FOLDER_STRUCTURE.md`.
+- **References**: `agents/rules/MD_CONVENTION.md`, `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`.
 - **Created**: YYYY-MM-DDTHH:MM:SS±HH:MM
 - **Last Updated**: YYYY-MM-DDTHH:MM:SS±HH:MM
 

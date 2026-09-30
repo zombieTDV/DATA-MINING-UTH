@@ -4,7 +4,7 @@
 - **Purpose**: Provide a step-by-step Standard Operating Procedure (SOP) for setting up and working with an AI agent in a new or existing deep learning project.
 - **Overview Pipeline**: 10-step sequential workflow from initial purpose formulation to audited phase completion.
 - **Detailed Plan**: §1 Rules Setup; §2 Purpose Clarification Interview; §3 Roadmap & Phase Planning; §4 Stage-Gated Implementation; §5 Inter-Agent Handoffs.
-- **References**: `agents/rules/AGENT_AI.md`, `agents/rules/FOLDER_STRUCTURE.md`, `agents/rules/MD_CONVENTION.md`.
+- **References**: `agents/rules/AGENT_AI.md`, `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`, `agents/rules/MD_CONVENTION.md`.
 - **Created**: 2026-07-25T00:00:00+07:00
 - **Last Updated**: 2026-09-06T20:55:00+07:00
 
@@ -14,7 +14,7 @@
 
 Ensure `agents/rules/` contains the immutable constitutional rules:
 - `AGENT_AI.md` (6-stage engineering lifecycle)
-- `FOLDER_STRUCTURE.md` (canonical layout)
+- `CREATE_FOLDER_STRUCTURE_TEMPLATE.md` (canonical layout)
 - `CODEBASE_AUDIT.md` (pre-task audit gate)
 - `MD_CONVENTION.md` (Markdown timestamps & links)
 - `LOGGING_CHECKPOINT_RULES.md` (script-only training)
@@ -53,7 +53,7 @@ Create individual phase technical contracts under `docs/phases/<PHASE>.md` using
 
 ---
 
-## Step 6: Verify and Maintain `agents/rules/FOLDER_STRUCTURE.md`
+## Step 6: Verify and Maintain `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`
 
 Ensure all planned module paths align with the canonical folder layout.
 

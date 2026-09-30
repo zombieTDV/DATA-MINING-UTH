@@ -4,7 +4,7 @@
 - **Purpose**: Define the mandatory 7-field header (including metadata and update timestamps), anchor/TOC rules, clickable cross-reference standards, and lifecycle conventions for all `.md` files.
 - **Overview Pipeline**: Formulated during project consolidation refactoring and applied universally across all project documentation.
 - **Detailed Plan**: §1 Required Header Specification; §2 Markdown Update-Timestamp Standard; §3 Document Lifecycle Statuses; §4 Mandatory Cross-Reference Links; §5 Conventions Table; §6 Self-Review Checklist.
-- **References**: `agents/rules/FOLDER_STRUCTURE.md`, `agents/rules/MD_CONVENTION.md`.
+- **References**: `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`, `agents/rules/MD_CONVENTION.md`.
 - **Created**: 2026-07-25T00:00:00+07:00
 - **Last Updated**: 2026-09-06T20:55:00+07:00
 

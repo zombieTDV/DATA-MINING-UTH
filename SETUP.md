@@ -4,10 +4,9 @@
 - **Purpose**: Provide one-time instructions for turning this template into a working repository — copy the template, configure environment, fill placeholders, and follow the agent setup SOP.
 - **Overview Pipeline**: Copy template → create virtual environment & editable install → initialize git → wire agent constitution → follow 6-stage lifecycle.
 - **Detailed Plan**: §1 Prerequisites; §2 Instantiation; §3 Key Placeholders; §4 Environment Setup & Packaging; §5 Git Initialization; §6 Agent Governance Wiring; §7 Verification Checklist.
-- **References**: `docs/shared/HOW_TO_SETUP_AI_AGENT.md`, `agents/rules/FOLDER_STRUCTURE.md`, `pyproject.toml`, `requirements.txt`.
+- **References**: `docs/shared/HOW_TO_SETUP_AI_AGENT.md`, `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`, `pyproject.toml`, `requirements.txt`.
 - **Created**: 2026-07-25T00:00:00+07:00
 - **Last Updated**: 2026-09-06T21:05:00+07:00
-
 
 ---
 
@@ -16,7 +15,7 @@
 - [1. Prerequisites](#1-prerequisites)
 - [2. Instantiate a New Project](#2-instantiate-a-new-project)
 - [3. Fill In the Placeholders](#3-fill-in-the-placeholders)
-- [4. Environment Setup & Packaging](#4-environment-setup--packaging)
+- [4. Environment Setup &amp; Packaging](#4-environment-setup--packaging)
 - [5. Initialize Git](#5-initialize-git)
 - [6. Wire Up the AI Agent Workflow](#6-wire-up-the-ai-agent-workflow)
 - [7. Verification Checklist](#7-verification-checklist)
@@ -40,17 +39,16 @@
 
 ## 3. Fill In the Placeholders
 
-| File | What to replace / configure |
-| :--- | :--- |
-| [`README.md`](README.md) | `[PROJECT_NAME]`, project description, architecture overview |
-| [`agents/rules/FOLDER_STRUCTURE.md`](agents/rules/FOLDER_STRUCTURE.md) | Select architectural archetype: Single-Track vs Multi-Track |
-| [`docs/PURPOSE.md`](docs/PURPOSE.md) | The project brief / objective (Step 2 of the setup SOP) |
-| [`docs/OVERVIEW.md`](docs/OVERVIEW.md) | Living roadmap and phase/track index |
-| [`configs/config.yaml.example`](configs/config.yaml.example) | Copy to `configs/config.yaml` and specify dataset/training params |
-| [`pyproject.toml`](pyproject.toml) | `name`, `description`, package find rules |
-| [`requirements.txt`](requirements.txt) | Point to appropriate tiered requirements |
-| [`agents/rules/RESULTS_REPORTING.md`](agents/rules/RESULTS_REPORTING.md) | Define your specific domain metrics in §3 |
-
+| File                                                                                                    | What to replace / configure                                        |
+| :------------------------------------------------------------------------------------------------------ | :----------------------------------------------------------------- |
+| [`README.md`](README.md)                                                                               | `[PROJECT_NAME]`, project description, architecture overview     |
+| [`agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`](agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md) | Select architectural archetype: Single-Track vs Multi-Track        |
+| [`docs/PURPOSE.md`](docs/PURPOSE.md)                                                                   | The project brief / objective (Step 2 of the setup SOP)            |
+| [`docs/OVERVIEW.md`](docs/OVERVIEW.md)                                                                 | Living roadmap and phase/track index                               |
+| [`configs/config.yaml.example`](configs/config.yaml.example)                                           | Copy to`configs/config.yaml` and specify dataset/training params |
+| [`pyproject.toml`](pyproject.toml)                                                                     | `name`, `description`, package find rules                      |
+| [`requirements.txt`](requirements.txt)                                                                 | Point to appropriate tiered requirements                           |
+| [`agents/rules/RESULTS_REPORTING.md`](agents/rules/RESULTS_REPORTING.md)                               | Define your specific domain metrics in §3                         |
 
 ---
 
@@ -77,6 +75,7 @@ pip install -e .
 ```
 
 Verify the environment:
+
 ```bash
 pytest tests/ -q
 ruff check src tests
@@ -101,6 +100,7 @@ git branch -M main
 ## 6. Wire Up the AI Agent Workflow
 
 Follow [`docs/shared/HOW_TO_SETUP_AI_AGENT.md`](docs/shared/HOW_TO_SETUP_AI_AGENT.md) step by step:
+
 1. Immutable constitutional rules under [`agents/rules/`](agents/rules/) are always-on.
 2. Evolving research notes, phases, and experiment plans live in [`docs/`](docs/).
 3. Execute all work through the 6-stage lifecycle: `AUDIT → PLAN → IMPLEMENT → VERIFY → COMMIT → MERGE`.

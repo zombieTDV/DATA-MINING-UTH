@@ -4,7 +4,7 @@
 - **Purpose**: Define the binding engineering philosophy, communication rules, six-stage workflow lifecycle, and operational constraints for AI agents working in this repository.
 - **Overview Pipeline**: Derived from lessons learned in multi-phase project consolidation and codified as an immutable constitutional governance rule.
 - **Detailed Plan**: §1 Core Agent Philosophy; §2 Six-Stage Engineering Workflow (AUDIT → PLAN → IMPLEMENT → VERIFY → COMMIT → MERGE); §3 Inter-Agent Handoff Standards; §4 Hard Operational Constraints.
-- **References**: `agents/rules/FOLDER_STRUCTURE.md`, `agents/rules/CODEBASE_AUDIT.md`, `agents/rules/MD_CONVENTION.md`.
+- **References**: `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`, `agents/rules/CODEBASE_AUDIT.md`, `agents/rules/MD_CONVENTION.md`.
 - **Created**: 2026-07-25T00:00:00+07:00
 - **Last Updated**: 2026-09-06T20:55:00+07:00
 
@@ -49,7 +49,7 @@ AUDIT ──► PLAN ──► IMPLEMENT ──► VERIFY ──► COMMIT ─�
 
 ### Stage 3: IMPLEMENT (Minimal Targeted Execution)
 - Modify only authorized files.
-- Adhere strictly to [agents/rules/FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md) and [agents/rules/NAMING_CONVENTION.md](NAMING_CONVENTION.md).
+- Adhere strictly to [agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md](CREATE_FOLDER_STRUCTURE_TEMPLATE.md) and [agents/rules/NAMING_CONVENTION.md](NAMING_CONVENTION.md).
 - Keep implementation modular, preserving existing working interfaces.
 - Update timestamps on all touched `.md` files per [agents/rules/MD_CONVENTION.md](MD_CONVENTION.md).
 
