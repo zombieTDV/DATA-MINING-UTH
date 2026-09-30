@@ -7,8 +7,8 @@
 | **Owner** | Research Team & AI Agent |
 | **Scope** | Global Research & Engineering Documentation |
 | **Created** | 2026-07-25T00:00:00+07:00 |
-| **Last Updated** | 2026-09-06T21:15:00+07:00 |
-| **Reference** | [agents/rules/FOLDER_STRUCTURE.md](../agents/rules/FOLDER_STRUCTURE.md), [agents/rules/MD_CONVENTION.md](../agents/rules/MD_CONVENTION.md) |
+| **Last Updated** | 2026-09-30T11:53:48+07:00 |
+| **Reference** | [agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md](../agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md), [agents/rules/MD_CONVENTION.md](../agents/rules/MD_CONVENTION.md) |
 
 ---
 
@@ -28,12 +28,15 @@ docs/
 ├── shared/                            # Universal agent setup and workflow SOPs
 │   ├── HOW_TO_SETUP_AI_AGENT.md       # 10-step agent onboarding and setup SOP
 │   ├── HANDOFF_TEMPLATE.md            # Inter-agent task handoff specification
-│   └── ML_PIPELINE_REFERENCE_v3.md    # Complete 18-step ML engineering guide
+│   ├── ML_PIPELINE_REFERENCE_v4.md    # Active Data Mining & ML engineering reference guide (v4.0)
+│   └── ML_PIPELINE_REFERENCE_v3.md    # Superseded 18-step ML engineering guide
 ├── phases/                            # Milestone & pipeline phase specifications (global/single-track)
 ├── progress/                          # Active session status trackers (*_STATUS.md)
 ├── experiments/                       # Comparative benchmarks & global experiment writeups
 ├── bugs/                              # Repository-wide or system bug post-mortems
 └── references/                        # Tool guides, API recipes, & Git/CI SOPs
+    ├── ML_PIPELINE_REFERENCE_v4.md    # Canonical Active Data Mining & ML reference (v4.0)
+    ├── ML_PIPELINE_REFERENCE_v3.md    # Superseded reference (v3.0)
     ├── GIT_AND_RELEASE_BEST_PRACTICES.md # Git commits, human approval gate, & releases
     └── OPTUNA_DB_GUIDE.md             # Optuna SQLite persistence & analysis guide
 ```

@@ -7,7 +7,7 @@
 | **Owner** | AI Agent & Repository Maintainers |
 | **Scope** | Global Reference Knowledge |
 | **Created** | 2026-09-06T21:05:00+07:00 |
-| **Last Updated** | 2026-09-06T21:05:00+07:00 |
+| **Last Updated** | 2026-09-30T11:53:48+07:00 |
 | **Reference** | [docs/README.md](../README.md), [agents/templates/REFERENCE_TEMPLATE.md](../../agents/templates/REFERENCE_TEMPLATE.md) |
 
 ---
@@ -24,5 +24,7 @@ To add a new reference, copy [agents/templates/REFERENCE_TEMPLATE.md](../../agen
 
 | Document | Topic | Description |
 | :--- | :--- | :--- |
+| [ML_PIPELINE_REFERENCE_v4.md](ML_PIPELINE_REFERENCE_v4.md) | Data Mining & ML Pipeline (v4.0) | Complete end-to-end guide integrating CRISP-DM, KDD, business understanding, data collection, and modeling. |
+| [ML_PIPELINE_REFERENCE_v3.md](ML_PIPELINE_REFERENCE_v3.md) | ML Pipeline (v3.0, Superseded) | Historical 18-step ML pipeline reference guide. |
 | [GIT_AND_RELEASE_BEST_PRACTICES.md](GIT_AND_RELEASE_BEST_PRACTICES.md) | Git, CI, and Releases | Rules for conventional commits, human push approval gates, and artifact releases. |
 | [OPTUNA_DB_GUIDE.md](OPTUNA_DB_GUIDE.md) | Optuna HPO Persistence | Inspecting, filtering, and reporting on SQLite-persisted Optuna studies. |

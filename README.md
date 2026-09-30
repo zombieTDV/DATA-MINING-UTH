@@ -1,15 +1,26 @@
-# [PROJECT_NAME]
+# UTH Data Mining: AI/ML/Data Science Paper Mining & Analysis
 
-- **Motivation/Background**: [PROJECT_NAME] implements a modular, reproducible deep-learning pipeline designed for robust research, high-performance training, and AI-assisted engineering.
-- **Purpose**: Serve as the central portfolio entry point, architecture map, installation guide, and execution manual.
-- **Overview Pipeline**: Follows strict Separation of Concerns (SoC) where all training runs as logged, resumable Python scripts, while notebooks are reserved for exploration, testing, and visualization.
-- **Detailed Plan**: §1 Architecture; §2 Repository Layout; §3 Environment & Packaging; §4 Testing; §5 Governance.
-- **References**: `agents/rules/`, `docs/`, `pyproject.toml`, `requirements.txt`.
+- **Motivation/Background**: This repository hosts the coursework and research pipeline for the UTH Data Mining curriculum, ported from deep learning and machine learning engineering templates into an end-to-end data mining architecture.
+- **Purpose**: Serve as the central entry point, architecture map, collection strategy, and execution manual for crawling, preparing, and analyzing scientific literature in AI, Machine Learning, and Data Science.
+- **Overview Pipeline**: Adheres to CRISP-DM and KDD methodologies spanning automated paper harvesting/crawling, immutable raw storage, 6-dimension data quality audits, feature engineering, and exploratory data mining.
+- **Detailed Plan**: §1 Project Topic & Scope; §2 Architecture Overview; §3 Repository Structure; §4 Installation & Setup; §5 Testing; §6 Governance & Rules.
+- **References**: [agents/rules/AGENT_AI.md](agents/rules/AGENT_AI.md), [agents/rules/MD_CONVENTION.md](agents/rules/MD_CONVENTION.md), [docs/references/ML_PIPELINE_REFERENCE_v4.md](docs/references/ML_PIPELINE_REFERENCE_v4.md).
 - **Created**: 2026-07-25T00:00:00+07:00
-- **Last Updated**: 2026-09-06T21:05:00+07:00
-
+- **Last Updated**: 2026-09-30T12:10:47+07:00
 
 ---
+
+## 🎯 Project Topic & Scope: AI/ML/Data Science Paper Mining
+
+This project focuses on **crawling, harvesting, and mining scientific paper data** across the domains of Artificial Intelligence (AI), Machine Learning (ML), and Data Science:
+
+- **Data Acquisition & Harvesting:**
+  - Automated crawling and ingestion of academic paper metadata, titles, abstracts, author networks, publication timestamps, and category tags from open scientific preprint archives and scholarly APIs (e.g. arXiv, OpenAlex, Semantic Scholar).
+  - Enforcing the **Immutable Raw Invariant**: All crawled payloads are vaulted directly into `data/raw/` with cryptographic SHA-256 provenance manifests before any processing.
+- **Downstream Data Mining & Analysis (In Progress / Open Scope):**
+  - Following the [Data Mining Pipeline Reference (v4.0)](docs/references/ML_PIPELINE_REFERENCE_v4.md), collected literature will be audited for quality, preprocessed, and analyzed.
+  - The precise downstream analytic tasks remain open and flexible—ranging from topic modeling (LDA/BERTopic), keyword co-occurrence and association rule mining, author/citation network graph mining, to temporal research trend discovery.
+  - Detailed task formulations and experiment specifications will be formalized incrementally in `docs/phases/` and `docs/experiments/`.
 
 ## 🏗️ Architecture Overview
 
@@ -69,10 +80,10 @@ Key engineering guarantees:
 
 ## 📁 Repository Structure
 
-The template supports both **Single-Track** (default monolithic layout shown below) and **Multi-Track / Feature-Modular** layouts (for multi-lab coursework or modular research tracks). See [agents/rules/FOLDER_STRUCTURE.md](agents/rules/FOLDER_STRUCTURE.md) for full principles and placement rules.
+The template supports both **Single-Track** (default monolithic layout shown below) and **Multi-Track / Feature-Modular** layouts (for multi-lab coursework or modular research tracks). See [agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md](agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md) for full principles and placement rules.
 
 ```text
-[PROJECT_NAME]/
+Uth-Data-Mining/
 ├── agents/                    # Constitutional AI Governance (Immutable rules & templates)
 │   ├── README.md              # Governance navigation guide
 │   ├── rules/                 # Binding standards (AGENT_AI, FOLDER_STRUCTURE, MD, etc.)

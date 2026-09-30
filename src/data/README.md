@@ -26,6 +26,6 @@ train_loader, val_loader, test_loader = get_loaders(batch_size=64)
   BrokenPipeError case). Raise it on a stable runtime.
 - Never fit scalers/statistics on the full dataset — fit on train only
   (leakage boundary, see
-  [agents/ML_PIPELINE_REFERENCE_v3.md](../../agents/ML_PIPELINE_REFERENCE_v3.md) §10).
+  [docs/references/ML_PIPELINE_REFERENCE_v4.md](../../docs/references/ML_PIPELINE_REFERENCE_v4.md#13-data-partitioning--the-leakage-boundary)).
 
-See [agents/phases/DATA_PREP.md](../../agents/phases/DATA_PREP.md).
+See [docs/phases/README.md](../../docs/phases/README.md).

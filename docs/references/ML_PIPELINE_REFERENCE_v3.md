@@ -1,4 +1,4 @@
-# Machine Learning Pipeline Reference (v3.0)
+# ML Pipeline Reference (v3.0)
 
 > [!WARNING]
 > **This document is SUPERSEDED by [ML_PIPELINE_REFERENCE_v4.md](ML_PIPELINE_REFERENCE_v4.md).**
@@ -14,13 +14,13 @@
 | **Scope** | Global Deep Learning Methodology |
 | **Created** | 2026-07-24T09:00:00+07:00 |
 | **Last Updated** | 2026-09-30T11:53:48+07:00 |
-| **Reference** | [docs/README.md](../README.md), [docs/references/ML_PIPELINE_REFERENCE_v4.md](../references/ML_PIPELINE_REFERENCE_v4.md) |
+| **Reference** | [docs/README.md](../README.md), [docs/references/ML_PIPELINE_REFERENCE_v4.md](ML_PIPELINE_REFERENCE_v4.md) |
 
 ---
 
 # ML Pipeline Reference
 
-**Version:** 2.0
+**Version:** 3.0 (Superseded by v4.0)
 **Scope:** Steps 1–18 (Problem Framing → Experimental Methodology), plus introductory coverage of Error Analysis and Interpretability. See coverage table below for what remains thin.
 **Audience:** Human practitioners and AI coding agents.
 **How to use:** Follow this document top-to-bottom before writing a single line of training code. Every section states *what*, *why*, and *when not to* — read all three.
@@ -1924,4 +1924,3 @@ test_score = model.fit(X_res, y_res).score(X_test_scaled, y_test)
 ---
 
 *This document covers Steps 1–20 of the course pipeline (general overview through interpretability). Sections marked [inference — verify in class] fill genuine gaps in the lecture notes with standard ML theory and should be checked against course material, not treated as authoritative. Update this document as remaining lecture content (statistical testing depth, error analysis depth, interpretability depth) is taught in full.*
-
