@@ -1,73 +1,113 @@
-# UTH Data Mining: AI/ML/Data Science Paper Mining & Analysis
+# UTH Data Mining: Real-Time Scientific Data Mining & Advanced RAG System for AI/DS
 
-- **Motivation/Background**: This repository hosts the coursework and research pipeline for the UTH Data Mining curriculum, ported from deep learning and machine learning engineering templates into an end-to-end data mining architecture.
-- **Purpose**: Serve as the central entry point, architecture map, collection strategy, and execution manual for crawling, preparing, and analyzing scientific literature in AI, Machine Learning, and Data Science.
-- **Overview Pipeline**: Adheres to CRISP-DM and KDD methodologies spanning automated paper harvesting/crawling, immutable raw storage, 6-dimension data quality audits, feature engineering, and exploratory data mining.
-- **Detailed Plan**: §1 Project Topic & Scope; §2 Architecture Overview; §3 Repository Structure; §4 Installation & Setup; §5 Testing; §6 Governance & Rules.
+> **Đề tài:** *Khai thác dữ liệu nghiên cứu khoa học thời gian thực hướng tới xây dựng hệ thống truy xuất tri thức nâng cao (RAG) cho miền AI/DS.*  
+> **Course:** Data Mining (Trường Đại học Giao thông Vận tải TP.HCM — UTH)  
+> **Advisor / Instructor:** TS. Trần Thế Vinh  
+> **Reference Standards:** [docs/references/ML_PIPELINE_REFERENCE_v4.md](docs/references/ML_PIPELINE_REFERENCE_v4.md), [docs/references/Chapter1.pdf](docs/references/Chapter1.pdf), [docs/references/Chapter2.pdf](docs/references/Chapter2.pdf), [docs/references/Chapter4.pdf](docs/references/Chapter4.pdf)
+
+- **Motivation/Background**: Academic publications in AI and Data Science are accelerating exponentially. This project implements a real-time data mining pipeline that continuously harvests newly published scientific literature across multiple sources (PDF, HTML, APIs), streams raw payloads into an Apache Iceberg lakehouse, and prepares clean semantic data for an Advanced Retrieval-Augmented Generation (RAG) system and exploratory pattern discovery.
+- **Purpose**: Serve as the canonical repository entry point, real-time data mining architecture map, lakehouse schema reference, and operational manual.
+- **Overview Pipeline**: Follows CRISP-DM, KDD, and modern Lakehouse design: Multi-Source Crawling → Streaming Event Queue → Apache Iceberg Lakehouse + Immutable Raw Vault → Data Quality Auditing → Preprocessing & Chunking → Data Mining (Topics, Clusters, Association Rules) → Advanced Hybrid RAG.
+- **Detailed Plan**: §1 Project Vision & Scope; §2 End-to-End System Architecture; §3 Repository Structure; §4 Research Phases; §5 Installation & Setup; §6 Governance & Rules.
 - **References**: [agents/rules/AGENT_AI.md](agents/rules/AGENT_AI.md), [agents/rules/MD_CONVENTION.md](agents/rules/MD_CONVENTION.md), [docs/references/ML_PIPELINE_REFERENCE_v4.md](docs/references/ML_PIPELINE_REFERENCE_v4.md).
 - **Created**: 2026-07-25T00:00:00+07:00
-- **Last Updated**: 2026-09-30T12:10:47+07:00
+- **Last Updated**: 2026-09-30T13:01:59+07:00
 
 ---
 
-## 🎯 Project Topic & Scope: AI/ML/Data Science Paper Mining
+## 🎯 1. Project Topic & Scope: Real-Time Scientific Paper Mining for RAG
 
-This project focuses on **crawling, harvesting, and mining scientific paper data** across the domains of Artificial Intelligence (AI), Machine Learning (ML), and Data Science:
+The core objective is to automate the discovery, ingestion, and mining of cutting-edge AI and Data Science research to empower knowledge retrieval and deep domain synthesis:
 
-- **Data Acquisition & Harvesting:**
-  - Automated crawling and ingestion of academic paper metadata, titles, abstracts, author networks, publication timestamps, and category tags from open scientific preprint archives and scholarly APIs (e.g. arXiv, OpenAlex, Semantic Scholar).
-  - Enforcing the **Immutable Raw Invariant**: All crawled payloads are vaulted directly into `data/raw/` with cryptographic SHA-256 provenance manifests before any processing.
-- **Downstream Data Mining & Analysis (In Progress / Open Scope):**
-  - Following the [Data Mining Pipeline Reference (v4.0)](docs/references/ML_PIPELINE_REFERENCE_v4.md), collected literature will be audited for quality, preprocessed, and analyzed.
-  - The precise downstream analytic tasks remain open and flexible—ranging from topic modeling (LDA/BERTopic), keyword co-occurrence and association rule mining, author/citation network graph mining, to temporal research trend discovery.
-  - Detailed task formulations and experiment specifications will be formalized incrementally in `docs/phases/` and `docs/experiments/`.
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        CORE END-TO-END PIPELINE PHASES                                │
+│                                                                                        │
+│   [1. Multi-Source Harvesters]  ──►  [2. Streaming Queue]   ──►  [3. Iceberg Lakehouse] │
+│       arXiv RSS/API, OpenAlex          Event Buffer & Retry         ACID Tables + Vault│
+│                                                                          │             │
+│                                                                          ▼             │
+│   [6. Advanced RAG System]      ◄──  [5. Data Mining Core]  ◄──  [4. Preprocessing]   │
+│       Hybrid Dense+Sparse Search       Topics, Clusters, Rules      Chunking & Cleaning│
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
-## 🏗️ Architecture Overview
+### Key Functional Pillars:
 
-Layered deep learning pipeline; each layer is a maintained `src/` package:
+1. **Multi-Source Real-Time Harvesting:**
+   - **arXiv Ingestion:** Daily automated harvesting of new preprints across `cs.AI`, `cs.LG`, `cs.CL`, and `stat.ML` via arXiv RSS and REST API.
+   - **OpenAlex Integration:** Harvesting scholarly entity metadata, author institutions, citation graphs, and open-access links.
+   - **Two-Tier Ingestion Strategy:** Instantly ingest paper metadata & abstracts for sub-second availability, while streaming full PDF downloads and text extraction asynchronously in the background.
+2. **Streaming Event Queue & Rate Limiting:**
+   - Decoupled event buffering to manage rate limits, handle connection retries, and ensure resilient ingestion without losing incoming publication bursts.
+3. **Data Lakehouse Architecture (Apache Iceberg + DuckDB):**
+   - **Immutable Raw Lake (`data/raw/`):** Preserves original PDFs, HTML dumps, and JSON payloads with cryptographic SHA-256 provenance manifests.
+   - **Analytical Lakehouse:** Uses **Apache Iceberg** table format (via PyIceberg) with **DuckDB** for ultra-fast columnar SQL queries, partition pruning, schema evolution, and historical time travel.
+4. **Data Mining Core (UTH Course Syllabus):**
+   - **Topic Modeling:** Discovering emerging research themes over time via LDA and BERTopic.
+   - **Association Rule Mining:** Extracting co-occurring research concepts, keywords, and methodologies via FP-Growth (`mlxtend`).
+   - **Cluster Analysis:** Partitioning research frontiers and author networks using K-Means and DBSCAN with formal Cluster Profiles.
+5. **Advanced RAG Engine:**
+   - Semantic text cleaning, formula/table handling, and sliding-window chunking.
+   - Hybrid retrieval combining dense semantic embeddings (Sentence-Transformers) and sparse lexical search (BM25) with cluster-aware reranking.
+
+---
+
+## 🏗️ 2. End-to-End System Architecture
 
 ```mermaid
-flowchart LR
-    subgraph DATA["Data Layer (src/data)"]
-        A1["transforms.py"] --> A2["dataloader.py"]
+flowchart TD
+    subgraph SOURCES["1. Multi-Source Harvesting"]
+        S1["arXiv Daily RSS / API (cs.AI, cs.LG, cs.CL, stat.ML)"]
+        S2["OpenAlex API (Citations, Authors, Venues)"]
+        S3["Web / PDF Harvester (HTML Proceedings, Full PDFs)"]
     end
 
-    subgraph MODEL["Model Layer (src/models)"]
-        B1["build_model.py"]
+    subgraph STREAM["2. Real-Time Streaming Ingestion"]
+        Q1["Streaming Event Buffer (Queue & Retry Manager)"]
+        Q2["Rate Limiter & Ingestion Deduplicator"]
     end
 
-    subgraph TRAIN["Training Layer (src/training) — scripts only"]
-        C1["<task>_train.py (CLI entry point)"]
-        C2["train_model.py (loop, full-state checkpoints, resume)"]
-        C3["run_logger.py (real-time progress, logs, JSONL)"]
+    subgraph STORAGE["3. Data Lakehouse Layer"]
+        L1[("Raw Lake (data/raw/)\nImmutable PDFs & JSON\nSHA-256 Manifests")]
+        L2[("Apache Iceberg Lakehouse\nParquet Tables + DuckDB\nACID, Time-Travel")]
     end
 
-    subgraph EVAL["Evaluation Layer (src/eval)"]
-        D1["evaluate_model.py"]
+    subgraph PREP["4. Preprocessing & Quality Audit"]
+        P1["Data Quality Audit (5 Dimensions)"]
+        P2["PDF Extraction & Text Normalization"]
+        P3["Semantic Chunking with Overlap"]
     end
 
-    subgraph EXP["Experiment Layer (src/experiments)"]
-        E1["experiment runners + analysis"]
+    subgraph MINING["5. Data Mining Core (UTH Syllabus)"]
+        M1["Topic Modeling (LDA / BERTopic)"]
+        M2["Association Rules (FP-Growth on Co-Keywords)"]
+        M3["Cluster Analysis (K-Means / DBSCAN + Profiles)"]
     end
 
-    subgraph OUT["Artifacts (experiments/)"]
-        F1["runs/<ts>_<run>/ checkpoints + logs + metrics"]
-        F2["results/ (JSON, NPZ) + plots/"]
+    subgraph RAG["6. Advanced RAG & Serving"]
+        R1[("Vector & Lexical Store\nDense Embeddings + BM25")]
+        R2["Mining-Augmented Context Retriever"]
+        R3["LLM Question-Answering & Synthesis Interface"]
     end
 
-    subgraph NB["Analysis (notebooks/) — demos & viz only"]
-        G1["<analysis>.ipynb"]
-    end
-
-    A2 --> B1 --> C1 --> C2 --> C3
-    C1 -->|"best/last checkpoints"| F1
-    C2 -->|"history JSONL + config"| F1
-    E1 -->|"loads checkpoints"| F1
-    E1 -->|"artifacts"| F2
-    D1 -->|"test metrics"| F2
-    NB -->|"reads artifacts"| F1
-    NB -->|"reads artifacts"| F2
-    NB -->|"references"| GOV["agents/ (constitutional rules)"]
+    S1 --> Q1
+    S2 --> Q1
+    S3 --> Q1
+    Q1 --> Q2
+    Q2 -->|"Tier 1: Metadata & Abstract"| L2
+    Q2 -->|"Tier 2: Raw Binary Payloads"| L1
+    L1 --> P2
+    L2 --> P1
+    P1 --> P2
+    P2 --> P3
+    P3 --> R1
+    P3 --> MINING
+    M1 --> R2
+    M2 --> R2
+    M3 --> R2
+    R1 --> R2
+    R2 --> R3
 ```
 
 Key engineering guarantees:
@@ -104,16 +144,18 @@ Uth-Data-Mining/
 │   └── config.yaml.example    # Configuration skeleton
 │
 ├── data/                      # Dataset assets (ignored in git)
-│   ├── raw/                   # Immutable raw inputs (never written by scripts)
+│   ├── raw/                   # Immutable raw inputs (papers/*.pdf, raw_html/, metadata/)
+│   ├── lakehouse/             # Apache Iceberg tables (metadata, chunks, metrics)
 │   └── processed/             # Cleaned splits and extracted features
 │
-├── src/                       # Maintained Python packages (or partitioned into tracks/)
-│   ├── data/                  # Loading, transforms, dataloaders
-│   ├── models/                # Neural network architectures
-│   ├── training/              # Script-only training entry points
-│   ├── eval/                  # Evaluation metrics & benchmark tables
-│   ├── experiments/           # One-shot experiment runners
-│   └── utils/                 # Logging, checkpoints, telemetry
+├── src/                       # Maintained Python packages
+│   ├── crawlers/              # Multi-source harvesters (arXiv RSS/API, OpenAlex)
+│   ├── streaming/             # Real-time event queue & ingestion consumers
+│   ├── storage/               # Apache Iceberg Lakehouse & raw vault management
+│   ├── processing/            # Quality audit, PDF text extraction & semantic chunking
+│   ├── mining/                # Topic modeling, association rules, clustering
+│   ├── rag/                   # Hybrid vector/lexical retrieval & LLM synthesis
+│   └── utils/                 # Logging, telemetry, checksums
 │
 ├── notebooks/                 # Exploratory analysis & demo notebooks (NEVER train)
 │
