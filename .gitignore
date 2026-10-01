@@ -8,14 +8,12 @@ build/
 .eggs/
 .kilo
 
-# Data — raw/processed/external data stays local
-/data/raw/
-/data/processed/
-/data/external/
-/data/*.tar.gz
-/data/*.zip
-/data/*.pt
-/data/*.json
+# Data — bronze/silver/gold stays local (except eval questions)
+/data/bronze/
+/data/silver/
+/data/gold/
+/data/eval/runs/
+!/data/eval/questions.jsonl
 
 # Experiment outputs (track plots, results & scripts; ignore heavy weights & DBs)
 /experiments/checkpoints/*.pt

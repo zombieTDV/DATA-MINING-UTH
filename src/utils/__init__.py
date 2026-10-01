@@ -1,1 +1,1 @@
-"""Utils layer: shared helpers (run_logger, checkpoint_utils, misc)."""
+"""Shared utilities: logging, configuration, checksums."""

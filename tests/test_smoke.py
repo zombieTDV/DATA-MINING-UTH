@@ -9,11 +9,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_src_packages_importable():
-    import src.data  # noqa: F401
+    import src.ingest  # noqa: F401
+    import src.graph  # noqa: F401
+    import src.trends  # noqa: F401
     import src.eval  # noqa: F401
-    import src.experiments  # noqa: F401
-    import src.models  # noqa: F401
-    import src.training  # noqa: F401
     import src.utils  # noqa: F401
 
 
@@ -22,20 +21,13 @@ def test_core_directories_exist():
         "agents/rules",
         "agents/templates",
         "configs",
-        "data/raw",
-        "data/processed",
-        "data/external",
+        "data/bronze",
+        "data/silver",
+        "data/gold",
+        "data/eval",
         "docs/phases",
-        "docs/progress",
-        "docs/experiments",
-        "docs/bugs",
         "docs/references",
-        "docs/shared",
         "notebooks",
-        "experiments/runs",
-        "experiments/results",
-        "experiments/plots",
-        "experiments/checkpoints",
         "requirements",
         "tests",
     ):
@@ -74,7 +66,6 @@ def test_documentation_files_exist():
         "agents/rules/CODEBASE_AUDIT.md",
         "agents/rules/NAMING_CONVENTION.md",
         "agents/rules/MD_CONVENTION.md",
-        "agents/rules/PYTORCH_FRAMEWORK_RULES.md",
         "agents/templates/SMOKE_TEST_CHECKLIST.md",
         "agents/templates/PROJECT_ROADMAP_TEMPLATE.md",
         "agents/templates/PHASE_DOC_TEMPLATE.md",
@@ -86,5 +77,6 @@ def test_documentation_files_exist():
         "requirements/dev.txt",
         "requirements.txt",
         "pyproject.toml",
+        "DECISIONS.md",
     ):
         assert (PROJECT_ROOT / rel).is_file(), f"missing file: {rel}"
