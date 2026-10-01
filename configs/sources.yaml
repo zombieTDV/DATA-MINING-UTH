@@ -1,0 +1,28 @@
+# OpenAlex collection configuration
+# See DECISIONS.md #10 for source selection rationale
+
+openalex:
+  base_url: "https://api.openalex.org/works"
+  user_agent: "UTH-DataMining-Student/1.0 (mailto:student@uth.edu.vn)"
+  filters:
+    # LLM-related topics in OpenAlex taxonomy
+    # OpenAlex uses a 4-level hierarchy: 4 domains → 26 fields → 252 subfields → 4,516 topics
+    topics:
+      - "large language model"
+      - "transformer"
+      - "attention mechanism"
+      - "natural language processing"
+    from_publication_date: "2017-06-01"  # "Attention Is All You Need" paper (June 2017)
+    language: "en"
+  max_papers: 10000
+  pilot_size: 200
+  rate_limit_delay_seconds: 0.5  # OpenAlex polite pool is generous with mailto header
+
+# Sampling strategy (DECISIONS.md #13)
+sampling:
+  stratify_by_year: true
+  min_papers_per_year: 100
+  note: >
+    OpenAlex covers broader venues than arXiv-only.
+    Still biased toward English-language, peer-reviewed publications.
+    Report sampling method and caveats with all trend outputs.
