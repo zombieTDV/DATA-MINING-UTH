@@ -1,8 +1,8 @@
 # UTH Data Mining: Graph-Based Trend Analysis of LLM Research Papers
 
-> **Đề tài:** *Khai thác dữ liệu nghiên cứu khoa học thời gian thực hướng tới xây dựng hệ thống truy xuất tri thức nâng cao (RAG) cho miền AI/DS.*  
-> **Course:** Data Mining (Trường Đại học Giao thông Vận tải TP.HCM — UTH)  
-> **Advisor / Instructor:** TS. Trần Thế Vinh  
+> **Đề tài:** *Khai thác dữ liệu nghiên cứu khoa học thời gian thực hướng tới xây dựng hệ thống truy xuất tri thức nâng cao (RAG) cho miền AI/DS.*
+> **Course:** Data Mining (Trường Đại học Giao thông Vận tải TP.HCM — UTH)
+> **Advisor / Instructor:** TS. Trần Thế Vinh
 
 - **Motivation/Background**: Academic publications in Large Language Models (LLMs) are accelerating exponentially across pre-training, fine-tuning, reasoning, and autonomous agents. This project implements an end-to-end data mining and retrieval system that harvests LLM research literature from OpenAlex, structures it into a Bronze/Silver/Gold Medallion architecture using Parquet and DuckDB, discovers macro research frontiers via citation networks, keyword co-occurrence, and FP-Growth association rules, and powers grounded hybrid retrieval via LanceDB.
 - **Purpose**: Serve as the canonical repository entry point, data mining architecture specification, Medallion data layout reference, and operational manual.
@@ -34,24 +34,25 @@ The primary objective is to automate the discovery, ingestion, graph mining, and
 ### Key Functional Pillars:
 
 1. **OpenAlex Literature Ingestion:**
+
    - **Target Domain:** Scientific papers in Large Language Models (LLMs) from 2017 to the present, focusing on training, alignment (RLHF, DPO), reasoning (CoT, search), and autonomous agents (English papers only).
    - **Polite Harvesting:** Direct integration with the OpenAlex REST API utilizing the polite pool (`User-Agent: mailto:...`) and exponential backoff to handle rate limits gracefully.
    - **Immutable Bronze Vault (`data/bronze/`):** Original JSON responses and open-access PDFs are stored without modification, accompanied by a cryptographic SHA-256 provenance manifest (`manifest.parquet`).
    - **Pilot-First Rollout:** Ingestion is validated on a 200-paper pilot before scaling to the full 10,000-paper corpus.
-
 2. **Graph-Based Trend Analysis (NetworkX):**
+
    - **Citation Networks:** Build directed citation graphs using NetworkX to calculate PageRank, in-degree centrality, citation velocity, and identify foundational seed literature.
    - **Keyword Co-occurrence Graphs:** Construct co-occurrence networks over extracted concepts and keywords to uncover thematic clusters and research paradigm shifts over time.
    - **Association Rule Mining:** Apply the FP-Growth algorithm (`mlxtend`) on co-occurring keywords/concepts to discover strong association rules between research methodologies and LLM subfields.
    - **Community Detection & Clustering:** Unsupervised partitioning of research frontiers without reliance on expensive LLM calls during core phases.
    - **Visualizations:** Interactive network graphs generated with PyVis, alongside static statistical charts with Matplotlib and Seaborn.
-
 3. **Columnar Trend Aggregation (DuckDB + Parquet):**
+
    - **Cleaned Tabular Data (`data/silver/`):** Deduplicated metadata and parsed sections stored in high-performance columnar Parquet files (`papers.parquet`, `citations.parquet`).
    - **DuckDB SQL Engine:** Lightning-fast embedded analytical queries executed directly over local Parquet files without external database overhead.
    - **Longitudinal Trend Tables (`data/gold/trends/`):** Pre-aggregated tables (`year_x_concept`, `year_x_venue`, etc.) capturing adoption trajectories, topic volumes, and author/institutional networks.
-
 4. **Advanced Hybrid RAG (LanceDB):**
+
    - **Embedded Vector Database:** High-performance vector storage and indexing using LanceDB, co-locating dense chunk vectors with full-text BM25 indexes.
    - **Hybrid Retrieval:** Multi-stage candidate retrieval combining dense semantic embeddings with sparse lexical search, fused using Reciprocal Rank Fusion (RRF).
    - **Dual-Path Serving:**
@@ -97,7 +98,7 @@ flowchart TD
     S2 --> B2
     B1 --> B3
     B2 --> B3
-    
+  
     B1 --> SV1
     B1 --> SV2
     B2 --> SV3
@@ -114,6 +115,7 @@ flowchart TD
 ```
 
 ### Architectural Guarantees:
+
 - **No LLM Extraction in Core Phases:** Primary trend mining relies strictly on deterministic graph algorithms (PageRank, FP-Growth, community detection) and DuckDB SQL. LLM-based structured extraction is an optional Phase 5+ enhancement.
 - **Strict Citation Verification:** Every claim generated in Retrieval Q&A must cite existing chunk and paper IDs verified against source text.
 - **Pilot-to-Scale Discipline:** All data transformations, schemas, and graph algorithms are benchmarked on a 200-paper pilot before processing the 10,000-paper corpus.
@@ -185,14 +187,14 @@ Uth-Data-Mining/
 
 ## 🗺️ 4. Six-Phase Engineering Roadmap
 
-| Phase | Name | Focus & Key Deliverables | Deliverable Artifacts | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **Phase 0** | Scope & Evaluation | Formalize LLM scope (2017–present), define OpenAlex search filters, author 20–30 benchmark evaluation questions (retrieval & trend), establish `src/eval/` harness | `docs/phases/00_SCOPE_AND_EVALUATION.md`, `eval/questions.jsonl` | **Active** |
-| **Phase 1** | OpenAlex Collection | Harvest OpenAlex metadata & citation edges; download PDFs; generate cryptographic `manifest.parquet`; validate 200-paper pilot before 10k scaling | `src/ingest/`, `data/bronze/manifest.parquet` | Planned |
-| **Phase 2** | Parsing & Chunking | Section-aware PDF parsing; exclude references from text; generate structure-aware chunks with contextual prefixes (`[Title]... [Year]...`) | `src/parse/`, `src/chunk/`, `data/silver/chunks.parquet` | Planned |
-| **Phase 3** | Graph Analysis & Trends | Construct NetworkX citation and co-occurrence graphs; mine association rules via FP-Growth (`mlxtend`); generate PyVis and Matplotlib/Seaborn visual assets | `src/graph/`, `src/trends/`, `data/gold/graphs/` | Planned |
-| **Phase 4** | Retrieval Baseline | Index chunks in LanceDB; implement dense semantic + sparse BM25 hybrid search; evaluate recall@k and MRR against benchmark questions | `src/embed/`, `data/gold/lancedb/` | Planned |
-| **Phase 5** | LLM Serving Layer | Implement dual-path serving: DuckDB SQL/Graph narration for trend queries and hybrid search with citation verification for paper Q&A; optional LLM paper fingerprint extraction | `src/serve/`, verification engine | Planned |
+| Phase             | Name                    | Focus & Key Deliverables                                                                                                                                                        | Deliverable Artifacts                                                | Status           |
+| :---------------- | :---------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------- | :--------------- |
+| **Phase 0** | Scope & Evaluation      | Formalize LLM scope (2017–present), define OpenAlex search filters, author 20–30 benchmark evaluation questions (retrieval & trend), establish`src/eval/` harness           | `docs/phases/00_SCOPE_AND_EVALUATION.md`, `eval/questions.jsonl` | **Active** |
+| **Phase 1** | OpenAlex Collection     | Harvest OpenAlex metadata & citation edges; download PDFs; generate cryptographic`manifest.parquet`; validate 200-paper pilot before 10k scaling                              | `src/ingest/`, `data/bronze/manifest.parquet`                    | Planned          |
+| **Phase 2** | Parsing & Chunking      | Section-aware PDF parsing; exclude references from text; generate structure-aware chunks with contextual prefixes (`[Title]... [Year]...`)                                    | `src/parse/`, `src/chunk/`, `data/silver/chunks.parquet`       | Planned          |
+| **Phase 3** | Graph Analysis & Trends | Construct NetworkX citation and co-occurrence graphs; mine association rules via FP-Growth (`mlxtend`); generate PyVis and Matplotlib/Seaborn visual assets                   | `src/graph/`, `src/trends/`, `data/gold/graphs/`               | Planned          |
+| **Phase 4** | Retrieval Baseline      | Index chunks in LanceDB; implement dense semantic + sparse BM25 hybrid search; evaluate recall@k and MRR against benchmark questions                                            | `src/embed/`, `data/gold/lancedb/`                               | Planned          |
+| **Phase 5** | LLM Serving Layer       | Implement dual-path serving: DuckDB SQL/Graph narration for trend queries and hybrid search with citation verification for paper Q&A; optional LLM paper fingerprint extraction | `src/serve/`, verification engine                                  | Planned          |
 
 ---
 

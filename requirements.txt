@@ -1,18 +1,44 @@
 # ==============================================================================
-# Deep Learning Template — Requirements Proxy
+# UTH Data Mining: Graph-Based Trend Analysis & Hybrid Graph-RAG
 # ==============================================================================
-# This proxy file references the tiered development environment.
+# Unified requirements for data mining, graph modeling, full-text parsing,
+# vector search, and evaluation pipelines.
 #
-# Standard Installation (CPU / GitHub Actions CI / Default PyPI wheels):
+# Usage:
 #   pip install -r requirements.txt
-#
-# NVIDIA GPU Workstations:
-#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 # or matching CUDA
-#   pip install -r requirements.txt
-#
-# Tiered Structure:
-#   requirements/base.txt -> Core scientific & PyTorch stack
-#   requirements/dev.txt  -> Developer, linting, and testing suite
 # ==============================================================================
 
--r requirements/dev.txt
+# Core Data Processing & Tabular Storage
+pandas>=2.2.0
+numpy>=2.0.0
+pyarrow>=15.0.0
+duckdb>=1.0.0
+
+# Graph Analytics & Network Mining
+networkx>=3.2.0
+pyvis>=0.3.2
+mlxtend>=0.23.0
+
+# Scientific & Visual Analytics
+matplotlib>=3.8.0
+seaborn>=0.13.0
+scikit-learn>=1.4.0
+scipy>=1.12.0
+
+# Ingestion & Document Processing
+requests>=2.31.0
+pdfplumber>=0.11.0
+pillow>=10.0.0
+pyyaml>=6.0.0
+
+# Vector Engine & Hybrid Graph-RAG
+torch>=2.2.0
+sentence-transformers>=3.0.0
+lancedb>=0.13.0
+google-genai>=1.0.0
+
+# Developer, Linting & Testing Suite
+pytest>=8.0.0
+ruff>=0.5.0
+mypy>=1.10.0
+tabulate>=0.9.0
