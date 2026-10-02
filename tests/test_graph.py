@@ -152,7 +152,11 @@ def test_network_visualizer_static_export(tmp_path: Path):
     assert '"enabled": false' in html_content
     assert '"x":' in html_content
     assert '"y":' in html_content
+    assert '"rank":' in html_content
     assert 'id="graph-controls"' in html_content
     assert 'btn-fit-view' in html_content
     assert 'btn-toggle-physics' in html_content
+    assert 'node-slider' in html_content
+    assert 'btn-depth' in html_content
+
 

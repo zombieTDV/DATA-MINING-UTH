@@ -1,4 +1,4 @@
-"""src/graph/visualizer.py — Interactive PyVis HTML Graph Visualizations with Deterministic Static Layout."""
+"""src/graph/visualizer.py — Interactive PyVis HTML Graph Visualizations with Deterministic Static Layout, Highlighting & Filtering."""
 from __future__ import annotations
 
 import logging
@@ -20,20 +20,22 @@ COMMUNITY_COLORS = [
 class NetworkVisualizer:
     """
     Exports interactive NetworkX graphs into standalone HTML files via PyVis.
-    Pre-computes deterministic (x, y) coordinates using NetworkX spring layout in Python
-    and disables browser physics simulation (physics: {enabled: false}) to ensure
-    the graph renders instantly, stays 100% static, and eliminates center-clustering jitter.
+    - Pre-computes deterministic (x, y) coordinates using NetworkX spring layout in Python
+      with increased spacing (k=3.2/sqrt(N)) across an expanded canvas to eliminate center-clustering.
+    - Disables browser physics simulation (physics: false) for instantaneous rendering and static stability.
+    - Interactive click-to-highlight with neighborhood focus (1-hop direct or 2-hop indirect)
+      while fading unconnected elements into low opacity.
+    - Dynamic top-N slider filter to adjust visible nodes in real time.
     """
 
     def __init__(self, output_dir: Path | str = "data/gold/graphs"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def _post_process_html(self, target_path: Path, title: str, stats_subtitle: str) -> None:
+    def _post_process_html(self, target_path: Path, title: str, total_nodes: int, entity_label: str) -> None:
         """
-        Enhance generated PyVis HTML:
-        1. Expose `window.network = network;` for console and UI interaction.
-        2. Inject a floating UI control toolbar with Fit View, Physics Toggle, and instructions.
+        Enhance generated PyVis HTML with interactive neighborhood highlighting,
+        connection depth toggle (1-hop vs 2-hop), node count slider, and fit-view controls.
         """
         if not target_path.exists():
             return
@@ -47,91 +49,322 @@ class NetworkVisualizer:
         if target_needle in html:
             html = html.replace(target_needle, replacement, 1)
 
-        # Inject modern floating toolbar
+        min_nodes = min(15, total_nodes)
+
+        # Inject modern floating toolbar with interactive slider & depth toggle
         toolbar_html = f"""
     <div id="graph-controls" style="
         position: fixed;
         top: 16px;
         right: 16px;
-        background: rgba(255, 255, 255, 0.96);
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 12px 16px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        background: rgba(255, 255, 255, 0.97);
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 14px 16px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 13px;
         z-index: 9999;
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        min-width: 230px;
+        gap: 10px;
+        min-width: 250px;
     ">
-        <div style="font-weight: 700; color: #1e293b; font-size: 14px;">{title}</div>
-        <div style="font-size: 11px; color: #64748b;">{stats_subtitle}</div>
-        <div style="display: flex; gap: 8px; margin-top: 4px;">
+        <div style="font-weight: 700; color: #0f172a; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+            {title}
+        </div>
+
+        <!-- Node Count Slider -->
+        <div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 3px;">
+                <span>Display Top {entity_label}:</span>
+                <span id="slider-count-label" style="color: #2563eb;">{total_nodes} / {total_nodes}</span>
+            </div>
+            <input type="range" id="node-slider" min="{min_nodes}" max="{total_nodes}" value="{total_nodes}" step="5" style="width: 100%; cursor: pointer;">
+        </div>
+
+        <!-- Action Buttons: Depth Toggle & Fit View -->
+        <div style="display: flex; gap: 6px;">
+            <button id="btn-depth" style="
+                flex: 1.2;
+                background: #f1f5f9;
+                color: #1e293b;
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                padding: 6px 8px;
+                cursor: pointer;
+                font-size: 11px;
+                font-weight: 600;
+            ">Depth: Direct (1-hop)</button>
             <button id="btn-fit-view" style="
-                flex: 1;
-                background: #3b82f6;
+                flex: 0.8;
+                background: #2563eb;
                 color: white;
                 border: none;
                 border-radius: 6px;
-                padding: 7px 10px;
+                padding: 6px 8px;
                 cursor: pointer;
-                font-weight: 500;
-                font-size: 12px;
+                font-size: 11px;
+                font-weight: 600;
             ">Fit View</button>
-            <button id="btn-toggle-physics" style="
-                flex: 1;
-                background: #f1f5f9;
-                color: #334155;
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                padding: 7px 10px;
-                cursor: pointer;
-                font-weight: 500;
-                font-size: 12px;
-            ">Relax Graph</button>
         </div>
-        <div style="border-top: 1px solid #e2e8f0; padding-top: 6px; font-size: 11px; color: #64748b; line-height: 1.4;">
-            • <b>Static by default</b> (zero jitter/bounce)<br>
-            • Drag any node freely to reposition<br>
-            • Hover for bibliometric metadata<br>
-            • Scroll mousewheel to zoom
+
+        <!-- Optional Physics Relax Toggle -->
+        <button id="btn-toggle-physics" style="
+            background: #f8fafc;
+            color: #475569;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 11px;
+        ">Relax Graph (Physics)</button>
+
+        <!-- Selection / Status Hint -->
+        <div id="selection-status" style="border-top: 1px solid #e2e8f0; padding-top: 6px; font-size: 11px; color: #64748b; line-height: 1.4;">
+            • <b>Click any node</b> to highlight connections & fade others<br>
+            • Click empty canvas to reset selection<br>
+            • Drag slider to filter top nodes
         </div>
     </div>
     <script>
     (function() {{
-        var physicsActive = false;
-        var btnToggle = document.getElementById('btn-toggle-physics');
+        var highlightDepth = 1; // 1 = Direct (1-hop), 2 = Indirect (2-hop)
+        var selectedNodeId = null;
+        var maxRank = {total_nodes};
+        var totalNodesCount = {total_nodes};
+
+        var slider = document.getElementById('node-slider');
+        var sliderLabel = document.getElementById('slider-count-label');
+        var btnDepth = document.getElementById('btn-depth');
         var btnFit = document.getElementById('btn-fit-view');
+        var btnPhysics = document.getElementById('btn-toggle-physics');
+        var statusText = document.getElementById('selection-status');
 
-        btnToggle.addEventListener('click', function() {{
-            physicsActive = !physicsActive;
-            if (window.network) {{
-                window.network.setOptions({{
-                    physics: {{
-                        enabled: physicsActive,
-                        solver: "forceAtlas2Based",
-                        forceAtlas2Based: {{
-                            gravitationalConstant: -60,
-                            centralGravity: 0.008,
-                            springLength: 100,
-                            damping: 0.85,
-                            avoidOverlap: 0.8
+        var originalNodes = {{}};
+        var originalEdges = {{}};
+
+        function initCache() {{
+            if (!window.nodes || !window.edges) {{
+                setTimeout(initCache, 50);
+                return;
+            }}
+            window.nodes.forEach(function(n) {{
+                originalNodes[n.id] = {{
+                    color: n.color,
+                    font: n.font ? JSON.parse(JSON.stringify(n.font)) : {{ size: 11, color: '#1e293b' }},
+                    borderWidth: n.borderWidth || 1,
+                    rank: n.rank !== undefined ? n.rank : 999
+                }};
+            }});
+            window.edges.forEach(function(e) {{
+                originalEdges[e.id] = {{
+                    color: e.color ? JSON.parse(JSON.stringify(e.color)) : {{ color: '#cbd5e1', opacity: 0.45 }},
+                    width: e.width || 1
+                }};
+            }});
+            setupEvents();
+        }}
+
+        function setupEvents() {{
+            // Slider filter
+            slider.addEventListener('input', function() {{
+                maxRank = parseInt(this.value, 10);
+                sliderLabel.textContent = maxRank + " / " + totalNodesCount;
+                applyFilterAndHighlight();
+            }});
+
+            // Depth toggle
+            btnDepth.addEventListener('click', function() {{
+                highlightDepth = (highlightDepth === 1) ? 2 : 1;
+                btnDepth.textContent = (highlightDepth === 1) ? "Depth: Direct (1-hop)" : "Depth: Indirect (2-hop)";
+                btnDepth.style.background = (highlightDepth === 2) ? "#e0e7ff" : "#f1f5f9";
+                btnDepth.style.color = (highlightDepth === 2) ? "#4338ca" : "#1e293b";
+                applyFilterAndHighlight();
+            }});
+
+            // Fit view
+            btnFit.addEventListener('click', function() {{
+                if (window.network) {{
+                    window.network.fit({{ animation: {{ duration: 500, easingFunction: 'easeInOutQuad' }} }});
+                }}
+            }});
+
+            // Physics relax toggle
+            var physicsActive = false;
+            btnPhysics.addEventListener('click', function() {{
+                physicsActive = !physicsActive;
+                if (window.network) {{
+                    window.network.setOptions({{
+                        physics: {{
+                            enabled: physicsActive,
+                            solver: "forceAtlas2Based",
+                            forceAtlas2Based: {{
+                                gravitationalConstant: -60,
+                                centralGravity: 0.008,
+                                springLength: 100,
+                                damping: 0.85,
+                                avoidOverlap: 0.8
+                            }}
                         }}
-                    }}
-                }});
-            }}
-            btnToggle.textContent = physicsActive ? "Freeze Layout" : "Relax Graph";
-            btnToggle.style.background = physicsActive ? "#ef4444" : "#f1f5f9";
-            btnToggle.style.color = physicsActive ? "#ffffff" : "#334155";
-        }});
+                    }});
+                }}
+                btnPhysics.textContent = physicsActive ? "Freeze Layout" : "Relax Graph (Physics)";
+                btnPhysics.style.background = physicsActive ? "#fee2e2" : "#f8fafc";
+                btnPhysics.style.color = physicsActive ? "#b91c1c" : "#475569";
+            }});
 
-        btnFit.addEventListener('click', function() {{
-            if (window.network) {{
-                window.network.fit({{ animation: {{ duration: 600, easingFunction: 'easeInOutQuad' }} }});
+            // Network click for highlight / fade
+            window.network.on("click", function(params) {{
+                if (params.nodes && params.nodes.length > 0) {{
+                    selectedNodeId = params.nodes[0];
+                }} else {{
+                    selectedNodeId = null;
+                }}
+                applyFilterAndHighlight();
+            }});
+        }}
+
+        function applyFilterAndHighlight() {{
+            var visibleNodeIds = new Set();
+            var nodeUpdates = [];
+            var edgeUpdates = [];
+
+            // 1. Identify which nodes pass the rank slider filter
+            window.nodes.forEach(function(n) {{
+                var orig = originalNodes[n.id];
+                if (orig && orig.rank <= maxRank) {{
+                    visibleNodeIds.add(n.id);
+                }}
+            }});
+
+            // 2. If a node is selected, compute connected set
+            var highlightedNodeIds = new Set();
+            var highlightedEdgeIds = new Set();
+
+            if (selectedNodeId && visibleNodeIds.has(selectedNodeId)) {{
+                highlightedNodeIds.add(selectedNodeId);
+
+                // 1st-hop connections
+                var hop1Nodes = window.network.getConnectedNodes(selectedNodeId);
+                var hop1Edges = window.network.getConnectedEdges(selectedNodeId);
+
+                hop1Nodes.forEach(function(nid) {{
+                    if (visibleNodeIds.has(nid)) highlightedNodeIds.add(nid);
+                }});
+                hop1Edges.forEach(function(eid) {{
+                    highlightedEdgeIds.add(eid);
+                }});
+
+                // 2nd-hop (indirect connections) if depth === 2
+                if (highlightDepth === 2) {{
+                    hop1Nodes.forEach(function(hop1Id) {{
+                        if (visibleNodeIds.has(hop1Id)) {{
+                            var hop2Nodes = window.network.getConnectedNodes(hop1Id);
+                            var hop2Edges = window.network.getConnectedEdges(hop1Id);
+                            hop2Nodes.forEach(function(nid) {{
+                                if (visibleNodeIds.has(nid)) highlightedNodeIds.add(nid);
+                            }});
+                            hop2Edges.forEach(function(eid) {{
+                                highlightedEdgeIds.add(eid);
+                            }});
+                        }}
+                    }});
+                }}
+
+                var connCount = highlightedNodeIds.size - 1;
+                statusText.innerHTML = "<b>Focus:</b> Selected + " + connCount + " connection(s) (" + (highlightDepth === 1 ? "1-hop" : "2-hop") + ")<br>Click background to reset selection.";
+            }} else {{
+                selectedNodeId = null;
+                statusText.innerHTML = "• <b>Click any node</b> to highlight connections & fade others<br>• Use slider to filter top nodes";
             }}
-        }});
+
+            // 3. Apply updates to nodes
+            window.nodes.forEach(function(n) {{
+                var isVisible = visibleNodeIds.has(n.id);
+                var orig = originalNodes[n.id] || {{}};
+
+                if (!isVisible) {{
+                    nodeUpdates.push({{ id: n.id, hidden: true }});
+                }} else if (selectedNodeId) {{
+                    // Highlighting active: check if in highlight set
+                    if (highlightedNodeIds.has(n.id)) {{
+                        var isCenter = (n.id === selectedNodeId);
+                        nodeUpdates.push({{
+                            id: n.id,
+                            hidden: false,
+                            color: orig.color,
+                            font: {{ color: isCenter ? '#0f172a' : '#334155', size: isCenter ? 13 : 11 }},
+                            borderWidth: isCenter ? 4 : 2,
+                            opacity: 1.0
+                        }});
+                    }} else {{
+                        // Fade out non-connected nodes!
+                        nodeUpdates.push({{
+                            id: n.id,
+                            hidden: false,
+                            color: {{
+                                background: 'rgba(203, 213, 225, 0.22)',
+                                border: 'rgba(148, 163, 184, 0.25)'
+                            }},
+                            font: {{ color: 'rgba(148, 163, 184, 0.25)' }},
+                            borderWidth: 1,
+                            opacity: 0.15
+                        }});
+                    }}
+                }} else {{
+                    // Normal state: full visibility
+                    nodeUpdates.push({{
+                        id: n.id,
+                        hidden: false,
+                        color: orig.color,
+                        font: orig.font,
+                        borderWidth: orig.borderWidth || 1,
+                        opacity: 1.0
+                    }});
+                }}
+            }});
+
+            // 4. Apply updates to edges
+            window.edges.forEach(function(e) {{
+                var fromVisible = visibleNodeIds.has(e.from);
+                var toVisible = visibleNodeIds.has(e.to);
+                var orig = originalEdges[e.id] || {{}};
+
+                if (!fromVisible || !toVisible) {{
+                    edgeUpdates.push({{ id: e.id, hidden: true }});
+                }} else if (selectedNodeId) {{
+                    if (highlightedEdgeIds.has(e.id)) {{
+                        edgeUpdates.push({{
+                            id: e.id,
+                            hidden: false,
+                            color: {{ color: '#2563eb', opacity: 0.85 }},
+                            width: 2.2
+                        }});
+                    }} else {{
+                        // Fade out non-connected edges!
+                        edgeUpdates.push({{
+                            id: e.id,
+                            hidden: false,
+                            color: {{ color: 'rgba(226, 232, 240, 0.08)', opacity: 0.08 }},
+                            width: 0.5
+                        }});
+                    }}
+                }} else {{
+                    edgeUpdates.push({{
+                        id: e.id,
+                        hidden: false,
+                        color: orig.color,
+                        width: orig.width || 1
+                    }});
+                }}
+            }});
+
+            window.nodes.update(nodeUpdates);
+            window.edges.update(edgeUpdates);
+        }}
+
+        initCache();
     }})();
     </script>
     """
@@ -148,8 +381,12 @@ class NetworkVisualizer:
         Export citation network with:
         - Node sizing proportional to PageRank
         - Node coloring by Louvain community cluster
+        - Clean paper title hover tooltips (name only)
         - Pre-computed deterministic (x, y) coordinates via NetworkX spring layout
+        - Expanded canvas (2200x1700, k=3.2/sqrt(N)) for wide, non-clumping node separation
         - Disabled browser physics (physics: false) for a static, jitter-free view
+        - Interactive click-to-highlight (1-hop / 2-hop) with background fading
+        - Dynamic top-N slider filter
         """
         target = self.output_dir / filename
 
@@ -163,24 +400,25 @@ class NetworkVisualizer:
             logger.warning("Citation graph is empty. Skipping HTML export.")
             return target
 
-        # 1. Pre-compute deterministic spring layout in Python
-        k_dist = 1.8 / math.sqrt(max(1, G.number_of_nodes()))
+        # 1. Rank papers by PageRank (1 = highest) for slider filter
+        ranked_df = metrics_df.sort_values(by="pagerank", ascending=False).reset_index(drop=True) if not metrics_df.empty else pd.DataFrame()
+        rank_lookup = {row["paper_id"]: i + 1 for i, row in ranked_df.iterrows()} if not ranked_df.empty else {}
+
+        # 2. Pre-compute deterministic spring layout with expanded spacing (k=3.2/sqrt(N), 2200x1700)
+        k_dist = 3.2 / math.sqrt(max(1, G.number_of_nodes()))
         pos = nx.spring_layout(G, k=k_dist, iterations=150, seed=42)
-        SCALE_X, SCALE_Y = 1400, 1100
+        SCALE_X, SCALE_Y = 2200, 1700
 
         net = Network(height="850px", width="100%", bgcolor="#ffffff", font_color="#333333", directed=True)
 
-        # Build lookup for metrics by paper_id
         metrics_lookup = metrics_df.set_index("paper_id").to_dict(orient="index") if not metrics_df.empty else {}
 
         for n in G.nodes():
             m = metrics_lookup.get(n, {})
             title_text = m.get("title") or G.nodes[n].get("title", str(n))
-            year = m.get("year", G.nodes[n].get("year", ""))
-            cites = m.get("citation_count", G.nodes[n].get("citation_count", 0))
             pr = m.get("pagerank", 0.0)
             comm_id = m.get("community_id", 0)
-            comm_label = m.get("community_label", "Cluster")
+            rank = rank_lookup.get(n, 999)
 
             color = COMMUNITY_COLORS[comm_id % len(COMMUNITY_COLORS)] if comm_id >= 0 else "#aaaaaa"
             node_size = max(12, min(50, 12 + (pr * 500)))
@@ -188,19 +426,18 @@ class NetworkVisualizer:
             x = float(pos[n][0] * SCALE_X)
             y = float(pos[n][1] * SCALE_Y)
 
-            tooltip = str(title_text)
-
             label = f"{title_text[:25]}..." if len(title_text) > 25 else title_text
 
             net.add_node(
                 n,
                 label=label,
-                title=tooltip,
+                title=str(title_text),
                 color=color,
                 size=node_size,
                 shape="dot",
                 x=x,
                 y=y,
+                rank=rank,
                 font={"size": 11, "face": "Arial", "color": "#1e293b"}
             )
 
@@ -237,8 +474,7 @@ var options = {
         net.set_options(options_js)
         net.save_graph(str(target))
 
-        stats_sub = f"{G.number_of_nodes()} Papers • {G.number_of_edges()} Citations"
-        self._post_process_html(target, "Citation Network", stats_sub)
+        self._post_process_html(target, "Citation Network", G.number_of_nodes(), "Papers")
 
         logger.info("Saved static interactive citation network HTML to %s (%d nodes)", target, G.number_of_nodes())
         return target
@@ -254,8 +490,12 @@ var options = {
         Export top-k keyword co-occurrence network with:
         - Node sizing proportional to keyword occurrence frequency
         - Edge widths proportional to co-occurrence frequency
+        - Clean keyword name hover tooltips
         - Pre-computed deterministic (x, y) coordinates via NetworkX spring layout
+        - Expanded canvas (1800x1400, k=3.5/sqrt(N)) for wide separation
         - Disabled browser physics (physics: false) for a static, jitter-free view
+        - Interactive click-to-highlight (1-hop / 2-hop) with background fading
+        - Dynamic top-N slider filter
         """
         target = self.output_dir / filename
 
@@ -275,10 +515,14 @@ var options = {
         if subgraph.number_of_nodes() == 0:
             return target
 
-        # 1. Pre-compute deterministic spring layout in Python
-        k_dist = 2.0 / math.sqrt(max(1, subgraph.number_of_nodes()))
+        # 1. Rank keywords by weighted degree (1 = highest) for slider filter
+        ranked_kw = metrics_df.head(top_k).sort_values(by="weighted_degree", ascending=False).reset_index(drop=True)
+        rank_lookup = {row["keyword"]: i + 1 for i, row in ranked_kw.iterrows()}
+
+        # 2. Pre-compute deterministic spring layout with expanded spacing (k=3.5/sqrt(N), 1800x1400)
+        k_dist = 3.5 / math.sqrt(max(1, subgraph.number_of_nodes()))
         pos = nx.spring_layout(subgraph, k=k_dist, iterations=150, seed=42)
-        SCALE_X, SCALE_Y = 1200, 900
+        SCALE_X, SCALE_Y = 1800, 1400
 
         net = Network(height="850px", width="100%", bgcolor="#ffffff", font_color="#333333", directed=False)
         metrics_lookup = metrics_df.set_index("keyword").to_dict(orient="index")
@@ -286,8 +530,8 @@ var options = {
         for n in subgraph.nodes():
             m = metrics_lookup.get(n, {})
             freq = m.get("frequency", 1)
-            deg = m.get("weighted_degree", 1)
             comm_id = m.get("community_id", 0)
+            rank = rank_lookup.get(n, 999)
 
             color = COMMUNITY_COLORS[comm_id % len(COMMUNITY_COLORS)] if comm_id >= 0 else "#aaaaaa"
             node_size = max(12, min(45, 12 + (freq * 1.5)))
@@ -295,17 +539,16 @@ var options = {
             x = float(pos[n][0] * SCALE_X)
             y = float(pos[n][1] * SCALE_Y)
 
-            tooltip = str(n)
-
             net.add_node(
                 n,
                 label=n,
-                title=tooltip,
+                title=str(n),
                 color=color,
                 size=node_size,
                 shape="dot",
                 x=x,
                 y=y,
+                rank=rank,
                 font={"size": 11, "face": "Arial", "color": "#1e293b"}
             )
 
@@ -342,8 +585,7 @@ var options = {
         net.set_options(options_js)
         net.save_graph(str(target))
 
-        stats_sub = f"Top {subgraph.number_of_nodes()} Terms • {subgraph.number_of_edges()} Co-occurrences"
-        self._post_process_html(target, "Keyword Co-occurrence Network", stats_sub)
+        self._post_process_html(target, "Keyword Co-occurrence Network", subgraph.number_of_nodes(), "Keywords")
 
         logger.info("Saved static interactive keyword network HTML to %s (%d nodes)", target, subgraph.number_of_nodes())
         return target
