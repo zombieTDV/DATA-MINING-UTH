@@ -10,12 +10,19 @@ build/
 
 # Data — raw/processed/external data stays local
 /data/raw/
+/data/silver/
+/data/gold/
+/data/manifests/
 /data/processed/
 /data/external/
 /data/*.tar.gz
 /data/*.zip
 /data/*.pt
 /data/*.json
+/data/*.parquet
+
+# Downloaded Pre-trained Models
+/models/
 
 # Experiment outputs (track plots, results & scripts; ignore heavy weights & DBs)
 /experiments/checkpoints/*.pt
