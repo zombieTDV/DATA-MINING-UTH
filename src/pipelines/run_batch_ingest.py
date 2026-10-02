@@ -40,13 +40,19 @@ def main():
     parser.add_argument(
         "--delay",
         type=float,
-        default=settings.ARXIV_REQUEST_DELAY_SECONDS,
-        help=f"Thoi gian nghi (giay) giua cac request API de tuan thu rate limit (mac dinh: {settings.ARXIV_REQUEST_DELAY_SECONDS}s).",
+        default=10.0,
+        help="Thoi gian nghi (giay) giua cac trang OAI-PMH (mac dinh: 10.0s).",
+    )
+    parser.add_argument(
+        "--from-date",
+        type=str,
+        default="2024-01-01",
+        help="Moc thoi gian bat dau lay bai bao (mac dinh: 2024-01-01).",
     )
     parser.add_argument(
         "--reset-checkpoint",
         action="store_true",
-        help="Bo qua checkpoint cu va bat dau cao moi tu offset 0.",
+        help="Bo qua checkpoint cu va bat dau cao moi.",
     )
     args = parser.parse_args()
 
@@ -54,7 +60,7 @@ def main():
     logger, log_file = setup_pipeline_logging(pipeline_name="batch_ingest")
 
     print("=" * 80)
-    print("[PIPELINE] BAT DAU PHASE 1: THU THAP BATCH QUY MO LON (ARXIV -> BRONZE & SILVER LAKEHOUSE)")
+    print("[PIPELINE] BAT DAU PHASE 1: THU THAP BATCH QUY MO LON (ARXIV OAI-PMH -> BRONZE & SILVER LAKEHOUSE)")
     print(f"[LOG_FILE] Nhat ky chi tiet: {log_file}")
     print("=" * 80)
 
@@ -72,7 +78,7 @@ def main():
         total_target=args.target,
         batch_size=args.batch_size,
         reset_checkpoint=args.reset_checkpoint,
-        sync_silver_every_n_batches=5,  # Cu 500 bai thi cap nhat Silver Parquet 1 lan
+        from_date=args.from_date,
     )
 
     duration = time.time() - start_time
