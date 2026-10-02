@@ -37,14 +37,20 @@ class SilverLakehouseWriter:
             full_text_parts.append(f"\n## {s['section_title']}\n{s['content']}")
         clean_full_text = "\n\n".join(full_text_parts)
 
-        categories = raw_meta.get("categories", [])
-        primary_cat = categories[0] if categories else "unknown"
+        raw_cats = raw_meta.get("categories", [])
+        categories = list(raw_cats) if hasattr(raw_cats, "__iter__") and not isinstance(raw_cats, (str, bytes)) else [str(raw_cats)]
+        primary_cat = raw_meta.get("primary_category") or (categories[0] if len(categories) > 0 else "unknown")
+
+        raw_authors = raw_meta.get("authors", [])
+        authors = list(raw_authors) if hasattr(raw_authors, "__iter__") and not isinstance(raw_authors, (str, bytes)) else [str(raw_authors)]
 
         return {
             "paper_id": str(paper_id),
+            "doi": str(raw_meta.get("doi")) if raw_meta.get("doi") else None,
+            "journal_ref": str(raw_meta.get("journal_ref")) if raw_meta.get("journal_ref") else None,
             "title": str(title),
             "abstract": str(abstract),
-            "authors": [str(a) for a in raw_meta.get("authors", [])],
+            "authors": [str(a) for a in authors],
             "categories": [str(c) for c in categories],
             "primary_category": str(primary_cat),
             "published_date": str(raw_meta.get("published_date", "")),
@@ -74,6 +80,8 @@ class SilverLakehouseWriter:
         schema = pa.schema(
             [
                 ("paper_id", pa.string()),
+                ("doi", pa.string()),
+                ("journal_ref", pa.string()),
                 ("title", pa.string()),
                 ("abstract", pa.string()),
                 ("authors", pa.list_(pa.string())),
