@@ -49,8 +49,47 @@ class NetworkVisualizer:
         if target_needle in html:
             html = html.replace(target_needle, replacement, 1)
 
+        # 1. Transform raw dataset definitions so Vis.js does not instantiate 10k nodes and 86k edges in canvas at once
+        html = html.replace("nodes = new vis.DataSet(", "window.ALL_RAW_NODES = (", 1)
+        html = html.replace("edges = new vis.DataSet(", "window.ALL_RAW_EDGES = (", 1)
+
         min_nodes = min(15, total_nodes)
         initial_count = min(300, total_nodes)
+
+        windowing_init = f"""
+                  // Dynamic Subgraph Windowing (Initial Top-{initial_count})
+                  var initLimit = Math.min({initial_count}, window.ALL_RAW_NODES.length);
+                  var initActiveIds = new Set();
+                  var initNodesList = [];
+                  window.ALL_RAW_NODES.forEach(function(n) {{
+                      if ((n.rank !== undefined ? n.rank : 99999) <= initLimit) {{
+                          initActiveIds.add(n.id);
+                          initNodesList.push(n);
+                      }}
+                  }});
+
+                  var edgeIdCounter = 0;
+                  window.ALL_RAW_EDGES.forEach(function(e) {{
+                      if (!e.id) {{
+                          e.id = "e_" + (++edgeIdCounter);
+                      }}
+                  }});
+
+                  var initEdgesList = [];
+                  window.ALL_RAW_EDGES.forEach(function(e) {{
+                      if (initActiveIds.has(e.from) && initActiveIds.has(e.to)) {{
+                          initEdgesList.push(e);
+                      }}
+                  }});
+
+                  nodes = new vis.DataSet(initNodesList);
+                  edges = new vis.DataSet(initEdgesList);
+                  window.nodes = nodes;
+                  window.edges = edges;
+                  data = {{nodes: nodes, edges: edges}};
+"""
+        if "data = {nodes: nodes, edges: edges};" in html:
+            html = html.replace("data = {nodes: nodes, edges: edges};", windowing_init, 1)
 
         # Inject modern floating toolbar with interactive slider & depth toggle
         toolbar_html = f"""
@@ -142,38 +181,56 @@ class NetworkVisualizer:
         var btnPhysics = document.getElementById('btn-toggle-physics');
         var statusText = document.getElementById('selection-status');
 
+        var rawNodesMap = {{}};
         var originalNodes = {{}};
         var originalEdges = {{}};
+        var nodeNeighbors = {{}};
+        var adjEdges = {{}};
 
         function initCache() {{
-            if (!window.nodes || !window.edges) {{
+            if (!window.ALL_RAW_NODES || !window.ALL_RAW_EDGES || !window.network || !window.nodes || !window.edges) {{
                 setTimeout(initCache, 50);
                 return;
             }}
-            window.nodes.forEach(function(n) {{
+            window.ALL_RAW_NODES.forEach(function(n) {{
+                rawNodesMap[n.id] = n;
+                nodeNeighbors[n.id] = new Set();
+                adjEdges[n.id] = [];
                 originalNodes[n.id] = {{
                     color: n.color,
                     font: n.font ? JSON.parse(JSON.stringify(n.font)) : {{ size: 11, color: '#1e293b' }},
                     borderWidth: n.borderWidth || 1,
-                    rank: n.rank !== undefined ? n.rank : 999
+                    rank: (n.rank !== undefined ? n.rank : 99999)
                 }};
             }});
-            window.edges.forEach(function(e) {{
+
+            window.ALL_RAW_EDGES.forEach(function(e) {{
                 originalEdges[e.id] = {{
                     color: e.color ? JSON.parse(JSON.stringify(e.color)) : {{ color: '#cbd5e1', opacity: 0.45 }},
                     width: e.width || 1
                 }};
+                if (nodeNeighbors[e.from] && nodeNeighbors[e.to]) {{
+                    nodeNeighbors[e.from].add(e.to);
+                    nodeNeighbors[e.to].add(e.from);
+                    adjEdges[e.from].push(e);
+                    adjEdges[e.to].push(e);
+                }}
             }});
+
             setupEvents();
             applyFilterAndHighlight();
         }}
 
+        var rafId = null;
         function setupEvents() {{
-            // Slider filter
+            // Slider filter with requestAnimationFrame for 60fps
             slider.addEventListener('input', function() {{
                 maxRank = parseInt(this.value, 10);
                 sliderLabel.textContent = maxRank + " / " + totalNodesCount;
-                applyFilterAndHighlight();
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = requestAnimationFrame(function() {{
+                    applyFilterAndHighlight();
+                }});
             }});
 
             // Depth toggle
@@ -230,13 +287,11 @@ class NetworkVisualizer:
 
         function applyFilterAndHighlight() {{
             var visibleNodeIds = new Set();
-            var nodeUpdates = [];
-            var edgeUpdates = [];
 
             // 1. Identify which nodes pass the rank slider filter
-            window.nodes.forEach(function(n) {{
-                var orig = originalNodes[n.id];
-                if (orig && orig.rank <= maxRank) {{
+            window.ALL_RAW_NODES.forEach(function(n) {{
+                var r = (n.rank !== undefined ? n.rank : 99999);
+                if (r <= maxRank) {{
                     visibleNodeIds.add(n.id);
                 }}
             }});
@@ -245,33 +300,33 @@ class NetworkVisualizer:
             var highlightedNodeIds = new Set();
             var highlightedEdgeIds = new Set();
 
-            if (selectedNodeId && visibleNodeIds.has(selectedNodeId)) {{
+            if (selectedNodeId && rawNodesMap[selectedNodeId]) {{
                 highlightedNodeIds.add(selectedNodeId);
+                visibleNodeIds.add(selectedNodeId);
 
                 // 1st-hop connections
-                var hop1Nodes = window.network.getConnectedNodes(selectedNodeId);
-                var hop1Edges = window.network.getConnectedEdges(selectedNodeId);
-
-                hop1Nodes.forEach(function(nid) {{
-                    if (visibleNodeIds.has(nid)) highlightedNodeIds.add(nid);
+                var hop1 = nodeNeighbors[selectedNodeId] || new Set();
+                hop1.forEach(function(nid) {{
+                    highlightedNodeIds.add(nid);
+                    visibleNodeIds.add(nid);
                 }});
-                hop1Edges.forEach(function(eid) {{
-                    highlightedEdgeIds.add(eid);
+                var edges1 = adjEdges[selectedNodeId] || [];
+                edges1.forEach(function(e) {{
+                    highlightedEdgeIds.add(e.id);
                 }});
 
                 // 2nd-hop (indirect connections) if depth === 2
                 if (highlightDepth === 2) {{
-                    hop1Nodes.forEach(function(hop1Id) {{
-                        if (visibleNodeIds.has(hop1Id)) {{
-                            var hop2Nodes = window.network.getConnectedNodes(hop1Id);
-                            var hop2Edges = window.network.getConnectedEdges(hop1Id);
-                            hop2Nodes.forEach(function(nid) {{
-                                if (visibleNodeIds.has(nid)) highlightedNodeIds.add(nid);
-                            }});
-                            hop2Edges.forEach(function(eid) {{
-                                highlightedEdgeIds.add(eid);
-                            }});
-                        }}
+                    hop1.forEach(function(hop1Id) {{
+                        var hop2 = nodeNeighbors[hop1Id] || new Set();
+                        hop2.forEach(function(nid) {{
+                            highlightedNodeIds.add(nid);
+                            visibleNodeIds.add(nid);
+                        }});
+                        var edges2 = adjEdges[hop1Id] || [];
+                        edges2.forEach(function(e) {{
+                            highlightedEdgeIds.add(e.id);
+                        }});
                     }});
                 }}
 
@@ -279,93 +334,78 @@ class NetworkVisualizer:
                 statusText.innerHTML = "<b>Focus:</b> Selected + " + connCount + " connection(s) (" + (highlightDepth === 1 ? "1-hop" : "2-hop") + ")<br>Click background to reset selection.";
             }} else {{
                 selectedNodeId = null;
-                statusText.innerHTML = "• <b>Click any node</b> to highlight connections & fade others<br>• Use slider to filter top nodes";
+                statusText.innerHTML = "• <b>Click any node</b> to highlight connections & fade others<br>• Drag slider to filter top nodes";
             }}
 
-            // 3. Apply updates to nodes
-            window.nodes.forEach(function(n) {{
-                var isVisible = visibleNodeIds.has(n.id);
-                var orig = originalNodes[n.id] || {{}};
+            // 3. Construct active nodes dataset (ONLY visible nodes)
+            var activeNodes = [];
+            visibleNodeIds.forEach(function(nid) {{
+                var rawNode = rawNodesMap[nid];
+                if (!rawNode) return;
+                var orig = originalNodes[nid] || {{}};
+                var nodeObj = Object.assign({{}}, rawNode);
 
-                if (!isVisible) {{
-                    nodeUpdates.push({{ id: n.id, hidden: true }});
-                }} else if (selectedNodeId) {{
-                    // Highlighting active: check if in highlight set
-                    if (highlightedNodeIds.has(n.id)) {{
-                        var isCenter = (n.id === selectedNodeId);
-                        nodeUpdates.push({{
-                            id: n.id,
-                            hidden: false,
-                            color: orig.color,
-                            font: {{ color: isCenter ? '#0f172a' : '#334155', size: isCenter ? 13 : 11 }},
-                            borderWidth: isCenter ? 4 : 2,
-                            opacity: 1.0
-                        }});
+                if (selectedNodeId) {{
+                    if (highlightedNodeIds.has(nid)) {{
+                        var isCenter = (nid === selectedNodeId);
+                        nodeObj.color = orig.color;
+                        nodeObj.font = {{ color: isCenter ? '#0f172a' : '#334155', size: isCenter ? 13 : 11 }};
+                        nodeObj.borderWidth = isCenter ? 4 : 2;
+                        nodeObj.opacity = 1.0;
                     }} else {{
-                        // Fade out non-connected nodes!
-                        nodeUpdates.push({{
-                            id: n.id,
-                            hidden: false,
-                            color: {{
-                                background: 'rgba(203, 213, 225, 0.22)',
-                                border: 'rgba(148, 163, 184, 0.25)'
-                            }},
-                            font: {{ color: 'rgba(148, 163, 184, 0.25)' }},
-                            borderWidth: 1,
-                            opacity: 0.15
-                        }});
+                        // Faded out node
+                        nodeObj.color = {{
+                            background: 'rgba(203, 213, 225, 0.22)',
+                            border: 'rgba(148, 163, 184, 0.25)'
+                        }};
+                        nodeObj.font = {{ color: 'rgba(148, 163, 184, 0.25)' }};
+                        nodeObj.borderWidth = 1;
+                        nodeObj.opacity = 0.15;
                     }}
                 }} else {{
-                    // Normal state: full visibility
-                    nodeUpdates.push({{
-                        id: n.id,
-                        hidden: false,
-                        color: orig.color,
-                        font: orig.font,
-                        borderWidth: orig.borderWidth || 1,
-                        opacity: 1.0
-                    }});
+                    nodeObj.color = orig.color;
+                    nodeObj.font = orig.font;
+                    nodeObj.borderWidth = orig.borderWidth || 1;
+                    nodeObj.opacity = 1.0;
                 }}
+                activeNodes.push(nodeObj);
             }});
 
-            // 4. Apply updates to edges
-            window.edges.forEach(function(e) {{
-                var fromVisible = visibleNodeIds.has(e.from);
-                var toVisible = visibleNodeIds.has(e.to);
-                var orig = originalEdges[e.id] || {{}};
+            // 4. Construct active edges dataset (ONLY edges where both endpoints are visible)
+            var activeEdges = [];
+            var seenEdgeIds = new Set();
+            visibleNodeIds.forEach(function(nid) {{
+                var edges = adjEdges[nid] || [];
+                edges.forEach(function(e) {{
+                    if (seenEdgeIds.has(e.id)) return;
+                    seenEdgeIds.add(e.id);
+                    if (visibleNodeIds.has(e.from) && visibleNodeIds.has(e.to)) {{
+                        var orig = originalEdges[e.id] || {{}};
+                        var edgeObj = Object.assign({{}}, e);
 
-                if (!fromVisible || !toVisible) {{
-                    edgeUpdates.push({{ id: e.id, hidden: true }});
-                }} else if (selectedNodeId) {{
-                    if (highlightedEdgeIds.has(e.id)) {{
-                        var origEdgeColor = (orig.color && orig.color.color) ? orig.color.color : '#94a3b8';
-                        edgeUpdates.push({{
-                            id: e.id,
-                            hidden: false,
-                            color: {{ color: origEdgeColor, opacity: 0.85 }},
-                            width: 1.8
-                        }});
-                    }} else {{
-                        // Fade out non-connected edges!
-                        edgeUpdates.push({{
-                            id: e.id,
-                            hidden: false,
-                            color: {{ color: 'rgba(226, 232, 240, 0.08)', opacity: 0.08 }},
-                            width: 0.5
-                        }});
+                        if (selectedNodeId) {{
+                            if (highlightedEdgeIds.has(e.id)) {{
+                                var origColorVal = (orig.color && orig.color.color) ? orig.color.color : (typeof orig.color === 'string' ? orig.color : '#94a3b8');
+                                edgeObj.color = {{ color: origColorVal, opacity: 0.85 }};
+                                edgeObj.width = 1.8;
+                            }} else {{
+                                edgeObj.color = {{ color: 'rgba(226, 232, 240, 0.08)', opacity: 0.08 }};
+                                edgeObj.width = 0.5;
+                            }}
+                        }} else {{
+                            edgeObj.color = orig.color;
+                            edgeObj.width = orig.width || 1;
+                        }}
+                        activeEdges.push(edgeObj);
                     }}
-                }} else {{
-                    edgeUpdates.push({{
-                        id: e.id,
-                        hidden: false,
-                        color: orig.color,
-                        width: orig.width || 1
-                    }});
-                }}
+                }});
             }});
 
-            window.nodes.update(nodeUpdates);
-            window.edges.update(edgeUpdates);
+            // 5. Dynamic Window swap in Vis.js: keeps canvas light and 60 FPS
+            window.nodes.clear();
+            window.nodes.add(activeNodes);
+            window.edges.clear();
+            window.edges.add(activeEdges);
         }}
 
         initCache();
