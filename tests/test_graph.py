@@ -126,3 +126,33 @@ def test_duckdb_trend_engine():
         # In 2020, NLP appears in 2 of 2 papers (100% share)
         nlp_2020 = topics_df[(topics_df["year"] == 2020) & (topics_df["topic"] == "NLP")].iloc[0]
         assert nlp_2020["yearly_share_pct"] == 100.0
+
+
+def test_network_visualizer_static_export(tmp_path: Path):
+    import networkx as nx
+    from src.graph.visualizer import NetworkVisualizer
+
+    G = nx.DiGraph()
+    G.add_node("P1", title="Attention Is All You Need", year=2017, citation_count=1000)
+    G.add_node("P2", title="BERT", year=2019, citation_count=500)
+    G.add_edge("P2", "P1")
+
+    metrics_df = pd.DataFrame([
+        {"paper_id": "P1", "pagerank": 0.05, "community_id": 1, "community_label": "Transformers"},
+        {"paper_id": "P2", "pagerank": 0.02, "community_id": 1, "community_label": "Transformers"},
+    ])
+
+    viz = NetworkVisualizer(output_dir=tmp_path)
+    target = viz.export_citation_network_html(G, metrics_df, filename="test_citation.html")
+
+    assert target.exists()
+    html_content = target.read_text(encoding="utf-8")
+
+    # Verify static coordinates & disabled live physics
+    assert '"enabled": false' in html_content
+    assert '"x":' in html_content
+    assert '"y":' in html_content
+    assert 'id="graph-controls"' in html_content
+    assert 'btn-fit-view' in html_content
+    assert 'btn-toggle-physics' in html_content
+
