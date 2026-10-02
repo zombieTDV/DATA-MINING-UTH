@@ -188,14 +188,7 @@ class NetworkVisualizer:
             x = float(pos[n][0] * SCALE_X)
             y = float(pos[n][1] * SCALE_Y)
 
-            tooltip = (
-                f"<div style='font-family: Arial, sans-serif; font-size: 13px; line-height: 1.4;'>"
-                f"<b>{title_text}</b><br>"
-                f"Year: {year} | Citations: {cites:,}<br>"
-                f"PageRank: {pr:.5f}<br>"
-                f"Community: {comm_label} (ID: {comm_id})"
-                f"</div>"
-            )
+            tooltip = str(title_text)
 
             label = f"{title_text[:25]}..." if len(title_text) > 25 else title_text
 
@@ -302,14 +295,7 @@ var options = {
             x = float(pos[n][0] * SCALE_X)
             y = float(pos[n][1] * SCALE_Y)
 
-            tooltip = (
-                f"<div style='font-family: Arial, sans-serif; font-size: 13px; line-height: 1.4;'>"
-                f"<b>Keyword: {n}</b><br>"
-                f"Frequency: {freq}<br>"
-                f"Co-occurrence Degree: {deg}<br>"
-                f"Cluster: {comm_id}"
-                f"</div>"
-            )
+            tooltip = str(n)
 
             net.add_node(
                 n,
