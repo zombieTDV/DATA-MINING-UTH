@@ -7,6 +7,7 @@ dist/
 build/
 .eggs/
 .kilo
+/lib/
 
 # Data — bronze/silver/gold stays local (except eval questions)
 /data/bronze/

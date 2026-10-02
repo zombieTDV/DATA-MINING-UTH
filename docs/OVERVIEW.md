@@ -67,7 +67,7 @@ Each phase is formally documented in `docs/phases/` according to [agents/templat
 | **Phase 0** | [00_SCOPE_AND_EVALUATION.md](phases/00_SCOPE_AND_EVALUATION.md) | Formalize LLM corpus scope (2017–present, English), OpenAlex search strategy, 20–30 benchmark evaluation questions, and evaluation harness | Scope spec, `eval/questions.jsonl`, baseline metrics | **Active** |
 | **Phase 1** | [01_DATA_COLLECTION.md](phases/01_DATA_COLLECTION.md) | OpenAlex API client, metadata and citation edge harvester, PDF downloader, SHA-256 manifest; 200-paper pilot then scale to 10k | Harvest scripts, `data/bronze/`, `papers.parquet`, `citations.parquet`, `keywords.parquet` | **Active** |
 | **Phase 2** | [02_PARSING_AND_CHUNKING.md](phases/02_PARSING_AND_CHUNKING.md) | PDF extraction, section segmentation, reference exclusion, sliding-window chunking with contextual prefixes | Clean `sections.parquet`, `chunks.parquet`, parse quality report | Planned |
-| **Phase 3** | [03_GRAPH_ANALYSIS_AND_TRENDS.md](phases/03_GRAPH_ANALYSIS_AND_TRENDS.md) | NetworkX citation & co-occurrence graphs, FP-Growth association rules, DuckDB trend tables, PyVis & Seaborn visualizations | `data/gold/graphs/`, `data/gold/trends/`, interactive visualizations | Planned |
+| **Phase 3** | [03_GRAPH_ANALYSIS_AND_TRENDS.md](phases/03_GRAPH_ANALYSIS_AND_TRENDS.md) | NetworkX citation & co-occurrence graphs, FP-Growth association rules, DuckDB trend tables, PyVis & Seaborn visualizations | `data/gold/graphs/`, `data/gold/trends/`, interactive visualizations | **Active** |
 | **Phase 4** | [04_RETRIEVAL_BASELINE.md](phases/04_RETRIEVAL_BASELINE.md) | LanceDB vector database setup, dense semantic embeddings, BM25 lexical indexing, hybrid reciprocal rank fusion | `data/gold/lancedb/`, retrieval evaluation benchmark (recall@k, MRR) | Planned |
 | **Phase 5** | [05_LLM_SERVING_LAYER.md](phases/05_LLM_SERVING_LAYER.md) | Dual-path serving interface: DuckDB SQL/Graph trend narration + hybrid RAG with citation verification; optional LLM paper fingerprint extraction | Serving API, citation verification module, CLI demo | Planned |
 
@@ -81,7 +81,7 @@ Detailed technical specifications and active session task trackers:
 - [Phase 0 Specification: Scope & Evaluation Definition](phases/00_SCOPE_AND_EVALUATION.md)
 - [Phase 1 Specification: OpenAlex Collection & Raw Vaulting](phases/01_DATA_COLLECTION.md)
 - [Phase 2 Specification: PDF Parsing & Semantic Chunking](phases/02_PARSING_AND_CHUNKING.md) *(Placeholder)*
-- [Phase 3 Specification: Graph Analysis & Trend Discovery](phases/03_GRAPH_ANALYSIS_AND_TRENDS.md) *(Placeholder)*
+- [Phase 3 Specification: Graph Analysis & Trend Discovery](phases/03_GRAPH_ANALYSIS_AND_TRENDS.md)
 - [Phase 4 Specification: Retrieval Baseline with LanceDB](phases/04_RETRIEVAL_BASELINE.md) *(Placeholder)*
 - [Phase 5 Specification: LLM Serving Layer & Synthesis](phases/05_LLM_SERVING_LAYER.md) *(Placeholder)*
 
