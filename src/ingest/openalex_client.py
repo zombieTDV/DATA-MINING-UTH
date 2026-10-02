@@ -184,12 +184,15 @@ class OpenAlexClient:
         for year in range(start_year, end_year + 1):
             logger.info("Harvesting top %d LLM papers for year %d from OpenAlex...", per_year_limit, year)
             
-            # Construct query filter
-            # Target topics: large language model, transformer, natural language processing
+            # Curated OpenAlex topic IDs strictly for NLP, Language Models, and Dialogue Systems:
+            # - T10181: Natural Language Processing Techniques
+            # - T10028: Topic Modeling (Transformers, BERT, GPT, LLaMA)
+            # - T11550: Text and Document Classification Technologies
+            # - T12031: Speech and Dialogue Systems
             filter_query = (
                 f"publication_year:{year},"
                 f"language:en,"
-                f"default.search:large language model OR transformer OR generative AI OR attention mechanism"
+                f"primary_topic.id:T10181|T10028|T11550|T12031"
             )
 
             params = {

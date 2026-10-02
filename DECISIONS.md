@@ -33,6 +33,7 @@
 | 15 | 2026-10-02 | Visualization stack | **Matplotlib + Seaborn** (static charts) + **PyVis** (interactive graph visualization) | Lightweight, no server needed, PyVis exports to standalone HTML |
 | 16 | 2026-10-02 | Source code layout | `src/ingest/`, `src/graph/`, `src/trends/`, `src/eval/`, etc. | One directory per pipeline stage; modular and navigable |
 | 17 | 2026-10-02 | Decision tracking | **DECISIONS.md in repo root** | Plan §11 working agreement #7; traceability for course submission |
+| 18 | 2026-10-02 | Pilot query calibration vs. Scale sampling | **Calibrated topic IDs for Pilot (`T10181`, `T10028`, `T11550`, `T12031`), Field-Weighted Open Sampling for Scale** | Unconstrained keyword queries caused clinical papers (40k+ citations) to crowd out landmark AI papers (5k-15k) in small samples. Pilot requires topic calibration to test NLP benchmarks; large-scale ($N \ge 1,000$) will use open-world sampling with field-weighted normalization to preserve interdisciplinary diffusion. |
 
 ---
 
