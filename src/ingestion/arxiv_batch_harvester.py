@@ -3,6 +3,8 @@
 Key Engineering Features:
 - Category-by-category pagination (cs.AI, cs.LG, cs.CV, cs.CL, stat.ML) to minimize arXiv query overhead
 - Dynamic Retry-After header parsing for resilient 429 rate-limit handling
+- Detailed logging for every individual paper (ID, Title, Authors, Category, Date, Abstract)
+- Clean professional logging format without emojis/icons
 - Resumable checkpointing (interrupted runs resume smoothly)
 - Direct vaulting into Cloudflare R2 Bronze layer and Silver Parquet
 """
@@ -47,7 +49,7 @@ class ArxivBatchHarvester:
         )
 
     def load_checkpoint(self) -> Dict[str, Any]:
-        """Tải trạng thái checkpoint của lần chạy trước."""
+        """Tai trang thai checkpoint cua lan chay truoc."""
         if self.checkpoint_file.exists():
             try:
                 with open(self.checkpoint_file, "r", encoding="utf-8") as f:
@@ -57,7 +59,7 @@ class ArxivBatchHarvester:
         return {"category_index": 0, "offset_in_category": 0, "total_ingested": 0, "last_updated": None}
 
     def save_checkpoint(self, cat_idx: int, offset: int, total_ingested: int):
-        """Lưu lại tiến độ để tiếp tục nếu gặp sự cố mạng."""
+        """Luu lai tien do de tiep tuc neu gap su co mang."""
         checkpoint_data = {
             "category_index": cat_idx,
             "offset_in_category": offset,
@@ -68,21 +70,20 @@ class ArxivBatchHarvester:
             json.dump(checkpoint_data, f, indent=2)
 
     def extract_clean_arxiv_id(self, raw_id_or_url: str) -> str:
-        """Trích xuất ID chuẩn dạng YYYY.NNNNN."""
+        """Trich xuat ID chuan dang YYYY.NNNNN."""
         match = re.search(r"(\d{4}\.\d{4,5})(v\d+)?", raw_id_or_url)
         if match:
             return match.group(1)
         return raw_id_or_url.split("/")[-1].replace(".pdf", "")
 
     def normalize_entry(self, entry: Dict[str, Any], default_cat: str = "cs.AI") -> Dict[str, Any]:
-        """Chuẩn hóa một bản ghi XML từ API thành schema metadata sạch."""
+        """Chuan hoa ban ghi XML tu API thanh schema metadata sach."""
         raw_id = entry.get("id", "")
         clean_id = self.extract_clean_arxiv_id(raw_id)
 
         title = re.sub(r"\s+", " ", entry.get("title", "")).strip()
         abstract = re.sub(r"\s+", " ", entry.get("summary", "")).strip()
 
-        # Chuẩn hóa danh sách tác giả
         authors = []
         raw_authors = entry.get("author", [])
         if isinstance(raw_authors, dict):
@@ -91,7 +92,6 @@ class ArxivBatchHarvester:
             if isinstance(a, dict) and "name" in a:
                 authors.append(a["name"].strip())
 
-        # Chuẩn hóa categories
         categories = []
         raw_cats = entry.get("category", [])
         if isinstance(raw_cats, dict):
@@ -133,7 +133,7 @@ class ArxivBatchHarvester:
         }
 
     def fetch_api_batch_resilient(self, category: str, start: int, max_results: int = 100, max_retries: int = 5) -> List[Dict[str, Any]]:
-        """Gửi request lấy batch bài báo kèm xử lý chính xác header Retry-After khi gặp 429."""
+        """Gui request lay batch bai bao kem xu ly header Retry-After khi gap 429."""
         params = {
             "search_query": f"cat:{category}",
             "start": start,
@@ -146,10 +146,9 @@ class ArxivBatchHarvester:
             try:
                 resp = self.http_client.get(self.API_ENDPOINT, params=params)
 
-                # Xử lý Rate Limit 429 chuẩn quốc tế
                 if resp.status_code == 429:
                     retry_after = int(resp.headers.get("Retry-After", 30))
-                    print(f"      ⚠️ arXiv Rate Limit (429). Server yêu cầu chờ {retry_after}s. Đang tạm dừng...")
+                    print(f"[RATE_LIMIT] arXiv yeu cau tam dung. Cho {retry_after}s theo Retry-After header...")
                     time.sleep(retry_after + 2)
                     continue
 
@@ -163,10 +162,10 @@ class ArxivBatchHarvester:
 
             except (httpx.RequestError, httpx.HTTPStatusError) as e:
                 wait_sec = attempt * 5
-                print(f"      ⚠️ Thử lần {attempt}/{max_retries} thất bại ({e}). Chờ {wait_sec}s...")
+                print(f"[RETRY] Thu lan {attempt}/{max_retries} that bai ({e}). Cho {wait_sec}s...")
                 time.sleep(wait_sec)
 
-        raise RuntimeError(f"Không thể tải batch category={category}, offset={start} sau {max_retries} lần thử.")
+        raise RuntimeError(f"Khong the tai batch category={category}, offset={start} sau {max_retries} lan thu.")
 
     def harvest_large_corpus(
         self,
@@ -176,9 +175,9 @@ class ArxivBatchHarvester:
         reset_checkpoint: bool = False,
         sync_silver_every_n_batches: int = 5,
     ):
-        """Thu thập 10,000 bài báo phân bổ đều qua các chuyên mục AI/DS."""
+        """Thu thap 10,000 bai bao phan bo deu qua cac chuyen muc AI/DS."""
         cats = categories or settings.ARXIV_CATEGORIES
-        target_per_category = total_target // len(cats)
+        target_per_category = max(1, total_target // len(cats))
 
         writer = SilverLakehouseWriter(r2_client=self.r2)
 
@@ -187,12 +186,15 @@ class ArxivBatchHarvester:
         offset_in_cat = checkpoint.get("offset_in_category", 0)
         total_ingested = checkpoint.get("total_ingested", 0)
 
-        print(f"🎯 Tổng mục tiêu: {total_target:,} bài ({target_per_category:,} bài/chuyên mục)")
-        print(f"📂 Danh mục: {', '.join(cats)}")
+        print("-" * 80)
+        print(f"[CONFIG] Muc tieu tong: {total_target:,} bai ({target_per_category:,} bai/chuyen muc)")
+        print(f"[CONFIG] Danh sach chuyen muc: {', '.join(cats)}")
+        print(f"[CONFIG] Batch size: {batch_size} | Nghi giua cac batch: {self.request_delay}s")
         if total_ingested > 0:
-            print(f"🔄 Tiếp tục từ Checkpoint: Đã có={total_ingested:,} bài (bắt đầu tại cat[{cat_start_idx}] offset={offset_in_cat:,})")
+            print(f"[RESUME] Tiep tuc tu Checkpoint: Da co={total_ingested:,} bai (Chuyen muc index={cat_start_idx}, Offset={offset_in_cat:,})")
         else:
-            print("🚀 Bắt đầu phiên cào mới từ Offset=0")
+            print("[START] Bat dau phien cao moi tu Offset=0")
+        print("-" * 80)
 
         buffered_silver_records = []
 
@@ -201,11 +203,11 @@ class ArxivBatchHarvester:
             cur_offset = offset_in_cat if c_idx == cat_start_idx else 0
             category_target = target_per_category
 
-            print(f"\n📁 [Chuyên mục {c_idx + 1}/{len(cats)}]: {current_category} (Mục tiêu: {category_target:,} bài)")
+            print(f"\n>>> [CHUYEN MUC {c_idx + 1}/{len(cats)}]: {current_category} (Muc tieu: {category_target:,} bai)")
 
             while cur_offset < category_target and total_ingested < total_target:
                 current_batch_size = min(batch_size, category_target - cur_offset, total_target - total_ingested)
-                print(f"   📡 Tải Batch {current_category} tại offset {cur_offset:,} (+{current_batch_size} bài)...")
+                print(f"[BATCH] Dang tai {current_category} | Offset: {cur_offset:,} | So luong: {current_batch_size} bai...")
 
                 try:
                     papers = self.fetch_api_batch_resilient(
@@ -214,15 +216,15 @@ class ArxivBatchHarvester:
                         max_results=current_batch_size,
                     )
                 except Exception as e:
-                    print(f"   ❌ Bỏ qua batch sau nhiều lần thử lỗi: {e}")
+                    print(f"[ERROR] Bo qua batch tai offset {cur_offset} sau cac lan thu loi: {e}")
                     cur_offset += current_batch_size
                     continue
 
                 if not papers:
-                    print(f"   ℹ️ Đã hết bài mới cho chuyên mục {current_category}.")
+                    print(f"[INFO] Khong con bai bao moi cho chuyen muc {current_category}.")
                     break
 
-                # 1. Lưu Batch JSON vào R2 Bronze (Batch bundle tối ưu số lượng request)
+                # 1. Luu Batch JSON bundle vao R2 Bronze
                 batch_key = f"bronze/arxiv/batches/{current_category}/batch_offset_{cur_offset:06d}.json"
                 try:
                     self.r2.upload_json(
@@ -231,10 +233,26 @@ class ArxivBatchHarvester:
                         metadata={"category": current_category, "count": str(len(papers))},
                     )
                 except Exception as e:
-                    print(f"   ⚠️ Lỗi upload R2 batch bundle: {e}")
+                    print(f"[WARNING] Loi upload R2 batch bundle: {e}")
 
-                # 2. Chuẩn bị bản ghi cho Silver Layer
-                for p in papers:
+                # 2. Log chi tiet thong tin tung bai bao va chuan bi cho Silver
+                for p_idx, p in enumerate(papers, 1):
+                    current_global_idx = total_ingested + p_idx
+                    paper_id = p["paper_id"]
+                    title = p["title"]
+                    authors_list = p.get("authors", [])
+                    authors_str = ", ".join(authors_list[:4])
+                    if len(authors_list) > 4:
+                        authors_str += f" va {len(authors_list) - 4} tac gia khac"
+                    pub_date = p.get("published_date", "")[:10]
+                    abstract_snippet = p.get("abstract", "")[:130] + "..." if len(p.get("abstract", "")) > 130 else p.get("abstract", "")
+
+                    # In chi tiet thong tin tung bai
+                    print(f"  [PAPER {current_global_idx:,}/{total_target:,}] ID: {paper_id} | Chuyen muc: {p.get('primary_category')} | Ngay: {pub_date}")
+                    print(f"    Tieu de: {title}")
+                    print(f"    Tac gia: {authors_str if authors_str else 'N/A'}")
+                    print(f"    Tom tat: {abstract_snippet}")
+
                     parsed_dummy = {
                         "parsed_title": p["title"],
                         "parsed_abstract": p["abstract"],
@@ -260,26 +278,29 @@ class ArxivBatchHarvester:
                 total_ingested += len(papers)
                 cur_offset += len(papers)
 
-                # Lưu Checkpoint
+                # Luu Checkpoint
                 self.save_checkpoint(c_idx, cur_offset, total_ingested)
-                print(f"      ✅ Tiến độ: {total_ingested:,}/{total_target:,} bài ({(total_ingested/total_target)*100:.1f}%)")
+                pct = (total_ingested / total_target) * 100
+                print(f"[TIEN DO] Da xong {total_ingested:,}/{total_target:,} bai ({pct:.1f}%)\n")
 
-                # Cập nhật định kỳ Silver Parquet và đẩy lên R2
+                # Dong bo dinh ky Silver Parquet len R2
                 if len(buffered_silver_records) >= (batch_size * sync_silver_every_n_batches) or total_ingested >= total_target:
-                    print(f"   💾 Đang cập nhật Tầng Silver Parquet với {len(buffered_silver_records)} bài mới...")
+                    print(f"[STORAGE] Cap nhat Tang Silver Parquet voi {len(buffered_silver_records)} bai...")
                     writer.save_and_upload_parquet(buffered_silver_records, year="2026")
                     buffered_silver_records = []
-                    print("   ✅ Đã cập nhật xong Silver Parquet lên Cloudflare R2!")
+                    print("[STORAGE] Hoan tat dong bo Silver Parquet len Cloudflare R2.\n")
 
-                # Nghỉ lịch sự giữa các batch API
+                # Nghi giua cac batch de ton trong rate limit
                 time.sleep(self.request_delay)
 
-            # Đặt lại offset cho chuyên mục tiếp theo
+            # Reset offset cho category tiep theo
             offset_in_cat = 0
 
         if buffered_silver_records:
-            print(f"   💾 Xuất nốt {len(buffered_silver_records)} bản ghi vào Silver Parquet...")
+            print(f"[STORAGE] Xuat not {len(buffered_silver_records)} ban ghi vao Silver Parquet...")
             writer.save_and_upload_parquet(buffered_silver_records, year="2026")
 
-        print(f"\n🎉 HOÀN TẤT THU THẬP BATCH: Đã nạp tổng cộng {total_ingested:,} bài báo vào Bronze và Silver!")
+        print("=" * 80)
+        print(f"[HOAN TAT] Da thu thap tong cong {total_ingested:,} bai bao vao Bronze va Silver Lakehouse.")
+        print("=" * 80)
         return total_ingested

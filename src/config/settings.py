@@ -31,7 +31,7 @@ class Settings:
         for c in os.getenv("ARXIV_CATEGORIES", "cs.AI,cs.LG,cs.CV,cs.CL,stat.ML").split(",")
         if c.strip()
     ]
-    ARXIV_REQUEST_DELAY_SECONDS: float = float(os.getenv("ARXIV_REQUEST_DELAY_SECONDS", "3.0"))
+    ARXIV_REQUEST_DELAY_SECONDS: float = float(os.getenv("ARXIV_REQUEST_DELAY_SECONDS", "6.0"))
 
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").upper()
