@@ -42,16 +42,20 @@ class OpenAlexClient:
 
     def __init__(
         self,
+        base_url: str = "https://api.openalex.org/works",
+        user_agent: Optional[str] = None,
         mailto: str = "student@uth.edu.vn",
         request_delay: float = 0.5,
         timeout: int = 20,
     ) -> None:
+        self.base_url = base_url
         self.mailto = mailto
         self.request_delay = max(0.1, request_delay)
         self.timeout = timeout
         self.session = requests.Session()
+        ua = user_agent or f"UTH-DataMining-Student/1.0 (mailto:{self.mailto})"
         self.session.headers.update({
-            "User-Agent": f"UTH-DataMining-Student/1.0 (mailto:{self.mailto})",
+            "User-Agent": ua,
             "Accept": "application/json",
         })
 
@@ -173,6 +177,7 @@ class OpenAlexClient:
         start_year: int = 2017,
         end_year: int = 2026,
         per_year_limit: int = 25,
+        topic_ids: Optional[list[str]] = None,
     ) -> list[dict[str, Any]]:
         """
         Harvest papers stratified across publication years [start_year, end_year].
@@ -182,18 +187,18 @@ class OpenAlexClient:
         all_results: list[dict[str, Any]] = []
         seen_paper_ids: set[str] = set()
 
+        if topic_ids:
+            joined_topics = "|".join(topic_ids)
+        else:
+            joined_topics = "T10181|T10028|T11550|T12031"
+
         for year in range(start_year, end_year + 1):
             logger.info("Harvesting top %d LLM papers for year %d from OpenAlex...", per_year_limit, year)
             
-            # Curated OpenAlex topic IDs strictly for NLP, Language Models, and Dialogue Systems:
-            # - T10181: Natural Language Processing Techniques
-            # - T10028: Topic Modeling (Transformers, BERT, GPT, LLaMA)
-            # - T11550: Text and Document Classification Technologies
-            # - T12031: Speech and Dialogue Systems
             filter_query = (
                 f"publication_year:{year},"
                 f"language:en,"
-                f"primary_topic.id:T10181|T10028|T11550|T12031"
+                f"primary_topic.id:{joined_topics}"
             )
 
             year_count = 0
@@ -210,7 +215,7 @@ class OpenAlexClient:
                 }
 
                 try:
-                    data = self._get_with_retry(self.BASE_URL, params=params)
+                    data = self._get_with_retry(self.base_url, params=params)
                     works = data.get("results", [])
                     if not works:
                         logger.info("No more works found for year %d at page %d.", year, page)

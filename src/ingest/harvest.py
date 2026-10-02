@@ -20,37 +20,62 @@ logging.basicConfig(
 logger = logging.getLogger("HarvestCLI")
 
 
-def run_harvest(
-    start_year: int = 2017,
-    end_year: int = 2026,
-    per_year_limit: int = 25,
-    skip_pdf: bool = False,
-    overwrite_pdf: bool = False,
-    bronze_dir: str = "data/bronze",
-    silver_dir: str = "data/silver",
-) -> dict[str, int]:
-    """Execute complete harvesting workflow."""
-    timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    logger.info("Starting OpenAlex harvesting workflow (years: %d-%d, target/yr: %d)...", start_year, end_year, per_year_limit)
+from src.config import load_config
 
-    # 1. Initialize components
-    client = OpenAlexClient()
-    vault = BronzeVault(bronze_dir=bronze_dir)
-    downloader = PDFDownloader(target_dir=Path(bronze_dir) / "pdf_raw")
-    builder = SilverBuilder(silver_dir=silver_dir)
+
+def run_harvest(
+    config_path: str = "configs/config.yaml",
+    start_year: Optional[int] = None,
+    end_year: Optional[int] = None,
+    per_year_limit: Optional[int] = None,
+    skip_pdf: Optional[bool] = None,
+    overwrite_pdf: Optional[bool] = None,
+    bronze_dir: Optional[str] = None,
+    silver_dir: Optional[str] = None,
+    topic_ids: Optional[list[str]] = None,
+) -> dict[str, int]:
+    """Execute complete harvesting workflow using config with optional CLI overrides."""
+    cfg = load_config(config_path)
+
+    start_yr = start_year if start_year is not None else cfg.collection.start_year
+    end_yr = end_year if end_year is not None else cfg.collection.end_year
+    limit = per_year_limit if per_year_limit is not None else cfg.collection.per_year_limit
+    skip_p = skip_pdf if skip_pdf is not None else cfg.pdf_vaulting.skip_pdf
+    overwrite_p = overwrite_pdf if overwrite_pdf is not None else cfg.pdf_vaulting.overwrite_existing
+    b_dir = bronze_dir if bronze_dir is not None else cfg.storage.bronze_root
+    s_dir = silver_dir if silver_dir is not None else cfg.storage.silver_root
+    t_ids = topic_ids if topic_ids is not None else [
+        t["id"] for t in cfg.topics.openalex_topic_ids if isinstance(t, dict) and "id" in t
+    ]
+
+    timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    logger.info("Starting OpenAlex harvesting workflow (years: %d-%d, target/yr: %d, config: %s)...", start_yr, end_yr, limit, config_path)
+
+    # 1. Initialize components from config
+    client = OpenAlexClient(
+        base_url=cfg.openalex.base_url,
+        user_agent=cfg.openalex.user_agent,
+        mailto=cfg.openalex.mailto,
+        request_delay=cfg.openalex.rate_limit_delay_seconds,
+        timeout=cfg.openalex.timeout_seconds,
+    )
+    vault = BronzeVault(bronze_dir=b_dir)
+    downloader = PDFDownloader(target_dir=Path(b_dir) / "pdf_raw")
+    builder = SilverBuilder(silver_dir=s_dir)
 
     # 2. Query OpenAlex API
     works = client.fetch_llm_papers_stratified(
-        start_year=start_year,
-        end_year=end_year,
-        per_year_limit=per_year_limit
+        start_year=start_yr,
+        end_year=end_yr,
+        per_year_limit=limit,
+        topic_ids=t_ids,
     )
 
     if not works:
         logger.warning("No papers retrieved from OpenAlex.")
         return {"total_papers": 0, "vaulted_pdfs": 0}
 
-    logger.info("Retrieved %d unique candidate papers across %d-%d", len(works), start_year, end_year)
+    logger.info("Retrieved %d unique candidate papers across %d-%d", len(works), start_yr, end_yr)
 
     # 3. Save raw Bronze JSON
     vault.save_raw_batch(works, batch_id=f"harvest_{timestamp_str}")
@@ -60,14 +85,14 @@ def run_harvest(
     vaulted_pdfs = 0
     paywalled_count = 0
 
-    logger.info("Processing PDF vaulting (skip_pdf=%s)...", skip_pdf)
+    logger.info("Processing PDF vaulting (skip_pdf=%s)...", skip_p)
     for i, w in enumerate(works, start=1):
         paper_id = w["paper_id"]
         pdf_url = w.get("pdf_url")
 
-        if skip_pdf:
+        if skip_p:
             safe_name = paper_id.replace(":", "_").replace("/", "_") + ".pdf"
-            local_file = Path(bronze_dir) / "pdf_raw" / safe_name
+            local_file = Path(b_dir) / "pdf_raw" / safe_name
             if local_file.exists():
                 vaulted_pdfs += 1
                 manifest_records.append({
@@ -111,7 +136,7 @@ def run_harvest(
         success, local_path, sha256_hash, byte_size, msg = downloader.download_and_vault(
             paper_id=paper_id,
             pdf_url=pdf_url,
-            overwrite=overwrite_pdf
+            overwrite=overwrite_p
         )
 
         if success:
@@ -153,7 +178,7 @@ def run_harvest(
     print("           OPENALEX HARVESTING SUMMARY REPORT")
     print("=" * 65)
     print(f" Total Papers Ingested : {len(works)}")
-    print(f" Target Years          : {start_year} – {end_year}")
+    print(f" Target Years          : {start_yr} – {end_yr}")
     print(f" PDFs Vaulted (Bronze) : {vaulted_pdfs} (SHA-256 verified)")
     print(f" Metadata-Only Papers  : {paywalled_count} (graceful fallback)")
     print(f" Manifest Path         : {vault.manifest_file}")
@@ -171,35 +196,32 @@ def run_harvest(
 
 def main():
     parser = argparse.ArgumentParser(description="Harvest LLM research papers from OpenAlex into Bronze and Silver layers.")
-    parser.add_argument("--pilot", action="store_true", help="Run standard 200-paper pilot (2017-2026, ~20-25 papers/year)")
-    parser.add_argument("--start-year", type=int, default=2017, help="Start publication year (default: 2017)")
-    parser.add_argument("--end-year", type=int, default=2026, help="End publication year (default: 2026)")
+    parser.add_argument("--config", type=str, default="configs/config.yaml", help="Path to pipeline configuration YAML (default: configs/config.yaml)")
+    parser.add_argument("--pilot", action="store_true", help="Run standard 200-paper pilot (2017-2026, ~22 papers/year)")
+    parser.add_argument("--start-year", type=int, default=None, help="Start publication year (overrides config)")
+    parser.add_argument("--end-year", type=int, default=None, help="End publication year (overrides config)")
     parser.add_argument("--limit", type=int, default=None, help="Total paper limit across all queried years")
-    parser.add_argument("--per-year", type=int, default=25, help="Target papers per year (default: 25)")
-    parser.add_argument("--skip-pdf", action="store_true", help="Skip downloading full PDF binaries (metadata-only mode)")
-    parser.add_argument("--overwrite-pdf", action="store_true", help="Force overwrite of existing vaulted PDFs")
-    parser.add_argument("--bronze-dir", type=str, default="data/bronze", help="Bronze storage root")
-    parser.add_argument("--silver-dir", type=str, default="data/silver", help="Silver storage root")
+    parser.add_argument("--per-year", type=int, default=None, help="Target papers per year (overrides config)")
+    parser.add_argument("--skip-pdf", action="store_true", default=None, help="Skip downloading full PDF binaries (metadata-only mode)")
+    parser.add_argument("--overwrite-pdf", action="store_true", default=None, help="Force overwrite of existing vaulted PDFs")
+    parser.add_argument("--bronze-dir", type=str, default=None, help="Bronze storage root (overrides config)")
+    parser.add_argument("--silver-dir", type=str, default=None, help="Silver storage root (overrides config)")
 
     args = parser.parse_args()
 
+    per_year = args.per_year
     if args.pilot:
-        start_year = 2017
-        end_year = 2026
         per_year = 22  # ~220 papers across 10 years
     elif args.limit:
-        num_years = max(1, args.end_year - args.start_year + 1)
+        s_yr = args.start_year or 2017
+        e_yr = args.end_year or 2026
+        num_years = max(1, e_yr - s_yr + 1)
         per_year = max(1, args.limit // num_years)
-        start_year = args.start_year
-        end_year = args.end_year
-    else:
-        start_year = args.start_year
-        end_year = args.end_year
-        per_year = args.per_year
 
     run_harvest(
-        start_year=start_year,
-        end_year=end_year,
+        config_path=args.config,
+        start_year=args.start_year,
+        end_year=args.end_year,
         per_year_limit=per_year,
         skip_pdf=args.skip_pdf,
         overwrite_pdf=args.overwrite_pdf,
