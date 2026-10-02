@@ -155,8 +155,11 @@ def test_network_visualizer_static_export(tmp_path: Path):
     assert '"rank":' in html_content
     assert 'id="graph-controls"' in html_content
     assert 'btn-fit-view' in html_content
-    assert 'btn-toggle-physics' in html_content
-    assert 'node-slider' in html_content
-    assert 'btn-depth' in html_content
+    # Verify clean runtime without 404 utils.js or undefined nodes.get crashes
+    assert "lib/bindings/utils.js" not in html_content
+    assert "allNodes = nodes.get" not in html_content
+    assert "window.ALL_RAW_NODES" in html_content
+    assert "window.ALL_RAW_EDGES" in html_content
+    assert "data = {nodes: nodes, edges: edges}" in html_content
 
 

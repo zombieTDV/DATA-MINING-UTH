@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 import math
 from pathlib import Path
+import re
 from typing import Any
 
 import networkx as nx
@@ -41,6 +42,10 @@ class NetworkVisualizer:
             return
 
         html = target_path.read_text(encoding="utf-8")
+
+        # Strip any missing local utils.js script tags or inlined PyVis highlight scripts
+        html = re.sub(r'<script\s+[^>]*src=["\'][^"\']*utils\.js["\'][^>]*></script>', '', html)
+        html = re.sub(r'<script>\s*function neighbourhoodHighlight\(params\)[\s\S]*?</script>', '', html)
 
         # Expose network object globally
         target_needle = "network = new vis.Network(container, data, options);"
@@ -88,7 +93,14 @@ class NetworkVisualizer:
                   window.edges = edges;
                   data = {{nodes: nodes, edges: edges}};
 """
-        if "data = {nodes: nodes, edges: edges};" in html:
+        # Replace the unused PyVis nodeColors/allNodes.get() block + data definition with windowing_init
+        pyvis_block_pattern = re.compile(
+            r"nodeColors\s*=\s*\{\};.*?data\s*=\s*\{nodes:\s*nodes,\s*edges:\s*edges\};",
+            re.DOTALL
+        )
+        if pyvis_block_pattern.search(html):
+            html = pyvis_block_pattern.sub(windowing_init, html, count=1)
+        elif "data = {nodes: nodes, edges: edges};" in html:
             html = html.replace("data = {nodes: nodes, edges: edges};", windowing_init, 1)
 
         # Inject modern floating toolbar with interactive slider & depth toggle
@@ -453,7 +465,7 @@ class NetworkVisualizer:
         SCALE_Y = max(1800, int(G.number_of_nodes() * 2.8))
         pos = nx.spring_layout(G, k=k_dist, iterations=80, seed=42)
 
-        net = Network(height="850px", width="100%", bgcolor="#ffffff", font_color="#333333", directed=True)
+        net = Network(height="850px", width="100%", bgcolor="#ffffff", font_color="#333333", directed=True, cdn_resources="remote")
 
         metrics_lookup = metrics_df.set_index("paper_id").to_dict(orient="index") if not metrics_df.empty else {}
 
@@ -571,7 +583,7 @@ var options = {
         pos = nx.spring_layout(subgraph, k=k_dist, iterations=150, seed=42)
         SCALE_X, SCALE_Y = 1800, 1400
 
-        net = Network(height="850px", width="100%", bgcolor="#ffffff", font_color="#333333", directed=False)
+        net = Network(height="850px", width="100%", bgcolor="#ffffff", font_color="#333333", directed=False, cdn_resources="remote")
         metrics_lookup = metrics_df.set_index("keyword").to_dict(orient="index")
 
         for n in subgraph.nodes():
