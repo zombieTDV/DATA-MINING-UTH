@@ -25,6 +25,7 @@ from src.config.settings import settings
 from src.ingestion.arxiv_batch_harvester import ArxivBatchHarvester
 from src.storage.duckdb_engine import DuckDBEngine
 from src.storage.r2_client import R2Client
+from src.utils.logger import setup_pipeline_logging
 
 
 def main():
@@ -56,15 +57,19 @@ def main():
     )
     args = parser.parse_args()
 
+    # Khởi tạo log file theo timestamp đặt tại logs/
+    logger, log_file = setup_pipeline_logging(pipeline_name="batch_ingest")
+
     print("=" * 80)
-    print("🚀 BẮT ĐẦU PHASE 1: THU THẬP BATCH QUY MÔ LỚN (ARXIV -> BRONZE & SILVER LAKEHOUSE)")
+    print(" BẮT ĐẦU PHASE 1: THU THẬP BATCH QUY MÔ LỚN (ARXIV -> BRONZE & SILVER LAKEHOUSE)")
+    print(f" File log chi tiết: {log_file}")
     print("=" * 80)
 
     try:
         r2 = R2Client()
         harvester = ArxivBatchHarvester(r2_client=r2, request_delay=args.delay)
     except Exception as e:
-        print(f"❌ Lỗi khởi tạo R2 Client: {e}")
+        print(f" Lỗi khởi tạo R2 Client: {e}")
         sys.exit(1)
 
     start_time = time.time()
@@ -79,13 +84,13 @@ def main():
 
     duration = time.time() - start_time
     print("\n" + "=" * 80)
-    print("📊 TỔNG KẾT PHASE 1:")
+    print(" TỔNG KẾT PHASE 1:")
     print(f"   - Tổng số bài đã có trong Silver: {total_done:,} bài")
     print(f"   - Thời gian thực thi: {duration/60:.2f} phút ({duration:.1f} giây)")
     print("=" * 80)
 
     # Hiển thị thống kê nhanh bằng DuckDB
-    print("\n🔍 Thống kê nhanh dữ liệu Tầng Silver bằng DuckDB:")
+    print("\n Thống kê nhanh dữ liệu Tầng Silver bằng DuckDB:")
     try:
         engine = DuckDBEngine()
         df = engine.query_df("""
@@ -102,7 +107,7 @@ def main():
         from tabulate import tabulate
         print(tabulate(df, headers="keys", tablefmt="fancy_grid", showindex=False))
     except Exception as e:
-        print(f"⚠️ Không thể chạy thống kê DuckDB: {e}")
+        print(f" Không thể chạy thống kê DuckDB: {e}")
 
 
 if __name__ == "__main__":
