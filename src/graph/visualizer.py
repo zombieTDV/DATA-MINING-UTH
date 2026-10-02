@@ -50,6 +50,7 @@ class NetworkVisualizer:
             html = html.replace(target_needle, replacement, 1)
 
         min_nodes = min(15, total_nodes)
+        initial_count = min(300, total_nodes)
 
         # Inject modern floating toolbar with interactive slider & depth toggle
         toolbar_html = f"""
@@ -78,9 +79,9 @@ class NetworkVisualizer:
         <div>
             <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 3px;">
                 <span>Display Top {entity_label}:</span>
-                <span id="slider-count-label" style="color: #2563eb;">{total_nodes} / {total_nodes}</span>
+                <span id="slider-count-label" style="color: #2563eb;">{initial_count} / {total_nodes}</span>
             </div>
-            <input type="range" id="node-slider" min="{min_nodes}" max="{total_nodes}" value="{total_nodes}" step="5" style="width: 100%; cursor: pointer;">
+            <input type="range" id="node-slider" min="{min_nodes}" max="{total_nodes}" value="{initial_count}" step="5" style="width: 100%; cursor: pointer;">
         </div>
 
         <!-- Action Buttons: Depth Toggle & Fit View -->
@@ -131,7 +132,7 @@ class NetworkVisualizer:
     (function() {{
         var highlightDepth = 1; // 1 = Direct (1-hop), 2 = Indirect (2-hop)
         var selectedNodeId = null;
-        var maxRank = {total_nodes};
+        var maxRank = {initial_count};
         var totalNodesCount = {total_nodes};
 
         var slider = document.getElementById('node-slider');
@@ -164,6 +165,7 @@ class NetworkVisualizer:
                 }};
             }});
             setupEvents();
+            applyFilterAndHighlight();
         }}
 
         function setupEvents() {{
@@ -409,7 +411,7 @@ class NetworkVisualizer:
         k_dist = 4.0 / math.sqrt(max(1, G.number_of_nodes()))
         SCALE_X = max(2400, int(G.number_of_nodes() * 3.5))
         SCALE_Y = max(1800, int(G.number_of_nodes() * 2.8))
-        pos = nx.spring_layout(G, k=k_dist, iterations=150, seed=42)
+        pos = nx.spring_layout(G, k=k_dist, iterations=80, seed=42)
 
         net = Network(height="850px", width="100%", bgcolor="#ffffff", font_color="#333333", directed=True)
 
@@ -489,7 +491,7 @@ var options = {
         G: nx.Graph,
         metrics_df: pd.DataFrame,
         filename: str = "keyword_network.html",
-        top_k: int = 60
+        top_k: int = 100
     ) -> Path:
         """
         Export top-k keyword co-occurrence network with:

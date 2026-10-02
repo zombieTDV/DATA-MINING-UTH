@@ -66,16 +66,32 @@ def run_harvest(
         pdf_url = w.get("pdf_url")
 
         if skip_pdf:
-            manifest_records.append({
-                "paper_id": paper_id,
-                "source_url": pdf_url or "",
-                "local_path": "",
-                "sha256_checksum": "",
-                "byte_size": 0,
-                "fetched_at_utc": datetime.now(timezone.utc).isoformat(),
-                "status": "METADATA_ONLY",
-                "error_detail": "PDF download skipped by user flag",
-            })
+            safe_name = paper_id.replace(":", "_").replace("/", "_") + ".pdf"
+            local_file = Path(bronze_dir) / "pdf_raw" / safe_name
+            if local_file.exists():
+                vaulted_pdfs += 1
+                manifest_records.append({
+                    "paper_id": paper_id,
+                    "source_url": pdf_url or "",
+                    "local_path": str(local_file),
+                    "sha256_checksum": "",
+                    "byte_size": local_file.stat().st_size,
+                    "fetched_at_utc": datetime.now(timezone.utc).isoformat(),
+                    "status": "VAULTED",
+                    "error_detail": "Existing local PDF preserved",
+                })
+            else:
+                paywalled_count += 1
+                manifest_records.append({
+                    "paper_id": paper_id,
+                    "source_url": pdf_url or "",
+                    "local_path": "",
+                    "sha256_checksum": "",
+                    "byte_size": 0,
+                    "fetched_at_utc": datetime.now(timezone.utc).isoformat(),
+                    "status": "METADATA_ONLY",
+                    "error_detail": "PDF download skipped by user flag",
+                })
             continue
 
         if not pdf_url:

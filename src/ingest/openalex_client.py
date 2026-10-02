@@ -180,6 +180,7 @@ class OpenAlexClient:
         to ensure high landmark and citation relevance per year.
         """
         all_results: list[dict[str, Any]] = []
+        seen_paper_ids: set[str] = set()
 
         for year in range(start_year, end_year + 1):
             logger.info("Harvesting top %d LLM papers for year %d from OpenAlex...", per_year_limit, year)
@@ -195,21 +196,46 @@ class OpenAlexClient:
                 f"primary_topic.id:T10181|T10028|T11550|T12031"
             )
 
-            params = {
-                "filter": filter_query,
-                "sort": "cited_by_count:desc",
-                "per-page": per_year_limit,
-            }
+            year_count = 0
+            page = 1
+            max_per_page = 200
 
-            try:
-                data = self._get_with_retry(self.BASE_URL, params=params)
-                works = data.get("results", [])
-                logger.info("Retrieved %d works for year %d", len(works), year)
-                
-                for item in works:
-                    parsed = self.parse_work_item(item)
-                    all_results.append(parsed)
-            except Exception as err:
-                logger.error("Failed harvesting year %d: %s. Continuing with remaining years...", year, err)
+            while year_count < per_year_limit:
+                current_per_page = min(max_per_page, per_year_limit - year_count)
+                params = {
+                    "filter": filter_query,
+                    "sort": "cited_by_count:desc",
+                    "per-page": current_per_page,
+                    "page": page,
+                }
+
+                try:
+                    data = self._get_with_retry(self.BASE_URL, params=params)
+                    works = data.get("results", [])
+                    if not works:
+                        logger.info("No more works found for year %d at page %d.", year, page)
+                        break
+
+                    added_in_page = 0
+                    for item in works:
+                        parsed = self.parse_work_item(item)
+                        pid = parsed.get("paper_id")
+                        if pid and pid not in seen_paper_ids:
+                            seen_paper_ids.add(pid)
+                            all_results.append(parsed)
+                            year_count += 1
+                            added_in_page += 1
+                            if year_count >= per_year_limit:
+                                break
+
+                    logger.info("Year %d [page %d]: retrieved %d works (total for year: %d/%d)", year, page, added_in_page, year_count, per_year_limit)
+
+                    if len(works) < current_per_page:
+                        break
+
+                    page += 1
+                except Exception as err:
+                    logger.error("Failed harvesting year %d at page %d: %s. Continuing...", year, page, err)
+                    break
 
         return all_results
