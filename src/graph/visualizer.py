@@ -178,8 +178,8 @@ class NetworkVisualizer:
             btnDepth.addEventListener('click', function() {{
                 highlightDepth = (highlightDepth === 1) ? 2 : 1;
                 btnDepth.textContent = (highlightDepth === 1) ? "Depth: Direct (1-hop)" : "Depth: Indirect (2-hop)";
-                btnDepth.style.background = (highlightDepth === 2) ? "#e0e7ff" : "#f1f5f9";
-                btnDepth.style.color = (highlightDepth === 2) ? "#4338ca" : "#1e293b";
+                btnDepth.style.background = (highlightDepth === 2) ? "#e2e8f0" : "#f1f5f9";
+                btnDepth.style.color = "#0f172a";
                 applyFilterAndHighlight();
             }});
 
@@ -221,6 +221,7 @@ class NetworkVisualizer:
                 }} else {{
                     selectedNodeId = null;
                 }}
+                window.network.unselectAll();
                 applyFilterAndHighlight();
             }});
         }}
@@ -335,11 +336,12 @@ class NetworkVisualizer:
                     edgeUpdates.push({{ id: e.id, hidden: true }});
                 }} else if (selectedNodeId) {{
                     if (highlightedEdgeIds.has(e.id)) {{
+                        var origEdgeColor = (orig.color && orig.color.color) ? orig.color.color : '#94a3b8';
                         edgeUpdates.push({{
                             id: e.id,
                             hidden: false,
-                            color: {{ color: '#2563eb', opacity: 0.85 }},
-                            width: 2.2
+                            color: {{ color: origEdgeColor, opacity: 0.85 }},
+                            width: 1.8
                         }});
                     }} else {{
                         // Fade out non-connected edges!
@@ -404,10 +406,10 @@ class NetworkVisualizer:
         ranked_df = metrics_df.sort_values(by="pagerank", ascending=False).reset_index(drop=True) if not metrics_df.empty else pd.DataFrame()
         rank_lookup = {row["paper_id"]: i + 1 for i, row in ranked_df.iterrows()} if not ranked_df.empty else {}
 
-        # 2. Pre-compute deterministic spring layout with expanded spacing (k=3.2/sqrt(N), 2200x1700)
-        k_dist = 3.2 / math.sqrt(max(1, G.number_of_nodes()))
+        k_dist = 4.0 / math.sqrt(max(1, G.number_of_nodes()))
+        SCALE_X = max(2400, int(G.number_of_nodes() * 3.5))
+        SCALE_Y = max(1800, int(G.number_of_nodes() * 2.8))
         pos = nx.spring_layout(G, k=k_dist, iterations=150, seed=42)
-        SCALE_X, SCALE_Y = 2200, 1700
 
         net = Network(height="850px", width="100%", bgcolor="#ffffff", font_color="#333333", directed=True)
 
@@ -454,6 +456,7 @@ var options = {
     "dragNodes": true,
     "dragView": true,
     "hover": true,
+    "selectConnectedEdges": false,
     "tooltipDelay": 100,
     "navigationButtons": true,
     "keyboard": true,
@@ -461,9 +464,11 @@ var options = {
   },
   "nodes": {
     "borderWidth": 1,
-    "borderWidthSelected": 3
+    "borderWidthSelected": 3,
+    "chosen": false
   },
   "edges": {
+    "chosen": false,
     "smooth": {
       "type": "continuous",
       "roundness": 0.2
@@ -565,6 +570,7 @@ var options = {
     "dragNodes": true,
     "dragView": true,
     "hover": true,
+    "selectConnectedEdges": false,
     "tooltipDelay": 100,
     "navigationButtons": true,
     "keyboard": true,
@@ -572,9 +578,11 @@ var options = {
   },
   "nodes": {
     "borderWidth": 1,
-    "borderWidthSelected": 3
+    "borderWidthSelected": 3,
+    "chosen": false
   },
   "edges": {
+    "chosen": false,
     "smooth": {
       "type": "continuous",
       "roundness": 0.2
