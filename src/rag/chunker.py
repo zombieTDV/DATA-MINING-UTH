@@ -7,7 +7,10 @@ from typing import Any
 
 import pandas as pd
 
-logger = logging.getLogger("SemanticChunker")
+from src.utils.logger import get_logger, ensure_log_dirs
+
+ensure_log_dirs()
+logger = get_logger("SemanticChunker", log_file="logs/rag/chunker.log")
 
 
 class SemanticChunker:

@@ -123,3 +123,11 @@ rag_pipeline:
     gemini_model: "gemini-2.5-flash"
     temperature: 0.2
     strict_citation_verification: true
+
+logging:
+  root_dir: "logs"
+  level: "INFO"
+  rotation_max_bytes: 10485760
+  backup_count: 5
+  audit_file: "logs/audit.jsonl"
+

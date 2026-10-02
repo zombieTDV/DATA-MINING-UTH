@@ -9,7 +9,10 @@ from typing import Any
 import pandas as pd
 import pdfplumber
 
-logger = logging.getLogger("PDFSectionParser")
+from src.utils.logger import get_logger, ensure_log_dirs
+
+ensure_log_dirs()
+logger = get_logger("PDFSectionParser", log_file="logs/rag/pdf_parser.log")
 
 # Standard academic section title patterns
 SECTION_HEADER_RE = re.compile(

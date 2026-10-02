@@ -123,6 +123,15 @@ class RAGPipelineConfig:
 
 
 @dataclass
+class LoggingConfig:
+    root_dir: str = "logs"
+    level: str = "INFO"
+    rotation_max_bytes: int = 10 * 1024 * 1024
+    backup_count: int = 5
+    audit_file: str = "logs/audit.jsonl"
+
+
+@dataclass
 class PipelineConfig:
     """Master aggregated configuration container."""
     collection: CollectionConfig = field(default_factory=CollectionConfig)
@@ -132,6 +141,7 @@ class PipelineConfig:
     storage: StorageConfig = field(default_factory=StorageConfig)
     graph: GraphAnalyticsConfig = field(default_factory=GraphAnalyticsConfig)
     rag: RAGPipelineConfig = field(default_factory=RAGPipelineConfig)
+    logging: LoggingConfig = field(default_factory=LoggingConfig)
     raw_dict: dict[str, Any] = field(default_factory=dict)
 
 
@@ -265,6 +275,17 @@ def load_config(path: str | Path = DEFAULT_CONFIG_PATH) -> PipelineConfig:
             gemini_model=srv.get("gemini_model", cfg.rag.gemini_model),
             temperature=float(srv.get("temperature", cfg.rag.temperature)),
             strict_citation_verification=srv.get("strict_citation_verification", cfg.rag.strict_citation_verification),
+        )
+
+    # 7. Logging
+    log_sec = data.get("logging", {})
+    if log_sec:
+        cfg.logging = LoggingConfig(
+            root_dir=log_sec.get("root_dir", cfg.logging.root_dir),
+            level=log_sec.get("level", cfg.logging.level),
+            rotation_max_bytes=int(log_sec.get("rotation_max_bytes", cfg.logging.rotation_max_bytes)),
+            backup_count=int(log_sec.get("backup_count", cfg.logging.backup_count)),
+            audit_file=log_sec.get("audit_file", cfg.logging.audit_file),
         )
 
     return cfg

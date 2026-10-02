@@ -163,3 +163,18 @@ rag_pipeline:
     gemini_model: "gemini-2.5-flash"
     temperature: 0.2
     strict_citation_verification: true
+
+# ------------------------------------------------------------------------------
+# 7. Logging & Traceability Configuration
+# ------------------------------------------------------------------------------
+logging:
+  root_dir: "logs"
+  level: "INFO"
+  rotation_max_bytes: 10485760  # 10 MB per file
+  backup_count: 5
+  audit_file: "logs/audit.jsonl"
+  modules:
+    ingest: "logs/ingest"
+    rag: "logs/rag"
+    graph: "logs/graph"
+

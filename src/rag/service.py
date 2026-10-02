@@ -10,8 +10,10 @@ import time
 from typing import Any
 
 from src.rag.indexer import LanceDBHybridIndexer
+from src.utils.logger import get_logger, log_audit_event, ensure_log_dirs
 
-logger = logging.getLogger("RAGService")
+ensure_log_dirs()
+logger = get_logger("RAGService", log_file="logs/rag/query_service.log")
 
 
 @dataclass
@@ -185,6 +187,16 @@ class RAGService:
         verified, hallucinated = self.verify_citations(answer, retrieved_ids)
 
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
+        log_audit_event("RAG_QUERY", "RAGService", {
+            "question": question,
+            "backend": llm_backend,
+            "retrieved_count": len(retrieved_chunks),
+            "verified_citations": verified,
+            "hallucinated_citations": hallucinated,
+            "is_grounded": (len(hallucinated) == 0 and len(verified) > 0),
+            "query_time_ms": round(elapsed_ms, 2),
+        })
+
         return RAGResponse(
             question=question,
             answer=answer,

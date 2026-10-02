@@ -12,12 +12,10 @@ from src.ingest.pdf_downloader import PDFDownloader
 from src.ingest.bronze_vault import BronzeVault
 from src.ingest.silver_builder import SilverBuilder
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-logger = logging.getLogger("HarvestCLI")
+from src.utils.logger import get_logger, log_audit_event, ensure_log_dirs
+
+ensure_log_dirs()
+logger = get_logger("HarvestCLI", log_file="logs/ingest/openalex_harvest.log")
 
 
 from src.config import load_config
@@ -186,6 +184,13 @@ def run_harvest(
     print(f" Silver Citations      : {silver_paths.get('citations')}")
     print(f" Silver Keywords       : {silver_paths.get('keywords')}")
     print("=" * 65 + "\n")
+
+    log_audit_event("OPENALEX_HARVEST_SUMMARY", "HarvestCLI", {
+        "total_papers": len(works),
+        "target_years": f"{start_yr}-{end_yr}",
+        "vaulted_pdfs": vaulted_pdfs,
+        "paywalled_count": paywalled_count,
+    })
 
     return {
         "total_papers": len(works),

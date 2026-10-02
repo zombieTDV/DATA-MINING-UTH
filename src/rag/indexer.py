@@ -10,7 +10,10 @@ import lancedb
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 
-logger = logging.getLogger("LanceDBHybridIndexer")
+from src.utils.logger import get_logger, ensure_log_dirs
+
+ensure_log_dirs()
+logger = get_logger("LanceDBHybridIndexer", log_file="logs/rag/indexer.log")
 
 
 class LanceDBHybridIndexer:

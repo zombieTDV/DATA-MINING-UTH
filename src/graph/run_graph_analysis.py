@@ -13,12 +13,10 @@ from src.graph.visualizer import NetworkVisualizer
 from src.trends.trend_tables import TrendTableEngine
 from src.trends.plot_trends import TrendPlotter
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
-)
-logger = logging.getLogger("GraphAnalysisCLI")
+from src.utils.logger import get_logger, log_audit_event, ensure_log_dirs
+
+ensure_log_dirs()
+logger = get_logger("GraphAnalysisCLI", log_file="logs/graph/citation_network.log")
 
 
 def execute_pipeline(
@@ -123,6 +121,13 @@ def execute_pipeline(
     for name, path in plots.items():
         print(f"  • Plot [{name}]: {path}")
     print("=" * 70 + "\n")
+
+    log_audit_event("GRAPH_ANALYSIS_COMPLETE", "GraphAnalysisCLI", {
+        "silver_dir": silver_dir,
+        "gold_dir": gold_dir,
+        "citation_metrics_nodes": len(cit_metrics_df),
+        "rules_mined": len(rules_df),
+    })
 
     return {
         "cit_metrics_file": cit_metrics_file,
