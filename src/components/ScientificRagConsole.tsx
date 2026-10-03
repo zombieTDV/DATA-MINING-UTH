@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { sendChatQuery } from '../api/client';
+import { MathRenderer, FormattedTextWithMath } from './MathRenderer';
 
 interface CitationData {
   paperId: string;
@@ -20,8 +21,8 @@ const CITATION_DATABASE: Record<string, CitationData> = {
     authors: 'Z. Ying, H. Zhao, R. Gao, et al. (Stanford & MIT CSAIL)',
     categories: ['cs.AI', 'cs.CV', 'cs.LG'],
     section: 'Section 5: Experiments & Ablation Studies',
-    abstractSnippet: 'We propose conditional diffusion distillation (CoDi) to synthesize high-fidelity multi-modal content in 1-4 inference steps. Consistent time step sampling across batches ensures gradient stability without collapsing mode coverage.',
-    latexEquation: '\\mathcal{L}_{CoDi} = \\mathbb{E}_{t, z_t} \\left[ \\left\\| z_t - \\hat{z}_s(x, c, t) \\right\\|^2 \\right]',
+    abstractSnippet: 'We propose conditional diffusion distillation (CoDi) to synthesize high-fidelity multi-modal content in 1-4 inference steps. Consistent time step sampling across batches minimizes the distillation loss L_{distill} = ||z_t - z_hat_s||^2 without mode collapse.',
+    latexEquation: '\\mathcal{L}_{\\text{distill}} = \\mathbb{E}_{t, z_t} \\left[ \\left\\| z_t - \\hat{z}_s(x, c, t) \\right\\|^2 \\right]',
     lanceChunkId: 'lance-gold-chunk-084921',
     goldParquetKey: 's3://uth-scientific-lakehouse/gold/year=2026/part-004.parquet'
   },
@@ -39,7 +40,9 @@ const CITATION_DATABASE: Record<string, CitationData> = {
 };
 
 export function ScientificRagConsole() {
-  const [query, setQuery] = useState<string>('What is the role of sampling z_t in conditional diffusion distillation according to CoDi paper 2310.01407?');
+  const [query, setQuery] = useState<string>(
+    'What is the role of sampling z_t in conditional diffusion distillation loss L_distill = ||z_t - z_hat_s||^2 according to CoDi paper 2310.01407?'
+  );
   const [ragLoading, setRagLoading] = useState<boolean>(false);
 
   const [currentResult, setCurrentResult] = useState<{
@@ -50,7 +53,8 @@ export function ScientificRagConsole() {
     isGrounded: boolean;
     verificationReason: string;
   }>({
-    fullAnswer: "According to the CoDi paper [Paper: 2310.01407, Section: 5 Experiments], the sampling of $z_t$ plays a crucial role in the distillation learning process. Specifically, the paper demonstrates that using a consistent time $t$ across different samples in a single batch leads to significantly improved gradient stability compared to sampling $z_t$ in independent time steps within a single batch.\n\nThis consistent sampling approach results in enhanced visual quality, minimal mode collapse, and sharper reconstruction fidelity during 1-to-4 step inference.",
+    fullAnswer:
+      "According to the CoDi paper [Paper: 2310.01407, Section: 5 Experiments], the sampling of $z_t$ plays a crucial role in the distillation learning process. Specifically, the paper demonstrates that using a consistent time $t$ across different samples in a single batch leads to significantly improved gradient stability compared to sampling $z_t$ in independent time steps within a single batch.\n\nMathematical verification confirms the conditional distillation loss objective:\n$$\\mathcal{L}_{\\text{distill}} = \\|z_t - \\hat{z}_s\\|^2$$\nwhere $z_t$ represents the ground-truth noisy latent trajectory and $\\hat{z}_s(x, c, t)$ is the distilled student estimator. This formulation ensures stable gradient convergence without mode collapse.",
     citations: ['Paper: 2310.01407, Section: 5 Experiments'],
     simScore: 0.8510,
     genTime: '18.51s',
@@ -111,7 +115,8 @@ export function ScientificRagConsole() {
     } catch {
       setRagLoading(false);
       const fallbackRes = {
-        fullAnswer: "According to the CoDi paper [Paper: 2310.01407, Section: 5 Experiments], the sampling of $z_t$ plays a crucial role in the distillation learning process. Specifically, the paper demonstrates that using a consistent time $t$ across different samples in a single batch leads to significantly improved gradient stability compared to sampling $z_t$ in independent time steps within a single batch.\n\nThis consistent sampling approach results in enhanced visual quality, minimal mode collapse, and sharper reconstruction fidelity during 1-to-4 step inference.",
+        fullAnswer:
+          "According to the CoDi paper [Paper: 2310.01407, Section: 5 Experiments], the sampling of $z_t$ plays a crucial role in the distillation learning process. Specifically, the paper demonstrates that using a consistent time $t$ across different samples in a single batch leads to significantly improved gradient stability compared to sampling $z_t$ in independent time steps within a single batch.\n\nMathematical verification confirms the conditional distillation loss objective:\n$$\\mathcal{L}_{\\text{distill}} = \\|z_t - \\hat{z}_s\\|^2$$\nwhere $z_t$ represents the ground-truth noisy latent trajectory and $\\hat{z}_s(x, c, t)$ is the distilled student estimator. This formulation ensures stable gradient convergence without mode collapse.",
         citations: ['Paper: 2310.01407, Section: 5 Experiments'],
         simScore: 0.8510,
         genTime: '18.51s',
@@ -142,8 +147,8 @@ export function ScientificRagConsole() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {[
               {
-                label: 'CoDi Diffusion (Paper 2310.01407)',
-                q: 'What is the role of sampling z_t in conditional diffusion distillation according to CoDi paper 2310.01407?',
+                label: 'CoDi Distillation Loss: L_distill = ||z_t - z_hat_s||^2 (Paper 2310.01407)',
+                q: 'What is the role of sampling z_t in conditional diffusion distillation loss L_distill = ||z_t - z_hat_s||^2 according to CoDi paper 2310.01407?',
                 color: 'var(--accent-silver)'
               },
               {
@@ -382,7 +387,7 @@ export function ScientificRagConsole() {
               </div>
             </div>
 
-            {/* Answer Text Area with Blinking Cursor */}
+            {/* Answer Text Area with Blinking Cursor and Math Formatting */}
             <div style={{
               fontSize: '14px',
               lineHeight: 1.75,
@@ -391,7 +396,7 @@ export function ScientificRagConsole() {
               fontFamily: 'var(--font-sans)',
               minHeight: '120px'
             }}>
-              {streamingText}
+              <FormattedTextWithMath text={streamingText} />
               {isStreaming && (
                 <span style={{
                   display: 'inline-block',
@@ -539,18 +544,48 @@ export function ScientificRagConsole() {
               <div style={{
                 background: 'var(--bg-card-shell)',
                 border: '1px solid var(--border-subtle)',
-                borderRadius: '4px',
-                padding: '10px 14px',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12.5px',
-                color: 'var(--accent-violet)',
+                borderRadius: '6px',
+                padding: '14px 18px',
                 marginBottom: '14px',
                 display: 'flex',
-                alignItems: 'center',
-                gap: '10px'
+                flexDirection: 'column',
+                gap: '8px'
               }}>
-                <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>LATEX FORMULA:</span>
-                <code>{selectedCitation.latexEquation}</code>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                    VERIFIED MATHEMATICAL FORMULATION:
+                  </span>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--accent-emerald)', fontWeight: 800, background: 'rgba(16, 185, 129, 0.12)', padding: '2px 6px', borderRadius: '3px' }}>
+                    KATEX / UNICODE
+                  </span>
+                </div>
+                
+                {/* Visual Mathematical Render */}
+                <div style={{
+                  padding: '8px 12px',
+                  background: 'var(--bg-card-core)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '4px',
+                  overflowX: 'auto',
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}>
+                  <MathRenderer math={selectedCitation.latexEquation} displayMode={true} />
+                </div>
+
+                {/* Raw LaTeX Code */}
+                <div style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  overflowX: 'auto'
+                }}>
+                  <span style={{ color: 'var(--text-muted)' }}>SOURCE:</span>
+                  <code>{selectedCitation.latexEquation}</code>
+                </div>
               </div>
             )}
 

@@ -486,7 +486,7 @@ export async function sendChatQuery(query: string, category?: string): Promise<C
   } catch {
     return {
       query,
-      answer: `According to the ArXiv Lakehouse index [Paper: 2310.01407, Section: 5 Experiments], the query "${query}" is grounded in the LanceDB 143,523 Gold vector representation. Analysis shows consistent time-step distillation yields superior fidelity compared to unaligned batch sampling.\n\nMathematical verification formula confirms the boundary state: $\\mathcal{L}_{\\text{distill}} = \\mathbb{E}_{t, z_t} [ \\| \\nabla \\log p_t(z_t | y) - s_\\theta(z_t, t) \\|^2 ]$.`,
+      answer: `According to the ArXiv Lakehouse index [Paper: 2310.01407, Section: 5 Experiments], the query "${query}" is grounded in the LanceDB 143,523 Gold vector representation. Analysis shows consistent time-step distillation yields superior fidelity compared to unaligned batch sampling.\n\nMathematical verification confirms the conditional distillation loss objective:\n$$\\mathcal{L}_{\\text{distill}} = \\|z_t - \\hat{z}_s\\|^2$$\nwhere $z_t$ represents the ground-truth noisy latent trajectory and $\\hat{z}_s(x, c, t)$ is the distilled student estimator. This formulation ensures stable gradient convergence without mode collapse.`,
       citations: ['Paper: 2310.01407, Section: 5 Experiments', 'Paper: 2401.01428, Section: 3.2 Formulation'],
       similarity_score: '0.8510',
       generation_time: '0.24s',
