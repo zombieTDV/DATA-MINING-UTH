@@ -1,6 +1,8 @@
 # Node / TypeScript
 node_modules/
+backend/node_modules/
 dist/
+backend/dist/
 coverage/
 *.tsbuildinfo
 npm-debug.log*
@@ -9,21 +11,26 @@ npm-debug.log*
 .env
 .env.*
 !.env.example
+!backend/.env.example
 
 # Local artifacts shared with other branches (exist on disk, never tracked here)
 models/
 data/
 logs/
 .venv/
+data_mining/.venv/
 lib/
 bin/
 tools/
+!data_mining/tools/
 .kilo/
 .pytest_cache/
 .ruff_cache/
 __pycache__/
+*.pyc
 
-# Editor / OS
+# Editor / OS / Tooling
+.gemini/
 .vscode/
 .idea/
 .DS_Store

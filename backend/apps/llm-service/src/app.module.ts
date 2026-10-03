@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { validateEnv } from '@app/shared';
 import { EngineModule } from './engine/engine.module';
 import { HealthController } from './health/health.controller';
-import { ModelsController } from './models/models.controller';
 import { EmbeddingsController } from './embeddings/embeddings.controller';
 import { ChatController } from './chat/chat.controller';
 
@@ -19,7 +18,6 @@ import { ChatController } from './chat/chat.controller';
   ],
   controllers: [
     HealthController,
-    ModelsController,
     EmbeddingsController,
     ChatController,
   ],

@@ -1,106 +1,106 @@
-# UTH Data Mining: Backend API & RAG Serving Monorepo
+# UTH Scientific Data Mining & Advanced RAG System for AI/DS
 
-Welcome to the backend service monorepo for the UTH Scientific Paper Mining and Literature Review platform. This branch (`feature/backend-api`) contains a clean, standalone TypeScript/NestJS monorepo designed to power real-time scientific exploration, hybrid retrieval over Cloudflare R2 Lakehouse, and grounded LLM generation for frontend applications.
-
----
-
-## 🏛️ System Architecture
-
-```
-                       ┌───────────────────────────────┐
-                       │   React Frontend Application   │
-                       │   (e.g., Vite on port 5173)   │
-                       └───────────────┬───────────────┘
-                                       │
-                      REST & SSE Stream│
-                                       ▼
-                       ┌───────────────────────────────┐
-                       │      API Gateway (:8000)      │
-                       │   Swagger UI: /api/docs       │
-                       │   Swagger JSON: /api/docs-json│
-                       └───────┬───────────────┬───────┘
-                               │               │
-        @lancedb/lancedb (S3)  │               │ HTTP /v1/chat/completions (SSE)
-                               ▼               ▼
-      ┌──────────────────────────┐    ┌──────────────────────────┐
-      │   Cloudflare R2 Bucket   │    │    LLM Service (:9001)   │
-      │   uth-scientific-lakehouse   │    │    Swagger UI: /docs     │
-      │ 143k chunks (IVF-PQ + FTS│    │ node-llama-cpp + Qwen2.5 │
-      └──────────────────────────┘    └─────────────┬────────────┘
-                                                    │ loads local GGUF
-                                                    ▼
-                                      ┌──────────────────────────┐
-                                      │ models/qwen2.5-7b-*.gguf │
-                                      └──────────────────────────┘
-```
+Hệ thống Khai phá Dữ liệu Khoa học Thời gian thực và RAG Nâng cao (Real-Time Scientific Data Mining & Advanced RAG System) phục vụ nghiên cứu và tổng quan tài liệu trong miền Trí tuệ Nhân tạo & Khoa học Dữ liệu (AI/DS).
 
 ---
 
-## 🚀 Quick Start Guide
+## 1. Cấu trúc Dự án (Polyglot Monorepo Architecture)
 
-### Prerequisites
-- **Node.js >= 22.0.0** (required by `@lancedb/lancedb` and `node-llama-cpp`)
-- **nvm** (Node Version Manager) recommended
+Dự án được chuẩn hóa thành kiến trúc Monorepo phân tách rõ ràng giữa phân hệ **Khai phá Dữ liệu (Python)** và **Ứng dụng Phục vụ Backend API (TypeScript / NestJS)**:
 
-```powershell
-# Activate Node 22 using nvm-windows
-nvm use 22.23.3
-node --version
-# Expected: v22.23.3
+```text
+UTH-Data-Mining-Real-Time-Scientific-Data-Mining-Advanced-RAG-System-for-AI-DS/
+│
+├── backend/                       # [1] Phân hệ Backend API & Serving (NestJS / TypeScript)
+│   ├── apps/
+│   │   ├── api-gateway/          # Cổng API cho Frontend (Port 8000)
+│   │   └── llm-service/          # Dịch vụ suy luận AI Qwen2.5 GGUF (Port 9001)
+│   ├── libs/
+│   │   └── shared/               # DTO, Schema Zod, Config dùng chung
+│   ├── package.json
+│   ├── nest-cli.json
+│   └── tsconfig.json
+│
+├── data_mining/                   # [2] Phân hệ Data Mining & Lakehouse (Python)
+│   ├── src/
+│   │   ├── config/               # Cấu hình hệ thống & môi trường
+│   │   ├── ingestion/            # Thu thập arXiv OAI-PMH & cào HTML5
+│   │   ├── transformation/       # Parser HTML & Silver Parquet Writer
+│   │   ├── indexing/             # Nomic Embedder (MPS GPU) & LanceDB
+│   │   ├── storage/              # Cloudflare R2 & DuckDB SQL Engine
+│   │   ├── rag/                  # Scientific RAG Engine & Prompt Templates
+│   │   └── pipelines/            # Master Pipeline (Bronze -> Silver -> Gold)
+│   ├── tests/                    # Integration & connection tests
+│   ├── tools/                    # Công cụ kiểm tra storage (check_storage.py)
+│   ├── main.py                   # Điểm kích hoạt Master Pipeline
+│   └── requirements.txt
+│
+├── data/                          # [3] Bộ nhớ đệm dữ liệu cục bộ (.gitignore)
+│   ├── raw/html/                 # 9,000+ HTML học thuật thô
+│   ├── silver/year=2026/         # Parquet (10,000 bài, 2.22M công thức toán)
+│   └── gold/lancedb/             # LanceDB Vector Table (143,523 vectors 768-dim)
+│
+├── models/                        # [4] Trọng số mô hình AI nặng (.gitignore)
+│   ├── nomic-embed-text-v1.5/    # Mô hình nhúng học thuật chạy GPU MPS
+│   └── qwen2.5-7b-instruct-...   # Mô hình LLM suy luận
+│
+├── logs/                          # [5] Nhật ký thực thi theo timestamp (.gitignore)
+├── docs/                          # [6] Toàn bộ tài liệu kiến trúc & báo cáo
+│   └── agents/                   # Quy chuẩn phát triển & template prompts
+│
+└── .env                           # Biến môi trường và khóa Cloudflare R2
 ```
 
-### Installation
-```powershell
-npm ci
+---
+
+## 2. Hướng dẫn Khởi chạy Từng Phân hệ
+
+### A. Phân hệ Data Mining & Lakehouse (`data_mining/`)
+
+Sử dụng môi trường ảo Python 3.9+:
+
+```bash
+# 1. Kích hoạt môi trường
+source .venv/bin/activate
+
+# 2. Kiểm tra kết nối tới Cloudflare R2 và arXiv
+python data_mining/tests/test_connection.py
+
+# 3. Kiểm tra dung lượng và số lượng tài liệu trên R2
+python data_mining/tools/check_storage.py
+
+# 4. Chạy Master Pipeline (Thu thập -> Bóc tách HTML -> Nạp Gold LanceDB)
+python data_mining/main.py --target-papers 10000 --enrich-html-limit 100 --gold-limit 500
 ```
 
-### Environment Setup
-Copy `.env.example` to `.env` and fill in your Cloudflare R2 credentials (if running against real lakehouse data):
-```powershell
-cp .env.example .env
-```
+---
 
-Key environment options:
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `GATEWAY_PORT` | `8000` | Port for frontend-facing API Gateway |
-| `LLM_PORT` | `9001` | Port for internal/dedicated LLM service |
-| `RETRIEVAL_MODE` | `lancedb` | `lancedb` (queries Cloudflare R2) or `mock` (in-memory test data) |
-| `LLM_MODE` | `gguf` | `gguf` (loads local Qwen GGUF via `node-llama-cpp`) or `mock` |
-| `LLM_MODEL_PATH` | `./models/...` | Path to local GGUF weights |
-| `FRONTEND_ORIGIN`| `http://localhost:5173` | Allowed CORS origin for React/Vite |
+### B. Phân hệ Backend API & Serving (`backend/`)
 
-### Running the Services
-```powershell
-# Run both API Gateway (:8000) and LLM Service (:9001) concurrently in dev mode:
-npm run dev
+Sử dụng Node.js >= 22.0.0:
 
-# Expose API Gateway (:8000) over free public HTTPS tunnel for remote frontend teammates:
-npm run tunnel
+```bash
+# 1. Chuyển vào thư mục backend
+cd backend
 
-# Or run services individually:
-npm run start:gateway
-npm run start:llm
-```
+# 2. Cài đặt thư viện
+npm install
 
-### Running Tests
-```powershell
-# Unit tests (prompt builders, citation parser, zod schema validation)
+# 3. Chạy kiểm thử
 npm test
 
-# End-to-end integration tests (mock mode: no GPU or R2 secrets required)
-npm run test:e2e
+# 4. Khởi chạy đồng thời API Gateway (:8000) và LLM Service (:9001)
+npm run dev
 
-# Build production artifacts
-npm run build
+# 5. Xem Swagger API Documentation:
+# - API Gateway: http://localhost:8000/api/docs
+# - LLM Service: http://localhost:9001/docs
 ```
 
 ---
 
-## 📖 API Documentation & Swagger
+## 3. Kiến trúc Dữ liệu Medallion Lakehouse
 
-- **API Gateway Swagger UI**: [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
-- **API Gateway OpenAPI JSON Spec**: [http://localhost:8000/api/docs-json](http://localhost:8000/api/docs-json)
-- **LLM Service Swagger UI**: [http://localhost:9001/docs](http://localhost:9001/docs)
-
-For detailed endpoint contracts and Server-Sent Event (SSE) specs, refer to [docs/backend/API.md](file:///C:/document/Study%20documents/Uth-Data-Mining/docs/backend/API.md).
+- **Bronze Zone (`s3://uth-scientific-lakehouse/bronze/`)**: Lưu trữ 9,022 file HTML học thuật thô và 12 bundle JSON thu thập từ arXiv OAI-PMH.
+- **Silver Zone (`s3://uth-scientific-lakehouse/silver/`)**: Lưu trữ 10,000 bài báo dạng bảng cột Apache Parquet nén `zstd`, chứa đầy đủ các phần cấu trúc (`Introduction`, `Methodology`, `Experiments`, `Analysis`) và trích xuất hơn 2.22 triệu công thức toán LaTeX.
+- **Gold Zone (`s3://uth-scientific-lakehouse/gold/`)**: Bảng vector LanceDB chứa 143,523 vector nhúng ngữ cảnh 768 chiều sinh từ mô hình `Nomic-embed-text-v1.5` trên Apple Silicon GPU, phục vụ tìm kiếm ngữ nghĩa và RAG thời gian thực.
