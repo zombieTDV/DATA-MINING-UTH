@@ -319,8 +319,8 @@ export interface ToolItem {
 export interface LogEntry {
   id: string;
   timestamp: string;
-  level: 'INFO' | 'SUCCESS' | 'STORAGE' | 'QUERY';
-  phase: 'INGEST' | 'ENRICH' | 'GOLD' | 'RAG' | 'R2';
+  level: 'INFO' | 'SUCCESS' | 'STORAGE' | 'QUERY' | 'TRACE' | 'METRIC' | 'WARN';
+  phase: 'INGEST' | 'ENRICH' | 'GOLD' | 'RAG' | 'R2' | 'MINING';
   source: string;
   message: string;
   detail?: string;

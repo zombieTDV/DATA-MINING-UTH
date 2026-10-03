@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TELEMETRY_ENTRIES, type LogEntry } from '../data/lakehouseData';
+import { subscribeTelemetry } from '../api/client';
 
 export function LiveTelemetryFeed() {
   const [filterLevel, setFilterLevel] = useState<string>('ALL');
@@ -9,26 +10,24 @@ export function LiveTelemetryFeed() {
   const [copiedLogs, setCopiedLogs] = useState<boolean>(false);
   const [liveEntries, setLiveEntries] = useState<LogEntry[]>(TELEMETRY_ENTRIES);
 
-  // Periodic heartbeat simulation when stream is active
+  // Subscribe to real Server-Sent Events (SSE) telemetry from FastAPI
   useEffect(() => {
     if (isPaused) return;
-    const interval = setInterval(() => {
-      // Simulate live memory/cache verification log every 12s
-      const now = new Date();
-      const timeStr = now.toISOString().replace('T', ' ').slice(0, 23);
-      const newHeartbeat: LogEntry = {
-        id: `hb-${Date.now()}`,
-        timestamp: timeStr,
-        level: 'INFO',
-        phase: 'RAG',
-        source: 'src/rag/llm_client.py:92',
-        message: `[HEALTH] Metal GPU memory residency stable (Unified VRAM: 6.21 GB · LanceDB active connections: 1)`,
-        detail: `Driver: Apple Metal Framework 320.23 · Host Status: NOMINAL · Bus Bandwidth: 200 GB/s`
-      };
-      setLiveEntries(prev => [newHeartbeat, ...prev.slice(0, 14)]);
-    }, 12000);
 
-    return () => clearInterval(interval);
+    const unsubscribe = subscribeTelemetry((event) => {
+      const newEntry: LogEntry = {
+        id: `sse-${Date.now()}-${Math.random()}`,
+        timestamp: event.timestamp.replace('T', ' ').slice(0, 23),
+        level: (event.level as LogEntry['level']) || 'INFO',
+        phase: (event.stage as LogEntry['phase']) || 'MINING',
+        source: 'backend/app/main.py:8000',
+        message: event.message,
+        detail: event.detail || 'FastAPI Server-Sent Event (SSE) Stream',
+      };
+      setLiveEntries((prev) => [newEntry, ...prev.slice(0, 24)]);
+    });
+
+    return () => unsubscribe();
   }, [isPaused]);
 
   const filteredLogs = liveEntries.filter(log => {
