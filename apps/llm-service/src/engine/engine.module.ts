@@ -36,8 +36,9 @@ import { NodeLlamaCppEngine } from './node-llama-cpp.engine';
             'LLM_MODEL_PATH',
             './models/qwen2.5-7b-instruct-q4_k_m/qwen2.5-7b-instruct-q4_k_m.gguf',
           ),
-          LLM_CONTEXT_SIZE: configService.get<number>('LLM_CONTEXT_SIZE', 4096),
-          LLM_MAX_TOKENS: configService.get<number>('LLM_MAX_TOKENS', 1024),
+          LLM_CONTEXT_SIZE: configService.get<number>('LLM_CONTEXT_SIZE', 8192),
+          LLM_MAX_TOKENS: configService.get<number>('LLM_MAX_TOKENS', 2048),
+          LLM_SEQUENCES: configService.get<number>('LLM_SEQUENCES', 2),
           LLM_TEMPERATURE: configService.get<number>('LLM_TEMPERATURE', 0.7),
         };
 

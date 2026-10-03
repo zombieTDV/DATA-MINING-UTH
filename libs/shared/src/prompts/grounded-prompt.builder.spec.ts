@@ -60,4 +60,10 @@ describe('GroundedPromptBuilder', () => {
     expect(citations.length).toBe(2);
     expect(citations[0].id).toBe('[Chunk 1]');
   });
+
+  it('respects character budgeting and truncates when exceeding budget', () => {
+    const context = GroundedPromptBuilder.formatContext(mockChunks, 150);
+    expect(context).toContain('[Chunk 1]');
+    expect(context).not.toContain('[Chunk 2]');
+  });
 });

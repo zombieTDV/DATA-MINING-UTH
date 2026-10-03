@@ -54,8 +54,10 @@ export class NodeLlamaCppEngine implements LlmEngine, OnModuleInit {
         modelPath: resolvedPath,
       });
 
+      const sequences = (this.config as any).LLM_SEQUENCES || 2;
       this.context = await this.model.createContext({
         contextSize: this.config.LLM_CONTEXT_SIZE,
+        sequences,
       });
 
       this.loaded = true;
@@ -101,21 +103,28 @@ export class NodeLlamaCppEngine implements LlmEngine, OnModuleInit {
               .map((m) => m.content)
               .join('\n\n');
 
-            const session = new LlamaChatSession({
-              contextSequence: this.context.getSequence(),
-              systemPrompt: systemMsg,
-            });
+            const sequence = this.context.getSequence();
+            try {
+              const session = new LlamaChatSession({
+                contextSequence: sequence,
+                systemPrompt: systemMsg,
+              });
 
-            const answer = await session.prompt(userMsg, {
-              maxTokens: options.maxTokens || this.config.LLM_MAX_TOKENS,
-              temperature: options.temperature ?? this.config.LLM_TEMPERATURE,
-              onTextChunk: options.onChunk,
-            });
+              const answer = await session.prompt(userMsg, {
+                maxTokens: options.maxTokens || this.config.LLM_MAX_TOKENS,
+                temperature: options.temperature ?? this.config.LLM_TEMPERATURE,
+                onTextChunk: options.onChunk,
+              });
 
-            resolve({
-              text: answer,
-              tokensUsed: Math.ceil(answer.length / 4),
-            });
+              resolve({
+                text: answer,
+                tokensUsed: Math.ceil(answer.length / 4),
+              });
+            } finally {
+              if (sequence && !sequence.disposed) {
+                sequence.dispose();
+              }
+            }
           } catch (err) {
             reject(err);
           }

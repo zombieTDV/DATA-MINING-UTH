@@ -7,7 +7,8 @@ describe('validateEnv', () => {
     expect(config.LLM_PORT).toBe(9001);
     expect(config.RETRIEVAL_MODE).toBe('lancedb');
     expect(config.LLM_MODE).toBe('gguf');
-    expect(config.LLM_CONTEXT_SIZE).toBe(4096);
+    expect(config.LLM_CONTEXT_SIZE).toBe(8192);
+    expect(config.LLM_SEQUENCES).toBe(2);
   });
 
   it('parses custom configurations and coerces numbers', () => {

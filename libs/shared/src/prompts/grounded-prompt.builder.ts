@@ -5,21 +5,40 @@ export class GroundedPromptBuilder {
   /**
    * Format chunks into structured context blocks for the LLM
    */
-  static formatContext(chunks: ChunkDto[]): string {
+  static formatContext(chunks: ChunkDto[], maxTotalChars = 20000): string {
     if (!chunks || chunks.length === 0) {
       return 'No scientific context available.';
     }
 
-    return chunks
-      .map((chunk, idx) => {
-        const id = `[Chunk ${idx + 1}]`;
-        const authors = chunk.authors && chunk.authors.length > 0 ? chunk.authors.join(', ') : 'Unknown';
-        const year = chunk.year ? ` (${chunk.year})` : '';
-        const meta = `arXiv:${chunk.paper_id} | "${chunk.title}" | Authors: ${authors}${year}`;
-        const body = (chunk.text || chunk.abstract || '').trim();
-        return `${id} ${meta}\n${body}`;
-      })
-      .join('\n\n---\n\n');
+    let totalChars = 0;
+    const formattedBlocks: string[] = [];
+
+    for (let idx = 0; idx < chunks.length; idx++) {
+      const chunk = chunks[idx];
+      const id = `[Chunk ${idx + 1}]`;
+      const authors =
+        chunk.authors && chunk.authors.length > 0 ? chunk.authors.join(', ') : 'Unknown';
+      const year = chunk.year ? ` (${chunk.year})` : '';
+      const meta = `arXiv:${chunk.paper_id} | "${chunk.title}" | Authors: ${authors}${year}`;
+      let body = (chunk.text || chunk.abstract || '').trim();
+
+      const remainingBudget = maxTotalChars - totalChars;
+      if (idx > 0 && remainingBudget <= 50) {
+        break;
+      }
+
+      const metaBlock = `${id} ${meta}\n`;
+      const availableForBody = remainingBudget - metaBlock.length;
+      if (availableForBody > 0 && body.length > availableForBody) {
+        body = body.slice(0, Math.max(20, availableForBody - 16)) + '... [truncated]';
+      }
+
+      const block = `${metaBlock}${body}`;
+      totalChars += block.length;
+      formattedBlocks.push(block);
+    }
+
+    return formattedBlocks.join('\n\n---\n\n');
   }
 
   /**

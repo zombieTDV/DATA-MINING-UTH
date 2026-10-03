@@ -21,8 +21,9 @@ export const EnvSchema = z.object({
   LLM_MODEL_PATH: z
     .string()
     .default('./models/qwen2.5-7b-instruct-q4_k_m/qwen2.5-7b-instruct-q4_k_m.gguf'),
-  LLM_CONTEXT_SIZE: z.coerce.number().default(4096),
-  LLM_MAX_TOKENS: z.coerce.number().default(1024),
+  LLM_CONTEXT_SIZE: z.coerce.number().default(8192),
+  LLM_MAX_TOKENS: z.coerce.number().default(2048),
+  LLM_SEQUENCES: z.coerce.number().default(2),
   LLM_TEMPERATURE: z.coerce.number().default(0.7),
 });
 

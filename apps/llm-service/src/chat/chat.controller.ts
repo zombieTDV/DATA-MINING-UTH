@@ -77,33 +77,42 @@ export class ChatController {
       }
     } else {
       // Non-streaming completion
-      const result = await this.engine.generateCompletion({
-        messages: body.messages,
-        maxTokens: body.max_tokens,
-        temperature: body.temperature,
-      });
+      try {
+        const result = await this.engine.generateCompletion({
+          messages: body.messages,
+          maxTokens: body.max_tokens,
+          temperature: body.temperature,
+        });
 
-      return res.status(200).json({
-        id,
-        object: 'chat.completion',
-        created: Math.floor(Date.now() / 1000),
-        model,
-        choices: [
-          {
-            index: 0,
-            message: {
-              role: 'assistant',
-              content: result.text,
+        return res.status(200).json({
+          id,
+          object: 'chat.completion',
+          created: Math.floor(Date.now() / 1000),
+          model,
+          choices: [
+            {
+              index: 0,
+              message: {
+                role: 'assistant',
+                content: result.text,
+              },
+              finish_reason: 'stop',
             },
-            finish_reason: 'stop',
+          ],
+          usage: {
+            prompt_tokens: 0,
+            completion_tokens: result.tokensUsed || 0,
+            total_tokens: result.tokensUsed || 0,
           },
-        ],
-        usage: {
-          prompt_tokens: 0,
-          completion_tokens: result.tokensUsed || 0,
-          total_tokens: result.tokensUsed || 0,
-        },
-      });
+        });
+      } catch (err: any) {
+        return res.status(500).json({
+          error: {
+            message: err.message || 'LLM generation failed',
+            type: 'internal_server_error',
+          },
+        });
+      }
     }
   }
 }
