@@ -1,0 +1,29 @@
+# Node / TypeScript
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Local artifacts shared with other branches (exist on disk, never tracked here)
+models/
+data/
+logs/
+.venv/
+lib/
+scripts/
+.kilo/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
