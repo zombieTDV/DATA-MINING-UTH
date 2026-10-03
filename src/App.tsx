@@ -199,7 +199,7 @@ export default function App() {
       }}>
         {[
           { id: 'schematic', label: '1. Pipeline Circuit Schematic' },
-          { id: 'gauges', label: '2. Geometric Visual Gauges' },
+          { id: 'gauges', label: '2. Telemetry Gauges & Execution Logs' },
           { id: 'tools', label: '3. Integrated Tools & Logos' },
           { id: 'rag', label: '4. Scientific RAG Playground' }
         ].map((tab) => (
@@ -227,26 +227,23 @@ export default function App() {
 
       {/* Main View Area */}
       <main style={{ flex: 1, padding: '24px 28px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
-        {/* TAB 1: Schematic Diagram (Geometric Visual Pipeline) */}
+        {/* TAB 1: Schematic Diagram (Pure Geometric Visual Pipeline) */}
         {activeTab === 'schematic' && (
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* Visual Gauges Ribbon */}
             <GeometricTelemetryGauges />
 
             {/* Interactive Geometric Circuit Diagram */}
-            <div style={{ marginBottom: '24px' }}>
+            <div>
               <GeometricPipelineDiagram />
             </div>
-
-            {/* Live Telemetry Feed */}
-            <LiveTelemetryFeed />
           </div>
         )}
 
-        {/* TAB 2: Geometric Visual Gauges Deep Dive */}
+        {/* TAB 2: Telemetry Gauges & Expanded Full-Width Execution Logs */}
         {activeTab === 'gauges' && (
-          <div>
-            <div style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div>
               <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Hardware & Storage Geometric Telemetry
               </h3>
@@ -254,10 +251,11 @@ export default function App() {
                 DIAL-01 (CAPACITY) · DIAL-02 (VECTOR PROJECTION) · DIAL-03 (METAL FREQUENCY)
               </p>
             </div>
+            
             <GeometricTelemetryGauges />
-            <div style={{ marginTop: '24px' }}>
-              <LiveTelemetryFeed />
-            </div>
+
+            {/* Expanded Full-Width Telemetry & Execution Log Feed */}
+            <LiveTelemetryFeed />
           </div>
         )}
 
