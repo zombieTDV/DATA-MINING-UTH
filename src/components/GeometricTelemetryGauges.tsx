@@ -224,12 +224,14 @@ export function GeometricTelemetryGauges() {
             {[28, 45, 60, 35, 52, 70, 85, 65, 48, 76, 92, 58, 42, 68].map((height, i) => (
               <div
                 key={i}
+                className="equalizer-bar"
                 style={{
                   width: '4.5px',
                   height: `${height}%`,
                   background: i % 2 === 0 ? 'var(--accent-violet)' : 'var(--accent-silver)',
                   borderRadius: '1px',
-                  opacity: 0.95
+                  opacity: 0.95,
+                  animationDelay: `${(i * 0.08).toFixed(2)}s`
                 }}
               />
             ))}

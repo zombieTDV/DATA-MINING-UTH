@@ -400,8 +400,21 @@ export const FALLBACK_STORAGE_DATA: StorageStatsResponse = {
 };
 
 // ============================================================================
-// ASYNC API FETCH FUNCTIONS WITH RESILIENT FALLBACKS
+// ASYNC API FETCH FUNCTIONS WITH RESILIENT FALLBACKS & SWR CACHING (Task 5.2)
 // ============================================================================
+
+const apiCache = new Map<string, { data: unknown; timestamp: number }>();
+const STALE_TIME_MS = 300_000; // 5 minutes cache lifetime
+
+async function cachedFetch<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
+  const cached = apiCache.get(key);
+  if (cached && Date.now() - cached.timestamp < STALE_TIME_MS) {
+    return cached.data as T;
+  }
+  const data = await fetcher();
+  apiCache.set(key, { data, timestamp: Date.now() });
+  return data;
+}
 
 export async function fetchHealth(): Promise<{ status: string; lancedb_ready: boolean; parquet_ready: boolean }> {
   try {
@@ -414,63 +427,75 @@ export async function fetchHealth(): Promise<{ status: string; lancedb_ready: bo
 }
 
 export async function fetchEdaSummary(): Promise<EdaResponse> {
-  try {
-    const res = await fetch(`${BASE_URL}/api/mining/eda`, { signal: AbortSignal.timeout(3000) });
-    if (!res.ok) throw new Error('Failed to load EDA');
-    return await res.json();
-  } catch {
-    return FALLBACK_EDA_DATA;
-  }
+  return cachedFetch('eda-summary', async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/mining/eda`, { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) throw new Error('Failed to load EDA');
+      return await res.json();
+    } catch {
+      return FALLBACK_EDA_DATA;
+    }
+  });
 }
 
 export async function fetchAssociationRules(): Promise<AssociationRulesResponse> {
-  try {
-    const res = await fetch(`${BASE_URL}/api/mining/pillars/association-rules`, { signal: AbortSignal.timeout(3000) });
-    if (!res.ok) throw new Error('Failed to load Rules');
-    return await res.json();
-  } catch {
-    return FALLBACK_RULES_DATA;
-  }
+  return cachedFetch('association-rules', async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/mining/pillars/association-rules`, { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) throw new Error('Failed to load Rules');
+      return await res.json();
+    } catch {
+      return FALLBACK_RULES_DATA;
+    }
+  });
 }
 
 export async function fetchClusters(): Promise<ClustersResponse> {
-  try {
-    const res = await fetch(`${BASE_URL}/api/mining/pillars/clusters`, { signal: AbortSignal.timeout(3000) });
-    if (!res.ok) throw new Error('Failed to load Clusters');
-    return await res.json();
-  } catch {
-    return FALLBACK_CLUSTERS_DATA;
-  }
+  return cachedFetch('clusters-data', async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/mining/pillars/clusters`, { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) throw new Error('Failed to load Clusters');
+      return await res.json();
+    } catch {
+      return FALLBACK_CLUSTERS_DATA;
+    }
+  });
 }
 
 export async function fetchGraph(): Promise<GraphResponse> {
-  try {
-    const res = await fetch(`${BASE_URL}/api/mining/pillars/graph`, { signal: AbortSignal.timeout(3000) });
-    if (!res.ok) throw new Error('Failed to load Graph');
-    return await res.json();
-  } catch {
-    return FALLBACK_GRAPH_DATA;
-  }
+  return cachedFetch('graph-data', async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/mining/pillars/graph`, { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) throw new Error('Failed to load Graph');
+      return await res.json();
+    } catch {
+      return FALLBACK_GRAPH_DATA;
+    }
+  });
 }
 
 export async function fetchTrends(): Promise<TrendsResponse> {
-  try {
-    const res = await fetch(`${BASE_URL}/api/mining/pillars/trends`, { signal: AbortSignal.timeout(3000) });
-    if (!res.ok) throw new Error('Failed to load Trends');
-    return await res.json();
-  } catch {
-    return FALLBACK_TRENDS_DATA;
-  }
+  return cachedFetch('trends-data', async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/mining/pillars/trends`, { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) throw new Error('Failed to load Trends');
+      return await res.json();
+    } catch {
+      return FALLBACK_TRENDS_DATA;
+    }
+  });
 }
 
 export async function fetchStorageStats(): Promise<StorageStatsResponse> {
-  try {
-    const res = await fetch(`${BASE_URL}/api/storage/stats`, { signal: AbortSignal.timeout(3000) });
-    if (!res.ok) throw new Error('Failed to load Storage stats');
-    return await res.json();
-  } catch {
-    return FALLBACK_STORAGE_DATA;
-  }
+  return cachedFetch('storage-stats', async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/storage/stats`, { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) throw new Error('Failed to load Storage stats');
+      return await res.json();
+    } catch {
+      return FALLBACK_STORAGE_DATA;
+    }
+  });
 }
 
 export async function sendChatQuery(query: string, category?: string): Promise<ChatResponse> {

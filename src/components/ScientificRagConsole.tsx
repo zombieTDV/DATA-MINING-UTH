@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useRef, type FormEvent } from 'react';
 import { sendChatQuery } from '../api/client';
 import { MathRenderer, FormattedTextWithMath } from './MathRenderer';
+import { useToast } from '../context/ToastContext';
 
 interface CitationData {
   paperId: string;
@@ -67,11 +68,18 @@ export function ScientificRagConsole() {
   const [selectedCitation, setSelectedCitation] = useState<CitationData | null>(null);
   const [copiedAnswer, setCopiedAnswer] = useState<boolean>(false);
   const [copiedBibtex, setCopiedBibtex] = useState<boolean>(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { showToast } = useToast();
 
   const handleCopyAnswer = () => {
     const text = `${currentResult.fullAnswer}\n\n[Verified Citations]\n${currentResult.citations.join('\n')}\n[Grounded in LanceDB Gold Lakehouse (Cosine Sim: ${currentResult.simScore.toFixed(4)})]`;
     navigator.clipboard.writeText(text);
     setCopiedAnswer(true);
+    showToast({
+      type: 'success',
+      message: 'Full synthesis and citations copied to clipboard',
+      duration: 2500,
+    });
     setTimeout(() => setCopiedAnswer(false), 2000);
   };
 
@@ -84,6 +92,11 @@ export function ScientificRagConsole() {
 }`;
     navigator.clipboard.writeText(bibtex);
     setCopiedBibtex(true);
+    showToast({
+      type: 'success',
+      message: 'BibTeX citation entry copied to clipboard',
+      duration: 2500,
+    });
     setTimeout(() => setCopiedBibtex(false), 2000);
   };
 
@@ -229,10 +242,15 @@ export function ScientificRagConsole() {
               &gt;
             </span>
 
-            <input
-              type="text"
+            <textarea
+              ref={textareaRef}
+              rows={1}
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
+              }}
               onKeyDown={(e) => {
                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                   e.preventDefault();
@@ -248,7 +266,10 @@ export function ScientificRagConsole() {
                 fontSize: '13.5px',
                 outline: 'none',
                 fontFamily: 'var(--font-sans)',
-                fontWeight: 500
+                fontWeight: 500,
+                resize: 'none',
+                minHeight: '26px',
+                lineHeight: 1.5,
               }}
             />
 

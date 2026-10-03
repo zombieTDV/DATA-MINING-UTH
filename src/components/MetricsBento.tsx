@@ -1,23 +1,17 @@
-import { useState } from 'react';
 import { MathRenderer } from './MathRenderer';
 
 export function MetricsBento() {
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-
   return (
     <div className="responsive-bento">
       {/* Card 1: Total Papers (Span 4) */}
       <div 
-        onMouseEnter={() => setHoveredCard(1)}
-        onMouseLeave={() => setHoveredCard(null)}
+        className="bento-card"
         style={{
           gridColumn: 'span 4',
           background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
-          transition: 'border-color 0.2s ease, transform 0.2s ease',
-          borderColor: hoveredCard === 1 ? 'var(--border-highlight)' : 'var(--border-subtle)',
           boxShadow: 'var(--card-shadow)'
         }}
       >
@@ -92,16 +86,13 @@ export function MetricsBento() {
 
       {/* Card 2: Vector Chunks (Span 4) */}
       <div 
-        onMouseEnter={() => setHoveredCard(2)}
-        onMouseLeave={() => setHoveredCard(null)}
+        className="bento-card"
         style={{
           gridColumn: 'span 4',
           background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
-          transition: 'border-color 0.2s ease, transform 0.2s ease',
-          borderColor: hoveredCard === 2 ? 'var(--border-highlight)' : 'var(--border-subtle)',
           boxShadow: 'var(--card-shadow)'
         }}
       >
@@ -176,16 +167,13 @@ export function MetricsBento() {
 
       {/* Card 3: Cloudflare R2 Storage (Span 4) */}
       <div 
-        onMouseEnter={() => setHoveredCard(3)}
-        onMouseLeave={() => setHoveredCard(null)}
+        className="bento-card"
         style={{
           gridColumn: 'span 4',
           background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
-          transition: 'border-color 0.2s ease, transform 0.2s ease',
-          borderColor: hoveredCard === 3 ? 'var(--border-highlight)' : 'var(--border-subtle)',
           boxShadow: 'var(--card-shadow)'
         }}
       >
@@ -268,16 +256,13 @@ export function MetricsBento() {
 
       {/* Card 4: LaTeX Mining Engine (Span 6) */}
       <div 
-        onMouseEnter={() => setHoveredCard(4)}
-        onMouseLeave={() => setHoveredCard(null)}
+        className="bento-card"
         style={{
           gridColumn: 'span 6',
           background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
-          transition: 'border-color 0.2s ease, transform 0.2s ease',
-          borderColor: hoveredCard === 4 ? 'var(--border-highlight)' : 'var(--border-subtle)',
           boxShadow: 'var(--card-shadow)'
         }}
       >
@@ -327,16 +312,13 @@ export function MetricsBento() {
 
       {/* Card 5: Acceleration Engine (Span 6) */}
       <div 
-        onMouseEnter={() => setHoveredCard(5)}
-        onMouseLeave={() => setHoveredCard(null)}
+        className="bento-card"
         style={{
           gridColumn: 'span 6',
           background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
-          transition: 'border-color 0.2s ease, transform 0.2s ease',
-          borderColor: hoveredCard === 5 ? 'var(--border-highlight)' : 'var(--border-subtle)',
           boxShadow: 'var(--card-shadow)'
         }}
       >

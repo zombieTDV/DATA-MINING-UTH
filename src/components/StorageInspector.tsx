@@ -1,13 +1,20 @@
 import { useState } from 'react';
 import { LAYERS } from '../data/lakehouseData';
+import { useToast } from '../context/ToastContext';
 
 export function StorageInspector() {
   const [copiedPath, setCopiedPath] = useState<string | null>(null);
   const [activeZone, setActiveZone] = useState<string>('ALL');
+  const { showToast } = useToast();
 
   const handleCopy = (path: string) => {
     navigator.clipboard.writeText(path);
     setCopiedPath(path);
+    showToast({
+      type: 'info',
+      message: `Copied S3 URI: ${path}`,
+      duration: 2500,
+    });
     setTimeout(() => setCopiedPath(null), 2000);
   };
 

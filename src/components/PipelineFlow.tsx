@@ -8,6 +8,36 @@ export function PipelineFlow() {
 
   return (
     <div>
+      {/* 4-Phase Directional Sequential Bus Track (Task 4.8) */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '8px 16px',
+        marginBottom: '12px',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-md)',
+        fontFamily: 'var(--font-mono)',
+        fontSize: '11px',
+        flexWrap: 'wrap',
+        gap: '8px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="pulse-led" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-emerald)' }} />
+          <span style={{ color: 'var(--text-muted)', fontWeight: 700 }}>LINEAR LAKEHOUSE LINEAGE:</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <span style={{ color: 'var(--accent-bronze)', fontWeight: 800 }}>P01 BRONZE</span>
+          <span style={{ color: 'var(--text-muted)' }}>➔</span>
+          <span style={{ color: 'var(--accent-silver)', fontWeight: 800 }}>P02 SILVER</span>
+          <span style={{ color: 'var(--text-muted)' }}>➔</span>
+          <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>P03 GOLD</span>
+          <span style={{ color: 'var(--text-muted)' }}>➔</span>
+          <span style={{ color: 'var(--accent-emerald)', fontWeight: 800 }}>P04 RAG SERVING</span>
+        </div>
+      </div>
+
       {/* Horizontal Stepper / Cards */}
       <div style={{
         display: 'grid',

@@ -54,7 +54,7 @@
 
   --text-primary: #0f172a;
   --text-secondary: #334155;
-  --text-muted: #64748b;
+  --text-muted: #475569;
 
   --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 6px 18px rgba(15, 23, 42, 0.03);
   --ambient-glow: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.04), transparent 70%);
@@ -127,6 +127,43 @@ code, pre, .mono {
   background: var(--border-highlight);
 }
 
+/* Accessible Focus Ring System (WCAG 2.1 AA) */
+:focus-visible {
+  outline: 2px solid var(--accent-silver);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip-to-Content Link */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 99999;
+}
+.skip-link:focus-visible {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  width: auto;
+  height: auto;
+  background: var(--bg-card-core);
+  color: var(--accent-silver);
+  padding: 10px 16px;
+  border: 1px solid var(--accent-silver);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: var(--card-shadow);
+}
+
 /* Kinetic micro-interactions */
 button, a {
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
@@ -151,6 +188,19 @@ button:active {
   color: var(--text-muted);
 }
 
+/* Bento Card Pure CSS Hover (Prevents React re-renders) */
+.bento-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.bento-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-highlight) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45) !important;
+}
+[data-theme="light"] .bento-card:hover {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08) !important;
+}
+
 /* Skeleton Loading Shimmer Animation */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
@@ -166,6 +216,33 @@ button:active {
   );
   background-size: 200% 100%;
   animation: shimmer 1.8s infinite linear;
+}
+
+/* Toast Slide-In Animation */
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* GPU Waveform Equalizer Jitter (Task 4.7) */
+@keyframes equalizerJitter {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.68);
+  }
+}
+
+.equalizer-bar {
+  transform-origin: bottom;
+  animation: equalizerJitter 1.2s ease-in-out infinite alternate;
 }
 
 /* Smooth Tab Transition */
@@ -194,6 +271,14 @@ button:active {
   animation: pulseGlow 2s infinite ease-in-out;
 }
 
+/* Standard Responsive Breakpoints:
+   --bp-sm:  640px   (mobile landscape)
+   --bp-md:  768px   (tablet portrait)
+   --bp-lg:  1024px  (tablet landscape / laptop)
+   --bp-xl:  1280px  (desktop)
+   --bp-2xl: 1536px  (large desktop / ultrawide)
+*/
+
 /* Responsive Layout Classes */
 .responsive-bento {
   display: grid;
@@ -202,7 +287,13 @@ button:active {
   margin-bottom: 24px;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1024px) {
+  .responsive-bento > div {
+    grid-column: span 6 !important;
+  }
+}
+
+@media (max-width: 640px) {
   .responsive-bento > div {
     grid-column: span 12 !important;
   }
@@ -214,7 +305,7 @@ button:active {
   gap: 20px;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1024px) {
   .responsive-rag-layout {
     grid-template-columns: 1fr;
   }
@@ -227,5 +318,26 @@ button:active {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Print Stylesheet (Phase 5.4) */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  body::before {
+    display: none !important;
+  }
+  header, nav, footer, .keycap, button, .pulse-led, aside {
+    display: none !important;
+  }
+  .tab-pane-active {
+    animation: none !important;
+  }
+  * {
+    box-shadow: none !important;
+    border-color: #cccccc !important;
   }
 }

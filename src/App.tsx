@@ -1,19 +1,55 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { GeometricPipelineDiagram } from './components/GeometricPipelineDiagram';
 import { GeometricTelemetryGauges } from './components/GeometricTelemetryGauges';
 import { PipelineFlow } from './components/PipelineFlow';
 import { ToolLogosGrid } from './components/ToolLogos';
-import { LiveTelemetryFeed } from './components/LiveTelemetryFeed';
 import { MetricsBento } from './components/MetricsBento';
 import { StorageInspector } from './components/StorageInspector';
-import { ScientificRagConsole } from './components/ScientificRagConsole';
-import { EdaView } from './components/EdaView';
-import { MiningPillarsView } from './components/MiningPillarsView';
+import { ShortcutsModal } from './components/ShortcutsModal';
+import { ToastProvider } from './components/ToastNotification';
+import { useToast } from './context/ToastContext';
 import { fetchHealth, fetchStorageStats, subscribeTelemetry } from './api/client';
 import type { StorageStatsResponse } from './api/types';
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState<'schematic' | 'eda' | 'pillars' | 'rag' | 'logs'>('schematic');
+// Code Splitting via Dynamic Imports (Task 5.1)
+const EdaView = lazy(() => import('./components/EdaView').then(m => ({ default: m.EdaView })));
+const MiningPillarsView = lazy(() => import('./components/MiningPillarsView').then(m => ({ default: m.MiningPillarsView })));
+const ScientificRagConsole = lazy(() => import('./components/ScientificRagConsole').then(m => ({ default: m.ScientificRagConsole })));
+const LiveTelemetryFeed = lazy(() => import('./components/LiveTelemetryFeed').then(m => ({ default: m.LiveTelemetryFeed })));
+
+const TabSuspenseFallback = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '12px 0' }}>
+    <div className="skeleton-shimmer" style={{ height: '56px', borderRadius: 'var(--radius-md)' }} />
+    <div className="skeleton-shimmer" style={{ height: '380px', borderRadius: 'var(--radius-md)' }} />
+  </div>
+);
+
+type TabId = 'schematic' | 'eda' | 'pillars' | 'rag' | 'logs';
+
+const TABS: Array<{
+  id: TabId;
+  shortcut: string;
+  title: string;
+  badge: string;
+  badgeColor: string;
+  isLive?: boolean;
+}> = [
+  { id: 'schematic', shortcut: '1', title: 'SCHEMATIC & OVERVIEW', badge: 'LIVE', badgeColor: 'var(--accent-emerald)' },
+  { id: 'eda', shortcut: '2', title: 'DUCKDB STATS', badge: '10K DOCS', badgeColor: 'var(--accent-silver)' },
+  { id: 'pillars', shortcut: '3', title: '4 MINING PILLARS', badge: 'ANALYTICS', badgeColor: 'var(--accent-violet)' },
+  { id: 'rag', shortcut: '4', title: 'SCIENTIFIC RAG', badge: 'QWEN2.5', badgeColor: 'var(--accent-cyan)' },
+  { id: 'logs', shortcut: '5', title: 'TELEMETRY STREAM', badge: 'SSE', badgeColor: 'var(--accent-bronze)', isLive: true },
+];
+
+function DashboardMain() {
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '') as TabId;
+      if (TABS.some(t => t.id === hash)) return hash;
+    }
+    return 'schematic';
+  });
+
   const [pipelineViewMode, setPipelineViewMode] = useState<'schematic' | 'stepper'>('schematic');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('uth-theme');
@@ -24,15 +60,42 @@ export default function App() {
   const [lastTelemetryTick, setLastTelemetryTick] = useState<string>('');
   const [storageStats, setStorageStats] = useState<StorageStatsResponse | null>(null);
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState<boolean>(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
+  const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+  const { showToast } = useToast();
+
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => {
+      const nextTheme = prev === 'dark' ? 'light' : 'dark';
+      showToast({
+        type: 'info',
+        message: `Theme switched to ${nextTheme === 'dark' ? 'Tactical Obsidian' : 'Nordic Clean Lab'}`,
+        duration: 2000,
+      });
+      return nextTheme;
+    });
+  }, [showToast]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('uth-theme', theme);
   }, [theme]);
+
+  // URL Hash Sync (Phase 5.3)
+  useEffect(() => {
+    window.location.hash = activeTab;
+  }, [activeTab]);
+
+  // Scroll listener for back-to-top button (Phase 5.5)
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 380);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Real-time Ho Chi Minh (UTC+7) clock
   useEffect(() => {
@@ -72,7 +135,7 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Keyboard navigation shortcuts (1, 2, 3, 4, 5, T)
+  // Keyboard navigation shortcuts (1, 2, 3, 4, 5, T, ?)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
@@ -82,14 +145,39 @@ export default function App() {
       if (e.key === '4') setActiveTab('rag');
       if (e.key === '5') setActiveTab('logs');
       if (e.key === 't' || e.key === 'T') toggleTheme();
+      if (e.key === '?') setIsShortcutsOpen(prev => !prev);
+      if (e.key === 'Escape') {
+        setIsShortcutsOpen(false);
+        setIsMobileDrawerOpen(false);
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [toggleTheme]);
+
+  // ArrowLeft / ArrowRight navigation inside tablist (WAI-ARIA)
+  const handleTabKeyDown = (e: React.KeyboardEvent, currentId: TabId) => {
+    const currentIndex = TABS.findIndex(t => t.id === currentId);
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const nextTab = TABS[(currentIndex + 1) % TABS.length];
+      setActiveTab(nextTab.id);
+      document.getElementById(`tab-${nextTab.id}`)?.focus();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prevTab = TABS[(currentIndex - 1 + TABS.length) % TABS.length];
+      setActiveTab(prevTab.id);
+      document.getElementById(`tab-${prevTab.id}`)?.focus();
+    }
+  };
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1, background: 'var(--bg-canvas)' }}>
-      
+      {/* Accessible Skip Link (Task 1.3) */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content [Enter]
+      </a>
+
       {/* TOP MISSION CONTROL HEADER */}
       <header style={{
         background: 'var(--bg-surface)',
@@ -105,6 +193,25 @@ export default function App() {
       }}>
         {/* Brand Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {/* Hamburger Menu Toggle (Mobile Viewports) */}
+          <button
+            type="button"
+            onClick={() => setIsMobileDrawerOpen(prev => !prev)}
+            aria-label="Toggle Navigation Menu"
+            style={{
+              display: 'none',
+              background: 'var(--bg-card-shell)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '4px',
+              padding: '6px 8px',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+            }}
+            className="mobile-menu-btn"
+          >
+            ☰
+          </button>
+
           <div style={{
             background: 'var(--text-primary)',
             color: 'var(--bg-surface)',
@@ -119,8 +226,8 @@ export default function App() {
           </div>
 
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <h1 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: 0 }}>
                 Scientific Lakehouse Schematic &amp; RAG Pipeline
               </h1>
               <span style={{
@@ -146,8 +253,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* Tactical Status Blocks, Clock & Theme Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontFamily: 'var(--font-mono)', fontSize: '11.5px' }}>
+        {/* Tactical Status Blocks, Clock, Shortcuts & Theme Switcher */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontFamily: 'var(--font-mono)', fontSize: '11.5px', flexWrap: 'wrap' }}>
           
           {/* Live UTC+7 Observatory Clock */}
           <div style={{
@@ -208,8 +315,34 @@ export default function App() {
             </span>
           </div>
 
+          {/* Shortcuts Guide Button (?) */}
+          <button
+            type="button"
+            onClick={() => setIsShortcutsOpen(true)}
+            style={{
+              background: 'var(--bg-card-shell)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-secondary)',
+              padding: '6px 10px',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+            title="Open Keyboard Shortcuts Guide (Shortcut: ?)"
+            aria-label="Keyboard Shortcuts"
+          >
+            <span>KEYS</span>
+            <span className="keycap" style={{ fontSize: '9px', padding: '0 4px' }}>?</span>
+          </button>
+
           {/* Geometric Theme Switcher */}
           <button
+            type="button"
             onClick={toggleTheme}
             style={{
               background: 'var(--bg-card-shell)',
@@ -227,10 +360,11 @@ export default function App() {
               letterSpacing: '0.04em',
             }}
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode (Shortcut: T)`}
+            aria-label="Toggle Dark and Light Mode"
           >
             {theme === 'dark' ? (
               <>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <circle cx="12" cy="12" r="5"/>
                   <line x1="12" y1="1" x2="12" y2="3"/>
                   <line x1="12" y1="21" x2="12" y2="23"/>
@@ -246,7 +380,7 @@ export default function App() {
               </>
             ) : (
               <>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                 </svg>
                 <span>DARK</span>
@@ -257,39 +391,125 @@ export default function App() {
         </div>
       </header>
 
-      {/* TACTICAL FLOATING CAPSULE NAVIGATION */}
-      <nav style={{
-        background: 'var(--bg-surface)',
-        borderBottom: '1px solid var(--border-subtle)',
-        padding: '10px 24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '16px',
-        overflowX: 'auto',
-      }}>
-        <div style={{
+      {/* MOBILE DRAWER NAVIGATION OVERLAY (Task 2.2) */}
+      {isMobileDrawerOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation"
+          onClick={() => setIsMobileDrawerOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(5, 7, 12, 0.75)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '280px',
+              height: '100%',
+              background: 'var(--bg-surface)',
+              borderRight: '1px solid var(--border-subtle)',
+              padding: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              boxShadow: 'var(--card-shadow)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '12px', color: 'var(--text-primary)' }}>
+                [NAVIGATION]
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsMobileDrawerOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+            {TABS.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setIsMobileDrawerOpen(false);
+                  }}
+                  style={{
+                    background: isActive ? 'var(--bg-card-shell)' : 'transparent',
+                    border: `1px solid ${isActive ? 'var(--border-highlight)' : 'transparent'}`,
+                    borderRadius: '6px',
+                    padding: '12px 14px',
+                    color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span>{tab.title}</span>
+                  <span style={{ fontSize: '9px', color: tab.badgeColor, fontWeight: 800 }}>
+                    {tab.badge}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* TACTICAL FLOATING CAPSULE NAVIGATION (WAI-ARIA COMPLIANT) */}
+      <nav
+        aria-label="Dashboard navigation tabs"
+        style={{
+          background: 'var(--bg-surface)',
+          borderBottom: '1px solid var(--border-subtle)',
+          padding: '10px 24px',
           display: 'flex',
-          gap: '4px',
-          background: 'var(--bg-card-shell)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: '8px',
-          padding: '4px',
           alignItems: 'center',
-        }}>
-          {[
-            { id: 'schematic', shortcut: '1', title: 'SCHEMATIC & OVERVIEW', badge: 'LIVE', badgeColor: 'var(--accent-emerald)' },
-            { id: 'eda', shortcut: '2', title: 'DUCKDB STATS', badge: '10K DOCS', badgeColor: 'var(--accent-silver)' },
-            { id: 'pillars', shortcut: '3', title: '4 MINING PILLARS', badge: 'ANALYTICS', badgeColor: 'var(--accent-violet)' },
-            { id: 'rag', shortcut: '4', title: 'SCIENTIFIC RAG', badge: 'QWEN2.5', badgeColor: 'var(--accent-cyan)' },
-            { id: 'logs', shortcut: '5', title: 'TELEMETRY STREAM', badge: 'SSE', badgeColor: 'var(--accent-bronze)', isLive: true },
-          ].map((tab) => {
+          justifyContent: 'space-between',
+          gap: '16px',
+          overflowX: 'auto',
+        }}
+      >
+        <div
+          role="tablist"
+          aria-label="Mission control dashboard views"
+          style={{
+            display: 'flex',
+            gap: '4px',
+            background: 'var(--bg-card-shell)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '8px',
+            padding: '4px',
+            alignItems: 'center',
+          }}
+        >
+          {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
+                id={`tab-${tab.id}`}
+                role="tab"
                 type="button"
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                aria-selected={isActive}
+                aria-controls={`tabpanel-${tab.id}`}
+                tabIndex={isActive ? 0 : -1}
+                onClick={() => setActiveTab(tab.id)}
+                onKeyDown={(e) => handleTabKeyDown(e, tab.id)}
                 style={{
                   background: isActive ? 'var(--bg-surface)' : 'transparent',
                   border: isActive ? '1px solid var(--border-highlight)' : '1px solid transparent',
@@ -356,9 +576,22 @@ export default function App() {
         </div>
       </nav>
 
-      {/* MISSION CONTROL MAIN VIEWPORT */}
-      <main style={{ flex: 1, padding: '24px', maxWidth: '1600px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
-        
+      {/* MISSION CONTROL MAIN VIEWPORT (WAI-ARIA TABPANEL) */}
+      <main
+        id="main-content"
+        role="tabpanel"
+        aria-labelledby={`tab-${activeTab}`}
+        tabIndex={0}
+        style={{
+          flex: 1,
+          padding: '24px',
+          maxWidth: '1600px',
+          width: '100%',
+          margin: '0 auto',
+          boxSizing: 'border-box',
+          outline: 'none',
+        }}
+      >
         {/* TAB 1: Schematic Overview & Medallion Pipeline Architecture */}
         {activeTab === 'schematic' && (
           <div className="tab-pane-active" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -461,34 +694,78 @@ export default function App() {
 
         {/* TAB 2: Real-Time Scientific EDA (DuckDB Parquet) */}
         {activeTab === 'eda' && (
-          <div className="tab-pane-active">
-            <EdaView />
-          </div>
+          <Suspense fallback={<TabSuspenseFallback />}>
+            <div className="tab-pane-active">
+              <EdaView />
+            </div>
+          </Suspense>
         )}
 
         {/* TAB 3: 4 Mining Pillars Console */}
         {activeTab === 'pillars' && (
-          <div className="tab-pane-active">
-            <MiningPillarsView />
-          </div>
+          <Suspense fallback={<TabSuspenseFallback />}>
+            <div className="tab-pane-active">
+              <MiningPillarsView />
+            </div>
+          </Suspense>
         )}
 
         {/* TAB 4: Grounded Scientific RAG Verification Workstation */}
         {activeTab === 'rag' && (
-          <div className="tab-pane-active">
-            <ScientificRagConsole />
-          </div>
+          <Suspense fallback={<TabSuspenseFallback />}>
+            <div className="tab-pane-active">
+              <ScientificRagConsole />
+            </div>
+          </Suspense>
         )}
 
         {/* TAB 5: Telemetry, Logs & Platform Tool Registry */}
         {activeTab === 'logs' && (
-          <div className="tab-pane-active" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <LiveTelemetryFeed />
-            <ToolLogosGrid />
-          </div>
+          <Suspense fallback={<TabSuspenseFallback />}>
+            <div className="tab-pane-active" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <LiveTelemetryFeed />
+              <ToolLogosGrid />
+            </div>
+          </Suspense>
         )}
 
       </main>
+
+      {/* Floating Back to Top Button (Phase 5.5) */}
+      {showBackToTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Scroll back to top"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            zIndex: 9999,
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-highlight)',
+            borderRadius: '50%',
+            width: '42px',
+            height: '42px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: 'var(--card-shadow)',
+            color: 'var(--accent-silver)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '16px',
+            fontWeight: 800,
+            transition: 'all 0.15s ease',
+          }}
+          title="Scroll back to top"
+        >
+          ▲
+        </button>
+      )}
+
+      {/* Keyboard Shortcuts Reference Modal (Phase 4.4) */}
+      <ShortcutsModal isOpen={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)} />
 
       {/* TACTICAL ENGINEERING FOOTER */}
       <footer style={{
@@ -501,8 +778,10 @@ export default function App() {
         fontFamily: 'var(--font-mono)',
         fontSize: '11px',
         color: 'var(--text-secondary)',
+        flexWrap: 'wrap',
+        gap: '12px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>UTH</span>
           <span>//</span>
           <span>UNIVERSITY OF TRANSPORT HO CHI MINH CITY // SCIENTIFIC DATA MINING LAB 2026</span>
@@ -510,7 +789,7 @@ export default function App() {
             ● CLIENT SYNC: OK
           </span>
         </div>
-        <div style={{ display: 'flex', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           <span>10,000 PAPERS PARQUET</span>
           <span>·</span>
           <span>143,523 LANCEDB VECTORS</span>
@@ -520,5 +799,13 @@ export default function App() {
       </footer>
 
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ToastProvider>
+      <DashboardMain />
+    </ToastProvider>
   );
 }
