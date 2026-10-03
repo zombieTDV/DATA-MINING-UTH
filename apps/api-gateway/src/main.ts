@@ -15,11 +15,32 @@ async function bootstrap() {
     'http://localhost:5173',
   );
 
-  // Enable CORS for frontend applications (e.g. React / Vite)
+  // Enable CORS for frontend applications (React, Vite, tunnel domains)
   app.enableCors({
-    origin: [frontendOrigin, 'http://localhost:3000', 'http://localhost:5173'],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      const allowedOriginPatterns = [
+        /^http:\/\/localhost:[0-9]+$/,
+        /^http:\/\/127\.0\.0\.1:[0-9]+$/,
+        /\.trycloudflare\.com$/,
+        /\.ngrok-free\.app$/,
+        /\.ngrok\.app$/,
+        /\.vercel\.app$/,
+      ];
+
+      const isExplicitlyAllowed = origin === frontendOrigin;
+      const matchesPattern = allowedOriginPatterns.some((pattern) => pattern.test(origin));
+
+      if (isExplicitlyAllowed || matchesPattern || process.env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+      return callback(new Error(`Origin ${origin} blocked by CORS policy`), false);
+    },
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     credentials: true,
+    exposedHeaders: ['Content-Type', 'Cache-Control', 'Connection'],
   });
 
   app.useGlobalPipes(

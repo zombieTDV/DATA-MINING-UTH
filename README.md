@@ -75,6 +75,9 @@ Key environment options:
 # Run both API Gateway (:8000) and LLM Service (:9001) concurrently in dev mode:
 npm run dev
 
+# Expose API Gateway (:8000) over free public HTTPS tunnel for remote frontend teammates:
+npm run tunnel
+
 # Or run services individually:
 npm run start:gateway
 npm run start:llm

@@ -16,7 +16,8 @@ data/
 logs/
 .venv/
 lib/
-scripts/
+bin/
+tools/
 .kilo/
 .pytest_cache/
 .ruff_cache/

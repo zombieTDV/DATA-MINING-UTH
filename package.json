@@ -18,6 +18,7 @@
     "start:gateway:prod": "node dist/apps/api-gateway/apps/api-gateway/src/main.js",
     "start:llm:prod": "node dist/apps/llm-service/apps/llm-service/src/main.js",
     "dev": "concurrently -n gateway,llm -c blue,magenta \"npm:start:gateway\" \"npm:start:llm\"",
+    "tunnel": "node scripts/start-tunnel.mjs",
     "lint": "eslint \"{apps,libs}/**/*.ts\"",
     "test": "jest",
     "test:watch": "jest --watch",
