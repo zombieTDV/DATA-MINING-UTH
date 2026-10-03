@@ -19,16 +19,20 @@ export const MiningPillarsView: FC = () => {
   // Pillar 1 state
   const [rulesData, setRulesData] = useState<AssociationRulesResponse | null>(null);
   const [liftThreshold, setLiftThreshold] = useState<number>(1.2);
+  const [ruleSearch, setRuleSearch] = useState<string>('');
 
   // Pillar 2 state
   const [clustersData, setClustersData] = useState<ClustersResponse | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<ScatterPointItem | null>(null);
+  const [selectedCluster, setSelectedCluster] = useState<number | null>(null);
 
   // Pillar 3 state
   const [graphData, setGraphData] = useState<GraphResponse | null>(null);
+  const [authorSearch, setAuthorSearch] = useState<string>('');
 
   // Pillar 4 state
   const [trendsData, setTrendsData] = useState<TrendsResponse | null>(null);
+  const [anomalySearch, setAnomalySearch] = useState<string>('');
 
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -179,20 +183,45 @@ export const MiningPillarsView: FC = () => {
               </p>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontFamily: 'var(--font-mono)', fontSize: '11.5px' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>FILTER MIN LIFT:</span>
-              <input
-                type="range"
-                min="1.0"
-                max="4.0"
-                step="0.1"
-                value={liftThreshold}
-                onChange={(e) => setLiftThreshold(parseFloat(e.target.value))}
-                style={{ cursor: 'pointer', accentColor: 'var(--accent-silver)' }}
-              />
-              <span style={{ fontWeight: 800, color: 'var(--accent-bronze)', minWidth: '45px' }}>
-                &gt;= {liftThreshold.toFixed(1)}
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              {/* Category Search Input */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>SEARCH:</span>
+                <input
+                  type="text"
+                  placeholder="e.g. cs.AI, cs.LG..."
+                  value={ruleSearch}
+                  onChange={(e) => setRuleSearch(e.target.value)}
+                  style={{
+                    background: 'var(--bg-card-shell)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '4px',
+                    color: 'var(--text-primary)',
+                    padding: '4px 8px',
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-mono)',
+                    outline: 'none',
+                    width: '130px'
+                  }}
+                />
+              </div>
+
+              {/* Lift Slider */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontFamily: 'var(--font-mono)', fontSize: '11.5px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>FILTER MIN LIFT:</span>
+                <input
+                  type="range"
+                  min="1.0"
+                  max="4.0"
+                  step="0.1"
+                  value={liftThreshold}
+                  onChange={(e) => setLiftThreshold(parseFloat(e.target.value))}
+                  style={{ cursor: 'pointer', accentColor: 'var(--accent-silver)' }}
+                />
+                <span style={{ fontWeight: 800, color: 'var(--accent-bronze)', minWidth: '45px' }}>
+                  &gt;= {liftThreshold.toFixed(1)}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -223,7 +252,13 @@ export const MiningPillarsView: FC = () => {
                 </thead>
                 <tbody>
                   {rulesData.rules
-                    .filter((r) => r.lift >= liftThreshold)
+                    .filter((r) => {
+                      const matchLift = r.lift >= liftThreshold;
+                      const matchSearch = !ruleSearch ||
+                        r.antecedents.some(a => a.toLowerCase().includes(ruleSearch.toLowerCase())) ||
+                        r.consequents.some(c => c.toLowerCase().includes(ruleSearch.toLowerCase()));
+                      return matchLift && matchSearch;
+                    })
                     .map((rule, idx) => (
                       <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                         <td style={{ padding: '10px 14px' }}>
@@ -357,13 +392,36 @@ export const MiningPillarsView: FC = () => {
                     Hover data points to inspect paper titles, categories, and cluster affinities
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {clustersData.cluster_profiles.map((cp, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10.5px', fontFamily: 'var(--font-mono)' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: clusterColors[idx % clusterColors.length] }} />
-                      <span style={{ color: 'var(--text-secondary)' }}>C{cp.cluster_id} ({cp.percentage.toFixed(0)}%)</span>
-                    </div>
-                  ))}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {clustersData.cluster_profiles.map((cp, idx) => {
+                    const isClusterActive = selectedCluster === cp.cluster_id;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedCluster(isClusterActive ? null : cp.cluster_id)}
+                        style={{
+                          background: isClusterActive ? 'var(--bg-surface)' : 'transparent',
+                          border: isClusterActive ? '1px solid var(--border-highlight)' : '1px solid transparent',
+                          borderRadius: '4px',
+                          padding: '2px 6px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          fontSize: '10.5px',
+                          fontFamily: 'var(--font-mono)',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title={`Click to ${isClusterActive ? 'show all clusters' : `isolate Cluster ${cp.cluster_id}`}`}
+                      >
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: clusterColors[idx % clusterColors.length] }} />
+                        <span style={{ color: isClusterActive ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: isClusterActive ? 800 : 500 }}>
+                          C{cp.cluster_id} ({cp.percentage.toFixed(0)}%)
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -387,17 +445,19 @@ export const MiningPillarsView: FC = () => {
                   {/* Scatter Points */}
                   {clustersData.scatter_2d.map((pt, idx) => {
                     const isHovered = hoveredPoint?.paper_id === pt.paper_id;
+                    const isDimmed = selectedCluster !== null && pt.cluster !== selectedCluster;
                     const ptColor = clusterColors[pt.cluster % clusterColors.length];
                     return (
                       <circle
                         key={idx}
                         cx={pt.x}
                         cy={pt.y}
-                        r={isHovered ? 2.5 : 1.4}
+                        r={isHovered ? 2.8 : isDimmed ? 1.0 : 1.6}
                         fill={ptColor}
+                        opacity={isDimmed ? 0.15 : 0.95}
                         stroke={isHovered ? '#ffffff' : 'none'}
-                        strokeWidth={0.5}
-                        style={{ cursor: 'pointer', transition: 'r 0.15s ease' }}
+                        strokeWidth={0.6}
+                        style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
                         onMouseEnter={() => setHoveredPoint(pt)}
                         onMouseLeave={() => setHoveredPoint(null)}
                       />
@@ -479,6 +539,65 @@ export const MiningPillarsView: FC = () => {
             </div>
           </div>
 
+          {/* Controls Bar & Author Search */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: 'var(--bg-surface)',
+            padding: '12px 18px',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-md)',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}>
+            <div>
+              <h3 style={{ fontSize: '13px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
+                [ TOP INFLUENCERS : PAGERANK CENTRALITY LEADERBOARD ]
+              </h3>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                Ranking scientists by recursive citation authority and co-authorship degree
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>FILTER AUTHOR:</span>
+              <input
+                type="text"
+                placeholder="e.g. Yoshua, Hinton, Smith..."
+                value={authorSearch}
+                onChange={(e) => setAuthorSearch(e.target.value)}
+                style={{
+                  background: 'var(--bg-card-shell)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '4px',
+                  color: 'var(--text-primary)',
+                  padding: '4px 10px',
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-mono)',
+                  outline: 'none',
+                  width: '180px'
+                }}
+              />
+              {authorSearch && (
+                <button
+                  type="button"
+                  onClick={() => setAuthorSearch('')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '11px'
+                  }}
+                >
+                  [CLEAR]
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Top Influencers PageRank Table */}
           <div style={{
             background: 'var(--bg-card-shell)',
@@ -503,25 +622,27 @@ export const MiningPillarsView: FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {graphData.top_influencers.map((auth, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '10px 14px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        #{idx + 1} {auth.author}
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: 'var(--accent-silver)' }}>
-                        {auth.pagerank.toFixed(5)}
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', color: 'var(--text-primary)' }}>
-                        {auth.degree} links
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', color: 'var(--accent-emerald)', fontWeight: 700 }}>
-                        {auth.paper_count}
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', color: 'var(--text-muted)' }}>
-                        Community #{auth.community_id}
-                      </td>
-                    </tr>
-                  ))}
+                  {graphData.top_influencers
+                    .filter((auth) => !authorSearch || auth.author.toLowerCase().includes(authorSearch.toLowerCase()))
+                    .map((auth, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                          #{idx + 1} {auth.author}
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: 'var(--accent-silver)' }}>
+                          {auth.pagerank.toFixed(5)}
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: 'var(--text-primary)' }}>
+                          {auth.degree} links
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: 'var(--accent-emerald)', fontWeight: 700 }}>
+                          {auth.paper_count}
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: 'var(--text-muted)' }}>
+                          Community #{auth.community_id}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -535,6 +656,53 @@ export const MiningPillarsView: FC = () => {
       {activePillar === 4 && trendsData && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           
+          {/* Anomaly & Trend Summary Bar */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '12px',
+          }}>
+            <div style={{ background: 'var(--bg-surface)', padding: '14px 18px', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>TOTAL CORPUS ANALYZED</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
+                {trendsData.summary.total_papers_analyzed.toLocaleString()}
+              </div>
+              <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                ArXiv Lakehouse Full Set
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-surface)', padding: '14px 18px', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>DETECTED ANOMALIES</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-red)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
+                {trendsData.summary.total_anomalies_detected}
+              </div>
+              <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                Multi-Feature Outliers
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-surface)', padding: '14px 18px', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>CONTAMINATION RATE</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-bronze)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
+                {(trendsData.summary.anomaly_rate * 100).toFixed(2)}%
+              </div>
+              <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                Isolation Forest Criterion
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-surface)', padding: '14px 18px', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>TRACKED SECTORS</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-emerald)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
+                {trendsData.summary.tracked_categories_velocity}
+              </div>
+              <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                Active Research Categories
+              </div>
+            </div>
+          </div>
+
           {/* Trend Velocity Grid */}
           <div style={{
             background: 'var(--bg-card-shell)',
@@ -623,13 +791,60 @@ export const MiningPillarsView: FC = () => {
               borderRadius: 'calc(var(--radius-md) - 2px)',
               overflowX: 'auto',
             }}>
-              <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-subtle)' }}>
-                <h3 style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-                  STRUCTURAL ANOMALIES DETECTED (ISOLATION FOREST)
-                </h3>
-                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                  Papers deviating sharply from normative multi-feature distributions
-                </span>
+              <div style={{
+                padding: '14px 18px',
+                borderBottom: '1px solid var(--border-subtle)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                <div>
+                  <h3 style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+                    STRUCTURAL ANOMALIES DETECTED (ISOLATION FOREST)
+                  </h3>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                    Papers deviating sharply from normative multi-feature distributions
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>SEARCH ANOMALY:</span>
+                  <input
+                    type="text"
+                    placeholder="Search title, ID, outlier reason..."
+                    value={anomalySearch}
+                    onChange={(e) => setAnomalySearch(e.target.value)}
+                    style={{
+                      background: 'var(--bg-card-shell)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '4px',
+                      color: 'var(--text-primary)',
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-mono)',
+                      outline: 'none',
+                      width: '200px'
+                    }}
+                  />
+                  {anomalySearch && (
+                    <button
+                      type="button"
+                      onClick={() => setAnomalySearch('')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '11px'
+                      }}
+                    >
+                      [CLEAR]
+                    </button>
+                  )}
+                </div>
               </div>
 
               <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
@@ -644,44 +859,72 @@ export const MiningPillarsView: FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {trendsData.anomalies.map((anom, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '10px 14px', color: 'var(--accent-silver)', fontWeight: 700 }}>
-                        {anom.paper_id}
-                      </td>
-                      <td style={{ padding: '10px 14px', maxWidth: '320px', color: 'var(--text-primary)', fontWeight: 600 }}>
-                        {anom.title}
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: 'var(--accent-bronze)' }}>
-                        {anom.math_count.toLocaleString()}
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', color: 'var(--text-secondary)' }}>
-                        {anom.word_count.toLocaleString()}
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#ef4444' }}>
-                        {anom.anomaly_score.toFixed(3)}
-                      </td>
-                      <td style={{ padding: '10px 14px' }}>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                          {anom.outlier_reasons.map((r, ri) => (
-                            <span
-                              key={ri}
-                              style={{
-                                background: 'rgba(239, 68, 68, 0.1)',
-                                color: 'var(--accent-red)',
-                                border: '1px solid rgba(239, 68, 68, 0.25)',
-                                padding: '2px 6px',
-                                borderRadius: '3px',
-                                fontSize: '10px',
-                              }}
-                            >
-                              {r}
+                  {trendsData.anomalies
+                    .filter((anom) => {
+                      if (!anomalySearch) return true;
+                      const q = anomalySearch.toLowerCase();
+                      return (
+                        anom.paper_id.toLowerCase().includes(q) ||
+                        anom.title.toLowerCase().includes(q) ||
+                        (anom.primary_category && anom.primary_category.toLowerCase().includes(q)) ||
+                        anom.outlier_reasons.some((r) => r.toLowerCase().includes(q))
+                      );
+                    })
+                    .map((anom, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '10px 14px', color: 'var(--accent-silver)', fontWeight: 700 }}>
+                          {anom.paper_id}
+                        </td>
+                        <td style={{ padding: '10px 14px', maxWidth: '320px', color: 'var(--text-primary)', fontWeight: 600 }}>
+                          {anom.title}
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: 'var(--accent-bronze)' }}>
+                          {anom.math_count.toLocaleString()}
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: 'var(--text-secondary)' }}>
+                          {anom.word_count.toLocaleString()}
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                            <span style={{ fontWeight: 800, color: 'var(--accent-red)', fontFamily: 'var(--font-mono)' }}>
+                              {anom.anomaly_score.toFixed(3)}
                             </span>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            <span style={{
+                              fontSize: '9px',
+                              fontFamily: 'var(--font-mono)',
+                              padding: '1px 5px',
+                              borderRadius: '2px',
+                              background: 'rgba(239, 68, 68, 0.15)',
+                              color: '#ef4444',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              fontWeight: 700,
+                              letterSpacing: '0.04em'
+                            }}>
+                              OUTLIER
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            {anom.outlier_reasons.map((r, ri) => (
+                              <span
+                                key={ri}
+                                style={{
+                                  background: 'rgba(239, 68, 68, 0.1)',
+                                  color: 'var(--accent-red)',
+                                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                                  padding: '2px 6px',
+                                  borderRadius: '3px',
+                                  fontSize: '10px',
+                                }}
+                              >
+                                {r}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>

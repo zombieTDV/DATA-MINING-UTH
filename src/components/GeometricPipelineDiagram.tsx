@@ -3,6 +3,7 @@ import { SCHEMATIC_NODES, type DiagramNode } from '../data/lakehouseData';
 
 export function GeometricPipelineDiagram() {
   const [activeNodeId, setActiveNodeId] = useState<string>('node-gold');
+  const [pulseSpeed, setPulseSpeed] = useState<'1x' | '2x' | 'pause'>('1x');
   const activeNode = SCHEMATIC_NODES.find(n => n.id === activeNodeId) || SCHEMATIC_NODES[5];
 
   const renderIcon = (type: DiagramNode['iconType']) => {
@@ -133,15 +134,80 @@ export function GeometricPipelineDiagram() {
           </h2>
         </div>
 
-        <div style={{
-          display: 'flex',
-          gap: '16px',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '11px',
-          color: 'var(--text-muted)'
-        }}>
-          <span>DATA FLOW: <strong>CONTINUOUS (LAKEHOUSE)</strong></span>
-          <span>PIPELINE HEALTH: <strong style={{ color: 'var(--accent-emerald)' }}>100% OPERATIONAL</strong></span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          {/* Kinetic Speed Switcher */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '2px',
+            background: 'var(--bg-card-shell)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '4px',
+            padding: '2px'
+          }}>
+            <button
+              type="button"
+              onClick={() => setPulseSpeed('1x')}
+              style={{
+                background: pulseSpeed === '1x' ? 'var(--text-primary)' : 'transparent',
+                color: pulseSpeed === '1x' ? 'var(--bg-surface)' : 'var(--text-secondary)',
+                border: 'none',
+                borderRadius: '3px',
+                padding: '2px 7px',
+                fontSize: '10px',
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              1x SPEED
+            </button>
+            <button
+              type="button"
+              onClick={() => setPulseSpeed('2x')}
+              style={{
+                background: pulseSpeed === '2x' ? 'var(--accent-emerald)' : 'transparent',
+                color: pulseSpeed === '2x' ? '#000000' : 'var(--text-secondary)',
+                border: 'none',
+                borderRadius: '3px',
+                padding: '2px 7px',
+                fontSize: '10px',
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              2x BOOST
+            </button>
+            <button
+              type="button"
+              onClick={() => setPulseSpeed('pause')}
+              style={{
+                background: pulseSpeed === 'pause' ? 'var(--accent-red)' : 'transparent',
+                color: pulseSpeed === 'pause' ? '#ffffff' : 'var(--text-secondary)',
+                border: 'none',
+                borderRadius: '3px',
+                padding: '2px 7px',
+                fontSize: '10px',
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              PAUSE
+            </button>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            gap: '14px',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            color: 'var(--text-muted)'
+          }}>
+            <span>BUS FREQ: <strong style={{ color: 'var(--text-primary)' }}>100 MHZ</strong></span>
+            <span>PIPELINE HEALTH: <strong style={{ color: 'var(--accent-emerald)' }}>100% OPERATIONAL</strong></span>
+          </div>
         </div>
       </div>
 
@@ -184,20 +250,24 @@ export function GeometricPipelineDiagram() {
               strokeWidth="3"
               strokeDasharray="16 24"
               style={{
-                animation: 'circuitFlow 3s linear infinite'
+                animation: pulseSpeed === 'pause' ? 'none' : `circuitFlow ${pulseSpeed === '2x' ? '1.5s' : '3s'} linear infinite`
               }}
             />
 
             {/* Kinetic Traveling Data Packet Pulses */}
-            <circle r="4" fill="#38bdf8" opacity="0.95" filter="drop-shadow(0 0 4px #38bdf8)">
-              <animateMotion path="M 60 55 L 940 55" dur="3.6s" repeatCount="indefinite" />
-            </circle>
-            <circle r="3.5" fill="#10b981" opacity="0.95" filter="drop-shadow(0 0 4px #10b981)">
-              <animateMotion path="M 60 55 L 940 55" dur="3.6s" begin="1.2s" repeatCount="indefinite" />
-            </circle>
-            <circle r="3.5" fill="#fbbf24" opacity="0.95" filter="drop-shadow(0 0 4px #fbbf24)">
-              <animateMotion path="M 60 55 L 940 55" dur="3.6s" begin="2.4s" repeatCount="indefinite" />
-            </circle>
+            {pulseSpeed !== 'pause' && (
+              <>
+                <circle r="4" fill="#38bdf8" opacity="0.95" filter="drop-shadow(0 0 4px #38bdf8)">
+                  <animateMotion path="M 60 55 L 940 55" dur={pulseSpeed === '2x' ? '1.8s' : '3.6s'} repeatCount="indefinite" />
+                </circle>
+                <circle r="3.5" fill="#10b981" opacity="0.95" filter="drop-shadow(0 0 4px #10b981)">
+                  <animateMotion path="M 60 55 L 940 55" dur={pulseSpeed === '2x' ? '1.8s' : '3.6s'} begin={pulseSpeed === '2x' ? '0.6s' : '1.2s'} repeatCount="indefinite" />
+                </circle>
+                <circle r="3.5" fill="#fbbf24" opacity="0.95" filter="drop-shadow(0 0 4px #fbbf24)">
+                  <animateMotion path="M 60 55 L 940 55" dur={pulseSpeed === '2x' ? '1.8s' : '3.6s'} begin={pulseSpeed === '2x' ? '1.2s' : '2.4s'} repeatCount="indefinite" />
+                </circle>
+              </>
+            )}
           </svg>
 
           {/* 8 Geometric Nodes Grid */}

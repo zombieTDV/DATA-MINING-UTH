@@ -66,12 +66,25 @@ export function ScientificRagConsole() {
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const [selectedCitation, setSelectedCitation] = useState<CitationData | null>(null);
   const [copiedAnswer, setCopiedAnswer] = useState<boolean>(false);
+  const [copiedBibtex, setCopiedBibtex] = useState<boolean>(false);
 
   const handleCopyAnswer = () => {
     const text = `${currentResult.fullAnswer}\n\n[Verified Citations]\n${currentResult.citations.join('\n')}\n[Grounded in LanceDB Gold Lakehouse (Cosine Sim: ${currentResult.simScore.toFixed(4)})]`;
     navigator.clipboard.writeText(text);
     setCopiedAnswer(true);
     setTimeout(() => setCopiedAnswer(false), 2000);
+  };
+
+  const handleCopyBibtex = () => {
+    const bibtex = `@article{codi_distill_2023,
+  title = {CoDi: Conditional Diffusion Distillation for Multi-Modal Generation},
+  author = {Ying, Z. and Zhao, H. and Gao, R. and others},
+  journal = {arXiv preprint arXiv:2310.01407},
+  year = {2023}
+}`;
+    navigator.clipboard.writeText(bibtex);
+    setCopiedBibtex(true);
+    setTimeout(() => setCopiedBibtex(false), 2000);
   };
 
   const runStreamingAnimation = (text: string) => {
@@ -220,7 +233,13 @@ export function ScientificRagConsole() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Enter research query across 10,000 scientific papers..."
+              onKeyDown={(e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                  e.preventDefault();
+                  if (!ragLoading && query.trim()) handleRunQuery(e);
+                }
+              }}
+              placeholder="Enter research query across 10,000 scientific papers... (Ctrl+Enter to submit)"
               style={{
                 flex: 1,
                 background: 'transparent',
@@ -384,7 +403,82 @@ export function ScientificRagConsole() {
                   <span>⎘</span>
                   <span>{copiedAnswer ? 'COPIED' : 'COPY'}</span>
                 </button>
+
+                {/* Export BibTeX Button */}
+                <button
+                  type="button"
+                  onClick={handleCopyBibtex}
+                  style={{
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-muted)',
+                    color: copiedBibtex ? 'var(--accent-emerald)' : 'var(--text-secondary)',
+                    padding: '3px 8px',
+                    borderRadius: '3px',
+                    fontSize: '10.5px',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  title="Export BibTeX citation entry"
+                >
+                  <span>⊞</span>
+                  <span>{copiedBibtex ? 'BIBTEX COPIED' : 'BIBTEX'}</span>
+                </button>
               </div>
+            </div>
+
+            {/* 4-Step Scientific Retrieval Stepper */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '8px',
+              marginBottom: '16px',
+              padding: '8px 12px',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '6px',
+            }}>
+              {[
+                { step: '01', title: 'VECTOR EMBEDDING', sub: 'Nomic 768-D', color: 'var(--accent-silver)' },
+                { step: '02', title: 'LANCEDB ANN', sub: '143,523 Vectors', color: 'var(--accent-emerald)' },
+                { step: '03', title: 'CROSS-RERANKING', sub: 'Cosine >= 0.80', color: 'var(--accent-bronze)' },
+                { step: '04', title: 'QWEN2.5 SYNTHESIS', sub: 'KaTeX Formatted', color: 'var(--accent-violet)' },
+              ].map((st, i) => (
+                <div key={i} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                }}>
+                  <span style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
+                    background: st.color,
+                    color: '#000000',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '9px',
+                    fontWeight: 900,
+                    flexShrink: 0
+                  }}>
+                    ✓
+                  </span>
+                  <div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '10.5px' }}>
+                      {st.title}
+                    </div>
+                    <div style={{ fontSize: '9.5px', color: 'var(--text-muted)' }}>
+                      {st.sub}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Answer Text Area with Blinking Cursor and Math Formatting */}

@@ -298,13 +298,16 @@ export const EdaView: FC = () => {
                     </div>
 
                     {/* Proportional Distribution Bar */}
-                    <div style={{ width: '100%', height: '5px', background: 'var(--border-subtle)', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ width: '100%', height: '6px', background: 'var(--border-subtle)', borderRadius: '3px', overflow: 'hidden' }}>
                       <div style={{
                         width: `${cat.percentage * 3}%`,
                         maxWidth: '100%',
                         height: '100%',
-                        background: isSelected ? 'var(--accent-silver)' : 'var(--accent-emerald)',
-                        borderRadius: '2px',
+                        background: isSelected
+                          ? 'linear-gradient(90deg, var(--accent-silver), var(--accent-cyan))'
+                          : 'linear-gradient(90deg, var(--accent-emerald), var(--accent-silver))',
+                        borderRadius: '3px',
+                        transition: 'width 0.3s ease'
                       }} />
                     </div>
 
@@ -416,6 +419,38 @@ export const EdaView: FC = () => {
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
+              {/* Visual IQR Box-Plot Gauges */}
+              <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                  INTERQUARTILE RANGE (IQR) PROJECTIONS:
+                </div>
+                {/* Formulas IQR */}
+                <div style={{ background: 'var(--bg-card-shell)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>
+                    <span style={{ color: 'var(--accent-violet)', fontWeight: 700 }}>LaTeX Formulas IQR</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>P25: 12 · Median: 42 · P75: 128</span>
+                  </div>
+                  <div style={{ position: 'relative', height: '10px', background: 'var(--border-subtle)', borderRadius: '5px' }}>
+                    <div style={{ position: 'absolute', left: '5%', right: '15%', top: '4px', height: '2px', background: 'var(--border-highlight)' }} />
+                    <div style={{ position: 'absolute', left: '15%', width: '38%', height: '100%', background: 'rgba(192, 132, 252, 0.35)', border: '1px solid var(--accent-violet)', borderRadius: '2px' }} />
+                    <div style={{ position: 'absolute', left: '30%', top: '-2px', height: '14px', width: '3px', background: '#ffffff', borderRadius: '1px' }} />
+                  </div>
+                </div>
+
+                {/* Words IQR */}
+                <div style={{ background: 'var(--bg-card-shell)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>
+                    <span style={{ color: 'var(--accent-silver)', fontWeight: 700 }}>Word Count IQR</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>P25: 4,200 · Median: 6,840 · P75: 9,450</span>
+                  </div>
+                  <div style={{ position: 'relative', height: '10px', background: 'var(--border-subtle)', borderRadius: '5px' }}>
+                    <div style={{ position: 'absolute', left: '8%', right: '10%', top: '4px', height: '2px', background: 'var(--border-highlight)' }} />
+                    <div style={{ position: 'absolute', left: '26%', width: '34%', height: '100%', background: 'rgba(96, 165, 250, 0.35)', border: '1px solid var(--accent-silver)', borderRadius: '2px' }} />
+                    <div style={{ position: 'absolute', left: '42%', top: '-2px', height: '14px', width: '3px', background: '#ffffff', borderRadius: '1px' }} />
+                  </div>
+                </div>
               </div>
             </div>
 

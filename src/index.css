@@ -4,30 +4,31 @@
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', monospace;
 
-  /* Default Dark Mode: High Contrast Tactical Obsidian */
-  --bg-canvas: #04060a;
-  --bg-surface: #0e1422;
-  --bg-surface-elevated: #162035;
-  --bg-surface-hover: #1e2b47;
+  /* Default Dark Mode: Tactical Obsidian Deep Space */
+  --bg-canvas: #05070c;
+  --bg-surface: #0a0e17;
+  --bg-surface-elevated: #101726;
+  --bg-surface-hover: #172033;
   
-  --bg-card-shell: #0e1422;
-  --bg-card-core: #04060a;
+  --bg-card-shell: #101726;
+  --bg-card-core: #060911;
 
-  --border-subtle: rgba(255, 255, 255, 0.12);
-  --border-muted: rgba(255, 255, 255, 0.22);
-  --border-highlight: rgba(255, 255, 255, 0.40);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-muted: rgba(255, 255, 255, 0.16);
+  --border-highlight: rgba(255, 255, 255, 0.32);
 
   --text-primary: #ffffff;
-  --text-secondary: #e2e8f0;
-  --text-muted: #a6b4c9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
 
-  --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.65), 0 1px 2px rgba(0, 0, 0, 0.5);
+  --ambient-glow: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.06), transparent 70%);
 
-  --accent-red: #ef4444;
-  --accent-bronze: #f59e0b;
+  --accent-red: #f87171;
+  --accent-bronze: #fbbf24;
   --accent-silver: #60a5fa;
   --accent-gold: #fde047;
-  --accent-emerald: #10b981;
+  --accent-emerald: #34d399;
   --accent-violet: #c084fc;
   --accent-cyan: #38bdf8;
 
@@ -37,25 +38,26 @@
   --radius-xl: 18px;
 }
 
-/* Light Mode: Calibrated High Contrast Swiss Engineering Print */
+/* Light Mode: Nordic Scientific Minimalist (Clean Laboratory White) */
 [data-theme="light"] {
-  --bg-canvas: #f6f5f0;
+  --bg-canvas: #f8fafc;
   --bg-surface: #ffffff;
-  --bg-surface-elevated: #eceae3;
-  --bg-surface-hover: #e2e0d5;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-hover: #e2e8f0;
 
-  --bg-card-shell: #eceae3;
+  --bg-card-shell: #f1f5f9;
   --bg-card-core: #ffffff;
 
-  --border-subtle: rgba(0, 0, 0, 0.08);
-  --border-muted: rgba(0, 0, 0, 0.16);
-  --border-highlight: rgba(0, 0, 0, 0.36);
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-muted: rgba(15, 23, 42, 0.16);
+  --border-highlight: rgba(15, 23, 42, 0.35);
 
-  --text-primary: #090c10;
+  --text-primary: #0f172a;
   --text-secondary: #334155;
   --text-muted: #64748b;
 
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.03);
+  --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 6px 18px rgba(15, 23, 42, 0.03);
+  --ambient-glow: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.04), transparent 70%);
 
   --accent-red: #dc2626;
   --accent-bronze: #b45309;
@@ -76,16 +78,18 @@ body {
   margin: 0;
   min-height: 100dvh;
   background-color: var(--bg-canvas);
+  background-image: var(--ambient-glow);
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-sans);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Subtle architectural grid with distinct visibility */
+/* Subtle architectural grid */
 body::before {
   content: '';
   position: fixed;
@@ -94,20 +98,20 @@ body::before {
     linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
     linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
   background-size: 40px 40px;
-  opacity: 0.4;
+  opacity: 0.35;
   pointer-events: none;
   z-index: 0;
 }
 
 [data-theme="light"] body::before {
-  opacity: 0.22;
+  opacity: 0.20;
 }
 
 code, pre, .mono {
   font-family: var(--font-mono);
 }
 
-/* Custom scrollbars */
+/* Custom tactical scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -129,6 +133,65 @@ button, a {
 }
 button:active {
   transform: scale(0.98);
+}
+
+/* Keycaps for mechanical shortcut style */
+.keycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  border-radius: 3px;
+  background: var(--bg-card-shell);
+  border: 1px solid var(--border-muted);
+  box-shadow: 0 1px 0 var(--border-highlight);
+  color: var(--text-muted);
+}
+
+/* Skeleton Loading Shimmer Animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-card-shell) 25%,
+    var(--bg-surface-elevated) 50%,
+    var(--bg-card-shell) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite linear;
+}
+
+/* Smooth Tab Transition */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.995) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.tab-pane-active {
+  animation: fadeInScale 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Pulse animation for Live LED */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.85); }
+}
+
+.pulse-led {
+  animation: pulseGlow 2s infinite ease-in-out;
 }
 
 /* Responsive Layout Classes */
