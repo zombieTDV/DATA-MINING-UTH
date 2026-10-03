@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { validateEnv } from '@app/shared';
 import { RetrievalModule } from './retrieval/retrieval.module';
 import { LlmClientModule } from './llm-client/llm-client.module';
+import { MiningModule } from './mining/mining.module';
 import { HealthController } from './health/health.controller';
 import { SearchController } from './search/search.controller';
 import { ChatController } from './chat/chat.controller';
@@ -19,6 +20,7 @@ import { StorageController } from './storage/storage.controller';
     }),
     RetrievalModule,
     LlmClientModule,
+    MiningModule,
   ],
   controllers: [
     HealthController,
