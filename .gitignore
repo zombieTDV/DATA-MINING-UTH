@@ -27,5 +27,6 @@ dist-ssr
 data/
 models/
 .venv/
+.gemini/
 .env
 .env.*
