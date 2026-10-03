@@ -17,6 +17,7 @@ class Settings:
     DATA_RAW_DIR: Path = PROJECT_ROOT / os.getenv("DATA_RAW_DIR", "data/raw")
     MANIFEST_DIR: Path = PROJECT_ROOT / os.getenv("MANIFEST_DIR", "data/manifests")
     EMBEDDING_MODEL_PATH: Path = PROJECT_ROOT / os.getenv("EMBEDDING_MODEL_PATH", "models/nomic-embed-text-v1.5")
+    LLM_MODEL_PATH: Path = PROJECT_ROOT / os.getenv("LLM_MODEL_PATH", "models/qwen2.5-7b-instruct-q4_k_m/qwen2.5-7b-instruct-q4_k_m.gguf")
 
     # Cloudflare R2 Credentials
     CLOUDFLARE_ACCOUNT_ID: str = os.getenv("CLOUDFLARE_ACCOUNT_ID", "").strip()
