@@ -1,72 +1,57 @@
 import { useState, type FormEvent } from 'react';
+import { GeometricPipelineDiagram } from './components/GeometricPipelineDiagram';
+import { GeometricTelemetryGauges } from './components/GeometricTelemetryGauges';
 import { ToolLogosGrid } from './components/ToolLogos';
-import { PipelineFlow } from './components/PipelineFlow';
-import { MetricsBento } from './components/MetricsBento';
-import { StorageInspector } from './components/StorageInspector';
 import { LiveTelemetryFeed } from './components/LiveTelemetryFeed';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'pipeline' | 'tools' | 'storage' | 'rag'>('pipeline');
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [syncStatus, setSyncStatus] = useState<string | null>(null);
-
-  // RAG Playground state
+  const [activeTab, setActiveTab] = useState<'schematic' | 'gauges' | 'tools' | 'rag'>('schematic');
   const [query, setQuery] = useState<string>('What is the role of sampling z_t in conditional diffusion distillation according to CoDi paper 2310.01407?');
   const [ragLoading, setRagLoading] = useState<boolean>(false);
-  const [ragOutput, setRagOutput] = useState<{
+  const [ragResult, setRagResult] = useState<{
     answer: string;
     citations: string[];
     simScore: string;
     genTime: string;
   } | null>({
-    answer: "According to the CoDi paper [Paper: 2310.01407, Section: 5 Experiments], the sampling of $z_t$ plays a crucial role in the distillation learning process. Specifically, the paper demonstrates that using a consistent time $t$ across different samples in a single batch leads to better performance compared to sampling $z_t$ in different time steps within a single batch.\n\nThis consistent sampling approach results in improved visual quality and accuracy during inference, as evidenced by the comparisons shown in Figure 8. The authors attribute these improvements to the enhanced performance of the model when trained with a single time step $t$ in a batch.",
+    answer: "According to the CoDi paper [Paper: 2310.01407, Section: 5 Experiments], the sampling of $z_t$ plays a crucial role in the distillation learning process. Specifically, the paper demonstrates that using a consistent time $t$ across different samples in a single batch leads to better performance compared to sampling $z_t$ in different time steps within a single batch.\n\nThis consistent sampling approach results in improved visual quality and accuracy during inference, as evidenced by the comparisons shown in Figure 8.",
     citations: ['Paper: 2310.01407, Section: 5 Experiments'],
     simScore: '0.8510',
     genTime: '18.51s'
   });
 
-  const handleTriggerSync = () => {
-    setIsSyncing(true);
-    setSyncStatus('[R2] Checking local LanceDB chunks against remote s3://uth-scientific-lakehouse/gold/lancedb/...');
-    setTimeout(() => {
-      setIsSyncing(false);
-      setSyncStatus('[R2] Sync verified: 100% chunks match remote digest. 5.524 GB total.');
-      setTimeout(() => setSyncStatus(null), 4000);
-    }, 1500);
-  };
-
   const handleRunQuery = (e: FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
     setRagLoading(true);
-    setRagOutput(null);
+    setRagResult(null);
 
     setTimeout(() => {
       setRagLoading(false);
       if (query.toLowerCase().includes('ocr') || query.toLowerCase().includes('gated')) {
-        setRagOutput({
-          answer: "Based on the provided scientific literature, there is insufficient evidence to address the question regarding how gated distillation improves OCR faithfulness. The context focuses on conditional diffusion distillation for image generation tasks.\n\nTherefore, the answer is:\n\nDựa trên các tài liệu khoa học được cung cấp, không có đủ thông tin để trả lời câu hỏi này.",
+        setRagResult({
+          answer: "Based on the provided scientific literature, there is insufficient evidence to address the question regarding how gated distillation improves OCR faithfulness. The context focuses on conditional diffusion distillation.\n\nTherefore, the answer is:\n\nDựa trên các tài liệu khoa học được cung cấp, không có đủ thông tin để trả lời câu hỏi này.",
           citations: ['Paper: 2310.01407, Section: 5 Experiments'],
           simScore: '0.7268',
           genTime: '18.55s'
         });
       } else {
-        setRagOutput({
+        setRagResult({
           answer: "According to the CoDi paper [Paper: 2310.01407, Section: 5 Experiments], the sampling of $z_t$ plays a crucial role in the distillation learning process. Specifically, the paper demonstrates that using a consistent time $t$ across different samples in a single batch leads to better performance compared to sampling $z_t$ in different time steps within a single batch.",
           citations: ['Paper: 2310.01407, Section: 5 Experiments'],
           simScore: '0.8510',
           genTime: '18.51s'
         });
       }
-    }, 1000);
+    }, 900);
   };
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
-      {/* Top Header / App Chrome */}
+      {/* Top Architectural Banner */}
       <header style={{
-        background: 'rgba(13, 17, 26, 0.85)',
-        backdropFilter: 'blur(12px)',
+        background: 'rgba(7, 9, 14, 0.92)',
+        backdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--border-subtle)',
         padding: '14px 28px',
         display: 'flex',
@@ -74,84 +59,79 @@ export default function App() {
         justifyContent: 'space-between',
         position: 'sticky',
         top: 0,
-        zIndex: 50,
+        zIndex: 50
       }}>
-        {/* Brand & Project Identity */}
+        {/* Brand Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
             background: 'var(--text-primary)',
             color: 'var(--bg-canvas)',
-            fontWeight: 700,
+            fontWeight: 800,
             fontSize: '11px',
             fontFamily: 'var(--font-mono)',
-            padding: '5px 9px',
-            borderRadius: 'var(--radius-sm)',
+            padding: '4px 8px',
+            borderRadius: '2px',
             letterSpacing: '0.08em'
           }}>
-            UTH
+            UTH-AI
           </div>
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-                Scientific Lakehouse & RAG Platform
+              <h1 style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Scientific Lakehouse Schematic & RAG Pipeline
               </h1>
               <span style={{
-                fontSize: '10px',
+                fontSize: '9.5px',
                 fontFamily: 'var(--font-mono)',
                 color: 'var(--accent-emerald)',
-                background: 'rgba(16, 185, 129, 0.1)',
-                padding: '2px 6px',
-                borderRadius: '4px',
-                border: '1px solid rgba(16, 185, 129, 0.25)'
+                background: 'rgba(16, 185, 129, 0.12)',
+                padding: '1px 6px',
+                borderRadius: '3px',
+                border: '1px solid rgba(16, 185, 129, 0.3)'
               }}>
-                [PROD / v1.0.0]
+                [MPS/METAL ONLINE]
               </span>
             </div>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '1px' }}>
-              Medallion Data Architecture (Bronze · Silver · Gold LanceDB) & Qwen2.5-7B Metal
-            </p>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+              10,000 PAPERS · 143,523 GOLD CHUNKS · 5.524 GB R2 · QWEN2.5-7B
+            </div>
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {syncStatus && (
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--accent-silver)' }}>
-              {syncStatus}
-            </span>
-          )}
+        {/* Tactical Status Blocks */}
+        <div style={{ display: 'flex', gap: '12px', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+          <div style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            padding: '5px 10px',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b' }} />
+            <span style={{ color: 'var(--text-muted)' }}>R2 BUCKET:</span>
+            <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>5.52 GB</span>
+          </div>
 
-          <button
-            onClick={handleTriggerSync}
-            disabled={isSyncing}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--border-muted)',
-              color: 'var(--text-primary)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '6px 12px',
-              fontSize: '11.5px',
-              fontFamily: 'var(--font-mono)',
-              cursor: isSyncing ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <span style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: isSyncing ? 'var(--accent-gold)' : 'var(--accent-emerald)',
-              display: 'inline-block'
-            }} />
-            {isSyncing ? 'Verifying R2...' : 'Check R2 Lakehouse'}
-          </button>
+          <div style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            padding: '5px 10px',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+            <span style={{ color: 'var(--text-muted)' }}>LANCEDB:</span>
+            <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>143,523 VEC</span>
+          </div>
         </div>
       </header>
 
-      {/* Navigation Sub-header */}
+      {/* Navigation Tabs Bar */}
       <div style={{
         background: 'var(--bg-canvas)',
         borderBottom: '1px solid var(--border-subtle)',
@@ -160,10 +140,10 @@ export default function App() {
         gap: '24px'
       }}>
         {[
-          { id: 'pipeline', label: 'Lakehouse & Pipeline Flow' },
-          { id: 'tools', label: 'Integrated Tool Stack' },
-          { id: 'storage', label: 'Cloudflare R2 Storage (5.52 GB)' },
-          { id: 'rag', label: 'Scientific RAG Grounding Test' },
+          { id: 'schematic', label: '1. Pipeline Circuit Schematic' },
+          { id: 'gauges', label: '2. Geometric Visual Gauges' },
+          { id: 'tools', label: '3. Integrated Tools & Logos' },
+          { id: 'rag', label: '4. Scientific RAG Playground' }
         ].map((tab) => (
           <button
             key={tab.id}
@@ -174,10 +154,12 @@ export default function App() {
               borderBottom: activeTab === tab.id ? '2px solid var(--text-primary)' : '2px solid transparent',
               color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-muted)',
               padding: '12px 2px',
-              fontSize: '12.5px',
-              fontWeight: 500,
+              fontSize: '12px',
+              fontFamily: 'var(--font-mono)',
+              fontWeight: 600,
               cursor: 'pointer',
-              letterSpacing: '0.01em'
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase'
             }}
           >
             {tab.label}
@@ -185,133 +167,72 @@ export default function App() {
         ))}
       </div>
 
-      {/* Body Content */}
-      <main style={{ flex: 1, padding: '28px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
-        {/* TAB 1: Pipeline & Lakehouse Overview */}
-        {activeTab === 'pipeline' && (
+      {/* Main View Area */}
+      <main style={{ flex: 1, padding: '24px 28px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
+        {/* TAB 1: Schematic Diagram (Geometric Visual Pipeline) */}
+        {activeTab === 'schematic' && (
           <div>
-            {/* Top Metric Bento Grid */}
-            <MetricsBento />
+            {/* Visual Gauges Ribbon */}
+            <GeometricTelemetryGauges />
 
-            {/* Pipeline Flow Section */}
-            <div style={{ marginBottom: '28px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  End-to-End Medallion Pipeline Architecture
-                </h3>
-                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                  HARVEST → ENRICH → VECTORIZE → INFERENCE
-                </span>
-              </div>
-              <PipelineFlow />
+            {/* Interactive Geometric Circuit Diagram */}
+            <div style={{ marginBottom: '24px' }}>
+              <GeometricPipelineDiagram />
             </div>
 
-            {/* Telemetry and Active Tools Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
+            {/* Live Telemetry Feed */}
+            <LiveTelemetryFeed />
+          </div>
+        )}
+
+        {/* TAB 2: Geometric Visual Gauges Deep Dive */}
+        {activeTab === 'gauges' && (
+          <div>
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Hardware & Storage Geometric Telemetry
+              </h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                DIAL-01 (CAPACITY) · DIAL-02 (VECTOR PROJECTION) · DIAL-03 (METAL FREQUENCY)
+              </p>
+            </div>
+            <GeometricTelemetryGauges />
+            <div style={{ marginTop: '24px' }}>
               <LiveTelemetryFeed />
-
-              <div style={{
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '20px',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                  <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Core Stack Quick Reference
-                  </h4>
-                  <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                    7 Core Systems
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {[
-                    { name: 'Cloudflare R2', role: 'Object Storage (Bronze HTML + Gold Sync)', tag: 'S3 API' },
-                    { name: 'DuckDB', role: 'Vectorized SQL Analytical Engine (Silver)', tag: 'In-Process' },
-                    { name: 'LanceDB', role: 'Gold Multi-modal Vector Lakehouse', tag: 'Cosine ANN' },
-                    { name: 'Nomic Embed v1.5', role: '768-dim Academic Document Embeddings', tag: '8k Context' },
-                    { name: 'Qwen 2.5 7B Instruct', role: 'GGUF Q4_K_M Grounded RAG Generation', tag: 'Metal GPU' },
-                  ].map((s, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '10px 12px',
-                        background: 'var(--bg-canvas)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: '12px'
-                      }}
-                    >
-                      <div>
-                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{s.name}</span>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '1px' }}>{s.role}</div>
-                      </div>
-                      <span style={{
-                        fontSize: '10px',
-                        fontFamily: 'var(--font-mono)',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        color: 'var(--text-secondary)',
-                        border: '1px solid var(--border-subtle)'
-                      }}>
-                        {s.tag}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         )}
 
-        {/* TAB 2: Integrated Tools */}
+        {/* TAB 3: Tool Stack & Logos */}
         {activeTab === 'tools' && (
           <div>
             <div style={{ marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                System Architecture & Tooling Stack
+              <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Configured Tools & Platform Engines
               </h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                All tools, engines, and protocols configured in the UTH Scientific Data Lakehouse and RAG pipeline.
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                CLOUDFLARE R2 · DUCKDB · LANCEDB · APACHE PARQUET · QWEN 2.5 · NOMIC AI · APPLE METAL
               </p>
             </div>
             <ToolLogosGrid />
           </div>
         )}
 
-        {/* TAB 3: Storage Inspector */}
-        {activeTab === 'storage' && (
-          <div>
-            <div style={{ marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                Storage & Partitioning Telemetry
-              </h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                Audited directly against Cloudflare R2 bucket <code className="mono">uth-scientific-lakehouse</code> and local data directories.
-              </p>
-            </div>
-            <StorageInspector />
-          </div>
-        )}
-
-        {/* TAB 4: RAG Grounding Test */}
+        {/* TAB 4: Grounded RAG Playground */}
         {activeTab === 'rag' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px' }}>
             <div>
-              <div style={{ marginBottom: '16px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginRight: '8px' }}>Benchmark Query Presets:</span>
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginRight: '8px' }}>
+                  BENCHMARK PRESETS:
+                </span>
                 {[
                   {
                     label: "CoDi Diffusion (Paper 2310.01407)",
                     q: "What is the role of sampling z_t in conditional diffusion distillation according to CoDi paper 2310.01407?"
                   },
                   {
-                    label: "Anti-Hallucination Refusal Gate (OCR)",
+                    label: "Anti-Hallucination Gate (OCR)",
                     q: "How does gated distillation improve OCR faithfulness?"
                   }
                 ].map((preset, idx) => (
@@ -321,11 +242,11 @@ export default function App() {
                     style={{
                       background: 'var(--bg-surface)',
                       border: '1px solid var(--border-subtle)',
-                      borderRadius: '16px',
+                      borderRadius: '4px',
                       color: 'var(--text-secondary)',
                       fontSize: '11px',
                       fontFamily: 'var(--font-mono)',
-                      padding: '4px 12px',
+                      padding: '4px 10px',
                       marginRight: '8px',
                       marginBottom: '6px',
                       cursor: 'pointer'
@@ -336,7 +257,7 @@ export default function App() {
                 ))}
               </div>
 
-              {/* Input Form */}
+              {/* Query Form */}
               <form onSubmit={handleRunQuery} style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input
@@ -348,7 +269,7 @@ export default function App() {
                       flex: 1,
                       background: 'var(--bg-surface)',
                       border: '1px solid var(--border-muted)',
-                      borderRadius: 'var(--radius-sm)',
+                      borderRadius: '4px',
                       padding: '12px 16px',
                       color: 'var(--text-primary)',
                       fontSize: '13px',
@@ -363,45 +284,53 @@ export default function App() {
                       background: 'var(--text-primary)',
                       color: 'var(--bg-canvas)',
                       border: 'none',
-                      borderRadius: 'var(--radius-sm)',
+                      borderRadius: '4px',
                       padding: '0 20px',
-                      fontWeight: 600,
-                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '12px',
                       cursor: ragLoading ? 'not-allowed' : 'pointer'
                     }}
                   >
-                    {ragLoading ? 'Searching...' : 'Run Query'}
+                    {ragLoading ? 'SEARCHING...' : 'RUN QUERY'}
                   </button>
                 </div>
               </form>
 
               {/* RAG Answer Display */}
-              {ragOutput && (
+              {ragResult && (
                 <div style={{
                   background: 'var(--bg-surface)',
                   border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '24px'
+                  borderRadius: 'var(--radius-md)',
+                  padding: '20px'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
-                    <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--accent-silver)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '14px',
+                    borderBottom: '1px solid var(--border-subtle)',
+                    paddingBottom: '10px'
+                  }}>
+                    <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--accent-silver)', letterSpacing: '0.05em' }}>
                       [GROUNDED SCIENTIFIC SYNTHESIS]
                     </span>
-                    <div style={{ display: 'flex', gap: '10px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                      <span>Top Sim: <strong style={{ color: 'var(--accent-emerald)' }}>{ragOutput.simScore}</strong></span>
-                      <span>Latency: <strong style={{ color: 'var(--text-primary)' }}>{ragOutput.genTime}</strong></span>
+                    <div style={{ display: 'flex', gap: '12px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                      <span>SIMILARITY: <strong style={{ color: 'var(--accent-emerald)' }}>{ragResult.simScore}</strong></span>
+                      <span>LATENCY: <strong style={{ color: 'var(--text-primary)' }}>{ragResult.genTime}</strong></span>
                     </div>
                   </div>
 
                   <div style={{ fontSize: '13.5px', lineHeight: 1.7, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
-                    {ragOutput.answer}
+                    {ragResult.answer}
                   </div>
 
-                  <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px dashed var(--border-subtle)' }}>
-                    <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>
+                  <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px dashed var(--border-subtle)' }}>
+                    <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '4px' }}>
                       [VERIFIED CITATIONS]:
                     </div>
-                    {ragOutput.citations.map((c, idx) => (
+                    {ragResult.citations.map((c, idx) => (
                       <div key={idx} style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--accent-silver)' }}>
                         ▪ [{c}]
                       </div>
@@ -419,30 +348,30 @@ export default function App() {
               padding: '18px',
               height: 'fit-content'
             }}>
-              <h4 style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '14px' }}>
-                Pipeline Parameters
-              </h4>
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '14px', letterSpacing: '0.05em' }}>
+                ACTIVE INFERENCE PIPELINE
+              </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px' }}>
                 <div>
-                  <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>Vector Engine</div>
-                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>LanceDB (143k Chunks)</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>VECTOR INDEX</div>
+                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>LanceDB (143k Chunks)</div>
                 </div>
                 <div>
-                  <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>Embedder</div>
-                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>Nomic Embed v1.5 (768d)</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>EMBEDDING MODEL</div>
+                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>Nomic Embed v1.5 (768d)</div>
                 </div>
                 <div>
-                  <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>LLM Weight</div>
-                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>Qwen2.5-7B (Q4_K_M)</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>GENERATION LLM</div>
+                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>Qwen2.5-7B (Q4_K_M GGUF)</div>
                 </div>
                 <div>
-                  <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>Hardware Backend</div>
-                  <div style={{ color: 'var(--accent-emerald)', fontFamily: 'var(--font-mono)' }}>Apple Silicon Metal GPU</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>ACCELERATION</div>
+                  <div style={{ color: 'var(--accent-emerald)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>Apple Silicon Metal GPU</div>
                 </div>
                 <div>
-                  <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>Sampling Temp</div>
-                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>0.2 (Academic Strict)</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>TEMPERATURE</div>
+                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>0.2 (Strict Grounding)</div>
                 </div>
               </div>
             </div>
