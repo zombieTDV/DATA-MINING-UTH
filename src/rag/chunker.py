@@ -135,44 +135,47 @@ class SemanticChunker:
             sections_df = pd.read_parquet(s_path)
             logger.info("Processing %d full-text sections for sliding-window chunking...", len(sections_df))
 
-            grouped = sections_df.groupby("paper_id")
-            for pid, sec_group in grouped:
-                meta = paper_meta.get(str(pid), {
-                    "title": "Untitled",
-                    "year": 2024,
-                    "pagerank": 0.0001,
-                    "citation_count": 0,
-                    "community_id": -1,
-                    "doi": "",
-                })
+            chunk_counters: dict[str, int] = {}
+            default_meta = {
+                "title": "Untitled",
+                "year": 2024,
+                "pagerank": 0.0001,
+                "citation_count": 0,
+                "community_id": -1,
+                "doi": "",
+            }
 
-                chunk_counter = 1
-                for _, s_row in sec_group.iterrows():
-                    sec_title = str(s_row.get("section_title") or "Section").strip()
-                    sec_text = str(s_row.get("text") or "").strip()
-                    if not sec_text:
-                        continue
+            for row in sections_df.itertuples(index=False):
+                pid = str(row.paper_id)
+                sec_title = str(getattr(row, "section_title", "") or "Section").strip()
+                sec_text = str(getattr(row, "text", "") or "").strip()
+                if not sec_text:
+                    continue
 
-                    splits = self.split_text(sec_text)
-                    for split in splits:
-                        chunk_id = f"{pid}_c{chunk_counter:03d}"
-                        context_header = f"[{meta['title']}] [{meta['year']}] [{sec_title}]"
-                        all_chunks.append({
-                            "chunk_id": chunk_id,
-                            "paper_id": pid,
-                            "title": meta["title"],
-                            "year": meta["year"],
-                            "section_title": sec_title,
-                            "context_header": context_header,
-                            "text": split,
-                            "full_chunk_text": f"{context_header}\n{split}",
-                            "pagerank": meta["pagerank"],
-                            "citation_count": meta["citation_count"],
-                            "community_id": meta["community_id"],
-                            "doi": meta["doi"],
-                            "chunk_type": "section",
-                        })
-                        chunk_counter += 1
+                meta = paper_meta.get(pid, default_meta)
+                c_idx = chunk_counters.get(pid, 1)
+
+                splits = self.split_text(sec_text)
+                for split in splits:
+                    chunk_id = f"{pid}_c{c_idx:03d}"
+                    context_header = f"[{meta['title']}] [{meta['year']}] [{sec_title}]"
+                    all_chunks.append({
+                        "chunk_id": chunk_id,
+                        "paper_id": pid,
+                        "title": meta["title"],
+                        "year": meta["year"],
+                        "section_title": sec_title,
+                        "context_header": context_header,
+                        "text": split,
+                        "full_chunk_text": f"{context_header}\n{split}",
+                        "pagerank": meta["pagerank"],
+                        "citation_count": meta["citation_count"],
+                        "community_id": meta["community_id"],
+                        "doi": meta["doi"],
+                        "chunk_type": "section",
+                    })
+                    c_idx += 1
+                chunk_counters[pid] = c_idx
 
         chunks_df = pd.DataFrame(all_chunks)
         if not chunks_df.empty:

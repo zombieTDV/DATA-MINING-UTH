@@ -22,7 +22,10 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", help="Available pipeline commands")
 
     # Command: parse-sections
-    subparsers.add_parser("parse-sections", help="Parse vaulted PDFs into silver/sections.parquet")
+    p_parse = subparsers.add_parser("parse-sections", help="Parse vaulted PDFs into silver/sections.parquet")
+    p_parse.add_argument("--workers", type=int, default=10, help="Number of parallel worker processes")
+    p_parse.add_argument("--batch-size", type=int, default=50, help="Batch size for checkpoint flushing")
+    p_parse.add_argument("--timeout", type=float, default=25.0, help="Per-PDF timeout in seconds")
 
     # Command: build-chunks
     p_chunk = subparsers.add_parser("build-chunks", help="Generate dual-granularity chunks into silver/chunks.parquet")
@@ -43,6 +46,7 @@ def main() -> None:
 
     # Command: run-pipeline
     p_pipe = subparsers.add_parser("run-pipeline", help="Run full RAG pipeline: parse -> chunk -> index -> benchmark query")
+    p_pipe.add_argument("--workers", type=int, default=10, help="Number of parallel worker processes for PDF parsing")
     p_pipe.add_argument("--max-chunks", type=int, default=None, help="Optional chunk limit for indexing")
 
     args = parser.parse_args()
@@ -54,7 +58,11 @@ def main() -> None:
     if args.command == "parse-sections":
         logger.info("=== [Step 1] Parsing Vaulted PDFs into Sections ===")
         pdf_parser = PDFSectionParser()
-        df = pdf_parser.parse_all_vaulted_pdfs()
+        df = pdf_parser.parse_all_vaulted_pdfs(
+            max_workers=args.workers,
+            batch_size=args.batch_size,
+            per_pdf_timeout=args.timeout,
+        )
         logger.info("Parsing complete: %d sections extracted.", len(df))
 
     elif args.command == "build-chunks":
@@ -97,7 +105,7 @@ def main() -> None:
 
         # 1. Parse
         pdf_parser = PDFSectionParser()
-        sections_df = pdf_parser.parse_all_vaulted_pdfs()
+        sections_df = pdf_parser.parse_all_vaulted_pdfs(max_workers=args.workers)
 
         # 2. Chunk
         chunker = SemanticChunker()
