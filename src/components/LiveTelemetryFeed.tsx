@@ -9,23 +9,32 @@ export function LiveTelemetryFeed() {
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [copiedLogs, setCopiedLogs] = useState<boolean>(false);
   const [liveEntries, setLiveEntries] = useState<LogEntry[]>(TELEMETRY_ENTRIES);
+  const [isLiveSSE, setIsLiveSSE] = useState<boolean>(false);
 
   // Subscribe to real Server-Sent Events (SSE) telemetry from FastAPI
   useEffect(() => {
     if (isPaused) return;
 
-    const unsubscribe = subscribeTelemetry((event) => {
-      const newEntry: LogEntry = {
-        id: `sse-${Date.now()}-${Math.random()}`,
-        timestamp: event.timestamp.replace('T', ' ').slice(0, 23),
-        level: (event.level as LogEntry['level']) || 'INFO',
-        phase: (event.stage as LogEntry['phase']) || 'MINING',
-        source: 'backend/app/main.py:8000',
-        message: event.message,
-        detail: event.detail || 'FastAPI Server-Sent Event (SSE) Stream',
-      };
-      setLiveEntries((prev) => [newEntry, ...prev.slice(0, 24)]);
-    });
+    const unsubscribe = subscribeTelemetry(
+      (event) => {
+        if (!event.isFallback) {
+          setIsLiveSSE(true);
+        }
+        const newEntry: LogEntry = {
+          id: `sse-${Date.now()}-${Math.random()}`,
+          timestamp: event.timestamp.replace('T', ' ').slice(0, 23),
+          level: (event.level as LogEntry['level']) || 'INFO',
+          phase: (event.stage as LogEntry['phase']) || 'MINING',
+          source: event.isFallback ? 'client/offline-cache' : 'backend/app/main.py:8000',
+          message: event.message,
+          detail: event.detail || (event.isFallback ? 'Offline Snapshot Replay' : 'FastAPI Server-Sent Event (SSE) Stream'),
+        };
+        setLiveEntries((prev) => [newEntry, ...prev.slice(0, 24)]);
+      },
+      () => {
+        setIsLiveSSE(false);
+      }
+    );
 
     return () => unsubscribe();
   }, [isPaused]);
@@ -90,8 +99,12 @@ export function LiveTelemetryFeed() {
                 width: '10px',
                 height: '10px',
                 borderRadius: '50%',
-                background: isPaused ? 'var(--accent-bronze)' : 'var(--accent-emerald)',
-                boxShadow: isPaused ? '0 0 10px rgba(245, 158, 11, 0.6)' : '0 0 10px rgba(16, 185, 129, 0.6)',
+                background: isPaused ? 'var(--accent-bronze)' : isLiveSSE ? 'var(--accent-emerald)' : 'var(--accent-amber)',
+                boxShadow: isPaused
+                  ? '0 0 10px rgba(245, 158, 11, 0.6)'
+                  : isLiveSSE
+                    ? '0 0 10px rgba(16, 185, 129, 0.6)'
+                    : '0 0 10px rgba(245, 158, 11, 0.4)',
                 transition: 'background 0.2s ease'
               }} />
               <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
@@ -101,17 +114,17 @@ export function LiveTelemetryFeed() {
                 fontSize: '10px',
                 fontFamily: 'var(--font-mono)',
                 fontWeight: 700,
-                background: isPaused ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
-                border: isPaused ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)',
+                background: isPaused ? 'rgba(245, 158, 11, 0.12)' : isLiveSSE ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                border: isPaused ? '1px solid rgba(245, 158, 11, 0.3)' : isLiveSSE ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
                 padding: '2px 8px',
                 borderRadius: '4px',
-                color: isPaused ? 'var(--accent-bronze)' : 'var(--accent-emerald)'
+                color: isPaused ? 'var(--accent-bronze)' : isLiveSSE ? 'var(--accent-emerald)' : 'var(--accent-amber)'
               }}>
-                {isPaused ? 'STREAM PAUSED' : 'LIVE STREAM'}
+                {isPaused ? 'STREAM PAUSED' : isLiveSSE ? 'LIVE SSE STREAM' : 'OFFLINE REPLAY'}
               </span>
             </div>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
-              SOURCE AUDIT: logs/master_pipeline_20261003.log & logs/rag_query_20261003.log (Double Buffered)
+              SOURCE AUDIT: {isLiveSSE ? 'FastAPI SSE Stream (http://127.0.0.1:8000/api/mining/telemetry/stream)' : 'Local Lakehouse Telemetry Snapshot (143,523 Vectors)'}
             </p>
           </div>
 

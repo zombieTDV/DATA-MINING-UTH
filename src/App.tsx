@@ -34,7 +34,7 @@ const TABS: Array<{
   badgeColor: string;
   isLive?: boolean;
 }> = [
-  { id: 'schematic', shortcut: '1', title: 'SCHEMATIC & OVERVIEW', badge: 'LIVE', badgeColor: 'var(--accent-emerald)' },
+  { id: 'schematic', shortcut: '1', title: 'SCHEMATIC & OVERVIEW', badge: 'OVERVIEW', badgeColor: 'var(--accent-emerald)' },
   { id: 'eda', shortcut: '2', title: 'DUCKDB STATS', badge: '10K DOCS', badgeColor: 'var(--accent-silver)' },
   { id: 'pillars', shortcut: '3', title: '4 MINING PILLARS', badge: 'ANALYTICS', badgeColor: 'var(--accent-violet)' },
   { id: 'rag', shortcut: '4', title: 'SCIENTIFIC RAG', badge: 'QWEN2.5', badgeColor: 'var(--accent-cyan)' },
@@ -56,7 +56,7 @@ function DashboardMain() {
     return (saved === 'light' || saved === 'dark') ? saved : 'dark';
   });
 
-  const [backendStatus, setBackendStatus] = useState<'ONLINE' | 'OFFLINE'>('ONLINE');
+  const [backendStatus, setBackendStatus] = useState<'ONLINE' | 'OFFLINE'>('OFFLINE');
   const [lastTelemetryTick, setLastTelemetryTick] = useState<string>('');
   const [storageStats, setStorageStats] = useState<StorageStatsResponse | null>(null);
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -112,7 +112,7 @@ function DashboardMain() {
   // Check health, load storage stats, and subscribe to SSE telemetry stream
   useEffect(() => {
     fetchHealth()
-      .then((h) => setBackendStatus(h.status === 'ONLINE' ? 'ONLINE' : 'ONLINE'))
+      .then((h) => setBackendStatus(h.status === 'ONLINE' ? 'ONLINE' : 'OFFLINE'))
       .catch(() => setBackendStatus('OFFLINE'));
 
     fetchStorageStats()
@@ -121,7 +121,9 @@ function DashboardMain() {
 
     const unsubscribe = subscribeTelemetry(
       (data) => {
-        setBackendStatus('ONLINE');
+        if (!data.isFallback) {
+          setBackendStatus('ONLINE');
+        }
         if (data?.timestamp) {
           const timePart = data.timestamp.includes('T')
             ? data.timestamp.split('T')[1].split('.')[0]
@@ -234,17 +236,22 @@ function DashboardMain() {
                 fontSize: '10px',
                 fontFamily: 'var(--font-mono)',
                 fontWeight: 800,
-                color: backendStatus === 'ONLINE' ? 'var(--accent-emerald)' : 'var(--accent-red)',
-                background: backendStatus === 'ONLINE' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                color: backendStatus === 'ONLINE' ? 'var(--accent-emerald)' : 'var(--accent-amber)',
+                background: backendStatus === 'ONLINE' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
                 padding: '2px 7px',
                 borderRadius: '3px',
-                border: `1px solid ${backendStatus === 'ONLINE' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                border: `1px solid ${backendStatus === 'ONLINE' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '5px'
               }}>
-                <span className="pulse-led" style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'currentColor' }} />
-                FASTAPI {backendStatus} {lastTelemetryTick ? `[${lastTelemetryTick}]` : '[LIVE 18ms]'}
+                <span className={backendStatus === 'ONLINE' ? 'pulse-led' : ''} style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: backendStatus === 'ONLINE' ? 'var(--accent-emerald)' : 'var(--accent-amber)'
+                }} />
+                FASTAPI {backendStatus} {backendStatus === 'ONLINE' ? (lastTelemetryTick ? `[${lastTelemetryTick}]` : '[LIVE]') : '[OFFLINE SNAPSHOT]'}
               </span>
             </div>
             <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '2px' }}>
@@ -785,8 +792,15 @@ function DashboardMain() {
           <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>UTH</span>
           <span>//</span>
           <span>UNIVERSITY OF TRANSPORT HO CHI MINH CITY // SCIENTIFIC DATA MINING LAB 2026</span>
-          <span style={{ color: 'var(--accent-emerald)', fontSize: '10px', background: 'rgba(16, 185, 129, 0.12)', padding: '1px 6px', borderRadius: '3px' }}>
-            ● CLIENT SYNC: OK
+          <span style={{
+            color: backendStatus === 'ONLINE' ? 'var(--accent-emerald)' : 'var(--accent-amber)',
+            fontSize: '10px',
+            background: backendStatus === 'ONLINE' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+            padding: '1px 6px',
+            borderRadius: '3px',
+            border: `1px solid ${backendStatus === 'ONLINE' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
+          }}>
+            ● {backendStatus === 'ONLINE' ? 'BACKEND LINK: ACTIVE' : 'OFFLINE CACHE: READY'}
           </span>
         </div>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>

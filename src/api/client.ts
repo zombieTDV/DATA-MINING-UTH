@@ -422,7 +422,7 @@ export async function fetchHealth(): Promise<{ status: string; lancedb_ready: bo
     if (!res.ok) throw new Error('Health check non-ok');
     return await res.json();
   } catch {
-    return { status: 'OFFLINE', lancedb_ready: true, parquet_ready: true };
+    return { status: 'OFFLINE', lancedb_ready: false, parquet_ready: false };
   }
 }
 
@@ -555,8 +555,10 @@ export function subscribeTelemetry(
         onData({
           timestamp: new Date().toISOString(),
           level: 'INFO',
-          stage: 'TELEMETRY_HEARTBEAT',
-          message: 'Telemetry pulse: LanceDB index synced, 143,523 vectors online',
+          stage: 'OFFLINE_CACHE',
+          message: 'Offline snapshot pulse: LanceDB index ready, 143,523 vectors cached',
+          detail: 'Offline Snapshot Pulse (Backend Disconnected)',
+          isFallback: true,
         });
       }, 5000);
     };

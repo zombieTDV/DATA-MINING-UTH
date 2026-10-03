@@ -229,4 +229,5 @@ export interface TelemetryEvent {
   stage: string;
   message: string;
   detail?: string;
+  isFallback?: boolean;
 }
