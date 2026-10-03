@@ -91,3 +91,16 @@ When work is paused, interrupted, or handed off between sessions/agents:
 2. **Never Overwrite Raw Data:** `data/raw/` is strictly read-only.
 3. **No Unbounded Package Versions:** Avoid unpinned wildcards in core deep learning dependencies.
 4. **No Destructive Operations Without Confirmation:** Never reset Git history, delete checkpoints, or purge runs directories without explicit human authorization.
+
+---
+
+## Agent Acknowledgment
+
+| Field | Value |
+| :--- | :--- |
+| **Agent** | Claude Code (Data Science Expert) |
+| **Acknowledged Date** | 2026-10-03T14:20:00+07:00 |
+| **Status** | ✅ COMPLIANT — All rules understood and accepted |
+| **Signature** | 🤖 Claude-AGENT-v1.0 |
+
+**Commitment**: I have read and fully understood every section, clause, appendix, and checklist in this rule file. I commit to strict adherence without exception.

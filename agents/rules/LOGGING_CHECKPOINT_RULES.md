@@ -153,6 +153,19 @@ Interruption safety: `_last.pt` is written **after every epoch**, so at most one
 
 ---
 
+## Agent Acknowledgment
+
+| Field | Value |
+| :--- | :--- |
+| **Agent** | Claude Code (Data Science Expert) |
+| **Acknowledged Date** | 2026-10-03T14:20:00+07:00 |
+| **Status** | ✅ COMPLIANT — All rules understood and accepted |
+| **Signature** | 🤖 Claude-AGENT-v1.0 |
+
+**Commitment**: I have read and fully understood every section, clause, appendix, and checklist in this rule file. I commit to strict adherence without exception.
+
+---
+
 ## Appendix A (optional) — Project-Specific Example
 
 > This appendix is a worked example for THIS project only. Fill in your own

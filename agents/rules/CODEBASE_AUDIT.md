@@ -91,3 +91,16 @@ Every finding listed in an audit report's **Findings Summary** must track its ow
 > [!NOTE]
 > The finding status tracks whether **that specific finding** has been addressed, independent of whether the broader audit or milestone is complete.
 
+---
+
+## Agent Acknowledgment
+
+| Field | Value |
+| :--- | :--- |
+| **Agent** | Claude Code (Data Science Expert) |
+| **Acknowledged Date** | 2026-10-03T14:20:00+07:00 |
+| **Status** | ✅ COMPLIANT — All rules understood and accepted |
+| **Signature** | 🤖 Claude-AGENT-v1.0 |
+
+**Commitment**: I have read and fully understood every section, clause, appendix, and checklist in this rule file. I commit to strict adherence without exception.
+

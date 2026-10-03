@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === Base reset for React Native Web === */
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+  }
+
+  body {
+    @apply bg-surface text-text antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      @apply bg-surface-dark text-text;
+    }
+  }
+}
+
+/* === Component utilities === */
+@layer components {
+  /* Card surface */
+  .card {
+    @apply bg-surface border border-border rounded-lg p-base;
+  }
+
+  .card-elevated {
+    @apply bg-surface border border-border rounded-lg p-base shadow-soft-md;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply bg-brand-accent text-text-inverse px-lg py-md rounded-lg font-semibold;
+  }
+
+  .btn-primary:disabled {
+    @apply opacity-50;
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    @apply bg-surface-50 text-text border border-border px-lg py-md rounded-lg font-semibold;
+  }
+
+  /* Chip / Tag */
+  .chip {
+    @apply px-base py-sm rounded-full text-caption font-semibold;
+  }
+
+  /* Input field */
+  .input {
+    @apply bg-surface-50 border border-border rounded-lg px-base py-md text-body text-text;
+  }
+
+  /* Section title */
+  .section-title {
+    @apply text-h3 text-text mb-base;
+  }
+
+  /* Tab bar label */
+  .tab-label {
+    @apply text-[11px] font-semibold;
+  }
+}
+
+/* === Dark mode utilities (manual switch) === */
+@layer utilities {
+  .dark body {
+    @apply bg-surface-dark text-white;
+  }
+}

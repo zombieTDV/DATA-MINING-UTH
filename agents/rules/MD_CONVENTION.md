@@ -102,3 +102,16 @@ For documents that track plans, audits, bug fixes, or phase specifications, incl
 - [ ] Every file, notebook, script, and directory mention is an active, working relative link.
 - [ ] Document lifecycle status indicated if applicable (e.g. active vs superseded).
 - [ ] No stale, hardcoded paths copied from other projects.
+
+---
+
+## Agent Acknowledgment
+
+| Field | Value |
+| :--- | :--- |
+| **Agent** | Claude Code (Data Science Expert) |
+| **Acknowledged Date** | 2026-10-03T14:20:00+07:00 |
+| **Status** | ✅ COMPLIANT — All rules understood and accepted |
+| **Signature** | 🤖 Claude-AGENT-v1.0 |
+
+**Commitment**: I have read and fully understood every section, clause, appendix, and checklist in this rule file. I commit to strict adherence without exception.

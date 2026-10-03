@@ -194,3 +194,16 @@ Before running `git commit`, verify:
 - [ ] The commit message contains the `Companion-Doc: docs/<path>.md` Git trailer.
 - [ ] The companion document adheres to the 7-field header standard defined in `agents/rules/MD_CONVENTION.md`.
 - [ ] No temporary files, credentials, or large binary weights are staged.
+
+---
+
+## Agent Acknowledgment
+
+| Field | Value |
+| :--- | :--- |
+| **Agent** | Claude Code (Data Science Expert) |
+| **Acknowledged Date** | 2026-10-03T14:20:00+07:00 |
+| **Status** | ✅ COMPLIANT — All rules understood and accepted |
+| **Signature** | 🤖 Claude-AGENT-v1.0 |
+
+**Commitment**: I have read and fully understood every section, clause, appendix, and checklist in this rule file. I commit to strict adherence without exception.

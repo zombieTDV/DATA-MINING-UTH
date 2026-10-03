@@ -66,3 +66,11 @@ logs/
 .env
 .env.*
 *.tar.gz
+
+# UI (React Native Web / Expo) - node_modules & build outputs
+ui/node_modules/
+ui/.expo/
+ui/dist/
+ui/web-build/
+ui/.expo-shared/
+ui/*.tsbuildinfo

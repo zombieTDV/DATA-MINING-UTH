@@ -52,3 +52,16 @@
 - Never invent ad-hoc naming conventions mid-project.
 - Never rename existing public interfaces or modules without human approval.
 - Never overwrite previous run directories; always mint a new timestamped directory.
+
+---
+
+## Agent Acknowledgment
+
+| Field | Value |
+| :--- | :--- |
+| **Agent** | Claude Code (Data Science Expert) |
+| **Acknowledged Date** | 2026-10-03T14:20:00+07:00 |
+| **Status** | ✅ COMPLIANT — All rules understood and accepted |
+| **Signature** | 🤖 Claude-AGENT-v1.0 |
+
+**Commitment**: I have read and fully understood every section, clause, appendix, and checklist in this rule file. I commit to strict adherence without exception.

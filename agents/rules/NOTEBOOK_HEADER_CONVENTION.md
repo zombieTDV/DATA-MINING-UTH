@@ -55,3 +55,16 @@ The very first cell of every Jupyter notebook in `notebooks/` MUST be a Markdown
 
 1. **NO TRAINING IN NOTEBOOKS:** Training loops (`for epoch in range(epochs):`) are strictly prohibited in notebooks. All training must be executed from scripts.
 2. **NO UNTRACKED OUTPUTS:** Derived figures or tables intended for reports must be exported by scripts into `experiments/results/`.
+
+---
+
+## Agent Acknowledgment
+
+| Field | Value |
+| :--- | :--- |
+| **Agent** | Claude Code (Data Science Expert) |
+| **Acknowledged Date** | 2026-10-03T14:20:00+07:00 |
+| **Status** | ✅ COMPLIANT — All rules understood and accepted |
+| **Signature** | 🤖 Claude-AGENT-v1.0 |
+
+**Commitment**: I have read and fully understood every section, clause, appendix, and checklist in this rule file. I commit to strict adherence without exception.

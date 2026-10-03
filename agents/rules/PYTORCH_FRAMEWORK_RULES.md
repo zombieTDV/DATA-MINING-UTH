@@ -84,3 +84,16 @@ def set_seed(seed: int = 42) -> None:
 - [ ] All `torch.load` calls explicitly enforce `weights_only=True`.
 - [ ] No CUDA assumption in test suites or base utility modules.
 - [ ] Evaluation passes use `model.eval()` and `torch.no_grad()`.
+
+---
+
+## Agent Acknowledgment
+
+| Field | Value |
+| :--- | :--- |
+| **Agent** | Claude Code (Data Science Expert) |
+| **Acknowledged Date** | 2026-10-03T14:20:00+07:00 |
+| **Status** | ✅ COMPLIANT — All rules understood and accepted |
+| **Signature** | 🤖 Claude-AGENT-v1.0 |
+
+**Commitment**: I have read and fully understood every section, clause, appendix, and checklist in this rule file. I commit to strict adherence without exception.
