@@ -49,7 +49,7 @@ class NomicEmbedder:
         sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
         return sum_embeddings / sum_mask
 
-    def embed_documents(self, texts: List[str], batch_size: int = 16) -> List[List[float]]:
+    def embed_documents(self, texts: List[str], batch_size: int = 8) -> List[List[float]]:
         """Sinh vector nhúng cho danh sách tài liệu/chunks (tự động gắn tiền tố search_document:)."""
         all_embeddings = []
 
@@ -62,16 +62,31 @@ class NomicEmbedder:
                 batch,
                 padding=True,
                 truncation=True,
-                max_length=2048,  # Hỗ trợ độ dài ngữ cảnh sâu
+                max_length=1024,
                 return_tensors="pt",
             ).to(self.device)
 
             with torch.no_grad():
-                model_output = self.model(**encoded_input)
-                embeddings = self._mean_pooling(model_output, encoded_input["attention_mask"])
+                try:
+                    model_output = self.model(**encoded_input)
+                except Exception as e:
+                    # Fallback sang CPU neu MPS bao loi bo nho
+                    if self.device.type == "mps":
+                        torch.mps.empty_cache()
+                        cpu_input = {k: v.to("cpu") for k, v in encoded_input.items()}
+                        self.model.to("cpu")
+                        model_output = self.model(**cpu_input)
+                        self.model.to(self.device)
+                    else:
+                        raise e
+
+                embeddings = self._mean_pooling(model_output, encoded_input["attention_mask"].to(model_output[0].device))
                 # L2 Normalize
                 embeddings = F.normalize(embeddings, p=2, dim=1)
                 all_embeddings.extend(embeddings.cpu().tolist())
+
+            if self.device.type == "mps":
+                torch.mps.empty_cache()
 
         return all_embeddings
 

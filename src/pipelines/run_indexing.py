@@ -1,19 +1,23 @@
-"""CLI Entry point for Gold Indexing Pipeline (Silver Parquet -> LanceDB Gold Vector Lakehouse).
+"""CLI Entry point for Phase 3: Gold Lakehouse Indexing Pipeline (Silver Parquet -> LanceDB Gold Vector Table).
 
-Reads structured papers from the Silver layer, splits into domain-aware section chunks,
-generates 768-dim embeddings via local Nomic-embed-text-v1.5, stores in LanceDB,
-and syncs to Cloudflare R2 Gold Zone.
+Workflow:
+1. Reads structured papers from Silver Parquet layer via DuckDB.
+2. Performs domain-aware Section Chunking (Abstract + Intro + Method + Experiments) via AcademicChunker.
+3. Generates 768-dim embeddings locally using Nomic-embed-text-v1.5 on Apple Silicon GPU (MPS).
+4. Stores vectors and metadata into LanceDB Gold table (scientific_papers_gold.lance).
+5. Syncs the LanceDB dataset to Cloudflare R2 Gold Zone (gold/lancedb/).
+6. Executes a semantic vector search verification.
 
 Usage:
-    python -m src.pipelines.run_indexing
+    python -m src.pipelines.run_indexing --limit 500 --batch-size 32
 """
 
+import argparse
 import sys
 import time
 from pathlib import Path
 from tabulate import tabulate
 
-# Add project root to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -24,33 +28,68 @@ from src.indexing.embedder import NomicEmbedder
 from src.indexing.lancedb_manager import LanceDBManager
 from src.storage.duckdb_engine import DuckDBEngine
 from src.storage.r2_client import R2Client
+from src.utils.logger import setup_pipeline_logging
 
 
 def main():
-    print("=" * 75)
-    print("🏆 BẮT ĐẦU PIPELINE XÂY DỰNG TẦNG GOLD (LANCEDB VECTOR LAKEHOUSE)")
-    print("=" * 75)
+    parser = argparse.ArgumentParser(
+        description="Phase 3: Index Silver papers into LanceDB Gold Vector Lakehouse."
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=500,
+        help="So luong bai bao can index vao Gold (mac dinh: 500 bai, 0 = tat ca bai trong Silver).",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=32,
+        help="Batch size cho mo hinh embedding (mac dinh: 32).",
+    )
+    parser.add_argument(
+        "--skip-r2-sync",
+        action="store_true",
+        help="Bo qua buoc dong bo LanceDB len Cloudflare R2.",
+    )
+    args = parser.parse_args()
+
+    # Khoi tao log file theo timestamp tai logs/
+    logger, log_file = setup_pipeline_logging(pipeline_name="gold_indexing")
+
+    print("=" * 80)
+    print("[PIPELINE] BAT DAU PHASE 3: XAY DUNG TANG GOLD (LANCEDB VECTOR LAKEHOUSE)")
+    print(f"[LOG_FILE] Nhat ky chi tiet: {log_file}")
+    print("=" * 80)
 
     start_time = time.time()
 
-    # 1. Đọc dữ liệu từ Tầng Silver Parquet bằng DuckDB
-    print("\n[1/5] Đọc dữ liệu đã chuẩn hóa từ Tầng Silver Parquet...")
+    # 1. Doc du lieu tu Tang Silver Parquet bang DuckDB
+    print("\n[1/5] Doc du lieu tu Tang Silver Parquet bang DuckDB...")
     engine = DuckDBEngine()
     silver_path = str(settings.ROOT_DIR / "data" / "silver" / "**" / "*.parquet")
+    
+    # Uu tien index cac bai da co full sections truoc
+    query = f"""
+        SELECT * FROM '{silver_path}'
+        ORDER BY total_sections DESC, published_date DESC
+    """
+    if args.limit > 0:
+        query += f" LIMIT {args.limit}"
+
     try:
-        papers_df = engine.query_df(f"SELECT * FROM '{silver_path}'")
-        print(f"      Đã đọc {len(papers_df)} bài báo từ tầng Silver.")
+        papers_df = engine.query_df(query)
+        print(f"[INFO] Da chon {len(papers_df):,} bai bao tu tang Silver de index vao Gold.")
     except Exception as e:
-        print(f"❌ Không thể đọc file Parquet tầng Silver: {e}")
-        print("💡 Hãy chạy 'python -m src.pipelines.run_transform' trước để tạo tầng Silver.")
+        print(f"[ERROR] Khong the doc file Parquet tang Silver: {e}")
         sys.exit(1)
 
     if papers_df.empty:
-        print("⚠️ Tầng Silver chưa có dữ liệu.")
+        print("[WARNING] Tang Silver chua co du lieu.")
         sys.exit(0)
 
     # 2. Section-Aware Chunking
-    print("\n[2/5] Đang chia đoạn theo Section bài báo và làm giàu ngữ cảnh (Contextual Chunking)...")
+    print("\n[2/5] Tien hanh Section-Aware Chunking va lam giau ngu canh (Contextual Chunking)...")
     chunker = AcademicChunker(max_chunk_words=450, overlap_paragraphs=1)
     all_chunks = []
 
@@ -59,49 +98,54 @@ def main():
         chunks = chunker.chunk_paper(paper_record)
         all_chunks.extend(chunks)
 
-    print(f"      Tạo thành công {len(all_chunks)} chunks ngữ cảnh từ {len(papers_df)} bài báo.")
-    for idx, c in enumerate(all_chunks[:5], 1):
-        print(f"      - Chunk {idx}: [{c['section_type'].upper()}] {c['section_title']} ({c['word_count']} words)")
-    if len(all_chunks) > 5:
-        print(f"      ... và {len(all_chunks) - 5} chunks khác.")
+    print(f"[INFO] Tao thanh cong {len(all_chunks):,} chunks ngu canh tu {len(papers_df):,} bai bao.")
+    for idx, c in enumerate(all_chunks[:4], 1):
+        print(f"  - Chunk {idx}: [{c['section_type'].upper()}] {c['section_title']} ({c['word_count']} tu)")
+    if len(all_chunks) > 4:
+        print(f"  ... va {len(all_chunks) - 4:,} chunks khac.")
 
-    # 3. Sinh Vector Embeddings bằng mô hình Nomic-embed-text-v1.5 cục bộ
-    print(f"\n[3/5] Khởi động mô hình Nomic-embed-text-v1.5 và sinh Vector ({len(all_chunks)} chunks)...")
+    # 3. Sinh Vector Embeddings bang mo hinh Nomic-embed-text-v1.5
+    print(f"\n[3/5] Khoi dong mo hinh Nomic-embed-text-v1.5 va sinh Vector ({len(all_chunks):,} chunks)...")
     embedder = NomicEmbedder()
-    print(f"      Thiết bị tăng tốc tính toán: {embedder.device}")
+    print(f"[DEVICE] Thiet bi tang toc tinh toan: {embedder.device}")
 
     chunk_texts = [c["context_text"] for c in all_chunks]
-    embeddings = embedder.embed_documents(chunk_texts, batch_size=16)
+    embed_start = time.time()
+    embeddings = embedder.embed_documents(chunk_texts, batch_size=args.batch_size)
+    embed_duration = time.time() - embed_start
+    print(f"[INFO] Sinh thanh cong {len(embeddings):,} vectors (768 chieu) trong {embed_duration:.2f}s ({len(embeddings)/max(1, embed_duration):.1f} chunks/giay).")
 
-    # Gắn vector 768 chiều vào từng chunk
+    # Gan vector vao tung chunk
     for c, vec in zip(all_chunks, embeddings):
         c["vector"] = vec
 
-    print(f"      ✅ Đã sinh thành công {len(embeddings)} vectors 768 chiều.")
-
-    # 4. Ghi dữ liệu vào LanceDB và đồng bộ lên Cloudflare R2 Gold
-    print("\n[4/5] Lưu trữ chỉ mục vào LanceDB và đồng bộ lên R2 Gold Zone...")
+    # 4. Ghi du lieu vao LanceDB va dong bo len Cloudflare R2 Gold
+    print("\n[4/5] Luu tru chi muc vao LanceDB Gold Table...")
     r2 = R2Client()
     lancedb_mgr = LanceDBManager(r2_client=r2)
     inserted_count = lancedb_mgr.insert_chunks(all_chunks)
-    print(f"      ✅ Đã nạp {inserted_count} bản ghi vào LanceDB Table '{lancedb_mgr.DEFAULT_TABLE_NAME}'.")
+    print(f"[INFO] Da nap {inserted_count:,} ban ghi vao LanceDB Table '{lancedb_mgr.DEFAULT_TABLE_NAME}'.")
 
-    # Đồng bộ lên Cloudflare R2
-    print("      Đang đồng bộ dữ liệu LanceDB lên Cloudflare R2 Gold Zone...")
-    sync_res = lancedb_mgr.sync_to_r2(r2_prefix="gold/lancedb/")
-    print(f"      ✅ Đã đồng bộ {sync_res['synced_files']} files lên {sync_res['r2_destination']}")
+    if not args.skip_r2_sync:
+        print("[STORAGE] Dang dong bo du lieu LanceDB len Cloudflare R2 Gold Zone...")
+        try:
+            sync_res = lancedb_mgr.sync_to_r2(r2_prefix="gold/lancedb/")
+            print(f"[STORAGE] Dong bo thanh cong {sync_res['synced_files']} files len {sync_res['r2_destination']}")
+        except Exception as e:
+            print(f"[WARNING] Loi dong bo LanceDB len R2: {e}")
+    else:
+        print("[INFO] Bo qua dong bo Cloudflare R2 theo co --skip-r2-sync.")
 
-    # 5. Kiểm thử tìm kiếm Semantic Vector Search thực tế
-    print("\n[5/5] Kiểm thử Semantic Vector Search thực tế trên Tầng Gold:")
+    # 5. Kiem thu Semantic Vector Search thuc te tren Tang Gold
+    print("\n[5/5] Kiem thu Semantic Vector Search thuc te tren Tang Gold:")
     sample_query = "How to improve OCR faithfulness and reduce hallucination in vision-language models?"
-    print(f"      🔍 Câu hỏi mẫu: \"{sample_query}\"")
+    print(f"[QUERY] Cau hoi tim kiem mau: \"{sample_query}\"")
 
     query_vec = embedder.embed_query(sample_query)
-    search_results = lancedb_mgr.vector_search(query_vector=query_vec, limit=3)
+    search_results = lancedb_mgr.vector_search(query_vector=query_vec, limit=4)
 
     display_results = []
     for _, res in search_results.iterrows():
-        # Cosine distance (càng nhỏ càng tương đồng, 0 là giống hệt)
         distance = res.get("_distance", 0.0)
         similarity = 1.0 - distance
         display_results.append(
@@ -109,16 +153,16 @@ def main():
                 "Score (Sim)": f"{similarity:.4f}",
                 "Paper ID": res["paper_id"],
                 "Section": f"{res['section_title']} ({res['section_type']})",
-                "Snippet": res["text"][:120] + "...",
+                "Snippet": res["text"][:110] + "...",
             }
         )
 
-    print(tabulate(display_results, headers="keys", tablefmt="fancy_grid", showindex=False))
+    print(tabulate(display_results, headers="keys", tablefmt="pipe", showindex=False))
 
     duration = time.time() - start_time
-    print("\n" + "=" * 75)
-    print(f"🎉 TẦNG GOLD ĐÃ ĐƯỢC XÂY DỰNG HOÀN TẤT TRONG {duration:.2f} GIÂY!")
-    print("=" * 75)
+    print("\n" + "=" * 80)
+    print(f"[HOAN TAT] TANG GOLD DA DUOC XAY DUNG HOAN TAT TRONG {duration:.2f} GIAY ({duration/60:.2f} PHUT)!")
+    print("=" * 80)
 
 
 if __name__ == "__main__":

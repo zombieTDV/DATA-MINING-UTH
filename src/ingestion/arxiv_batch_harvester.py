@@ -124,8 +124,15 @@ class ArxivBatchHarvester:
         pub_date = arxiv_meta.get("created") or header.get("datestamp", "")
         updated_date = arxiv_meta.get("updated") or pub_date
 
+        doi_val = arxiv_meta.get("doi")
+        doi = doi_val.get("#text") if isinstance(doi_val, dict) else doi_val
+        jref_val = arxiv_meta.get("journal-ref")
+        journal_ref = jref_val.get("#text") if isinstance(jref_val, dict) else jref_val
+
         return {
             "paper_id": paper_id,
+            "doi": str(doi).strip() if doi else None,
+            "journal_ref": str(journal_ref).strip() if journal_ref else None,
             "title": title,
             "abstract": abstract,
             "authors": authors,
