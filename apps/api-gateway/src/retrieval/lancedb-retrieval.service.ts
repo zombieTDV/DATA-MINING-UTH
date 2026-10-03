@@ -68,10 +68,12 @@ export class LanceDbRetrievalService implements RetrievalService, OnModuleInit {
     const mode = req.mode || SearchMode.FTS;
     const cacheKey = `${mode}:${req.query}:${k}:${req.category || ''}`;
 
-    const cached = this.cache.get(cacheKey);
-    if (cached) {
-      this.logger.debug(`Cache hit for search query: "${req.query}"`);
-      return cached;
+    if (!req.noCache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached) {
+        this.logger.debug(`Cache hit for search query: "${req.query}"`);
+        return cached;
+      }
     }
 
     if (!this.ready || !this.table) {

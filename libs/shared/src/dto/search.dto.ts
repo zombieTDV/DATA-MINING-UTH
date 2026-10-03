@@ -46,6 +46,13 @@ export class SearchRequestDto {
   @IsOptional()
   @IsString()
   category?: string;
+
+  @ApiPropertyOptional({
+    description: 'Bypass in-memory cache for fresh retrieval',
+    default: false,
+  })
+  @IsOptional()
+  noCache?: boolean = false;
 }
 
 export class ChunkDto {

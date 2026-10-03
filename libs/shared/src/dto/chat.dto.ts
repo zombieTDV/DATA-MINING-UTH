@@ -115,6 +115,21 @@ export class ChatRequestDto {
   @IsOptional()
   @IsBoolean()
   stream?: boolean = false;
+
+  @ApiPropertyOptional({
+    description: 'Bypass in-memory retrieval cache for fresh queries',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  noCache?: boolean = false;
+
+  @ApiPropertyOptional({
+    description: 'Alternative alias for message parameter',
+  })
+  @IsOptional()
+  @IsString()
+  query?: string;
 }
 
 export class ChatTimingsDto {

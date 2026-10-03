@@ -36,19 +36,26 @@ export class ChatController {
   async chat(@Body() body: ChatRequestDto): Promise<ChatResponseDto> {
     const totalStart = performance.now();
 
+    const userQuery = (body.message || body.query || '').trim();
+    const logger = new Logger('ChatController');
+    logger.log(
+      `Received chat request: "${userQuery}" (history: ${body.history?.length || 0} messages, mode: ${body.mode || 'fts'}, topK: ${body.topK || 5})`,
+    );
+
     // 1. Retrieval
     const retStart = performance.now();
     const chunks = await this.retrievalService.search({
-      query: body.message,
+      query: userQuery,
       mode: body.mode || SearchMode.FTS,
       topK: body.topK || 5,
       category: body.category,
+      noCache: body.noCache,
     });
     const retrievalMs = Math.round(performance.now() - retStart);
 
     // 2. Build grounded prompt
     const systemPrompt = GroundedPromptBuilder.getSystemPrompt();
-    const userPrompt = GroundedPromptBuilder.buildUserPrompt(body.message, chunks);
+    const userPrompt = GroundedPromptBuilder.buildUserPrompt(userQuery, chunks);
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -60,7 +67,7 @@ export class ChatController {
     const genStart = performance.now();
     const llmResult = await this.llmClient.generateChatCompletion(
       messages,
-      1024,
+      2048,
       body.temperature ?? 0.7,
     );
     const generationMs = Math.round(performance.now() - genStart);
@@ -96,19 +103,26 @@ export class ChatController {
     const totalStart = performance.now();
 
     try {
+      const userQuery = (body.message || body.query || '').trim();
+      const logger = new Logger('ChatController');
+      logger.log(
+        `Received streaming chat request: "${userQuery}" (history: ${body.history?.length || 0} messages, mode: ${body.mode || 'fts'}, topK: ${body.topK || 5})`,
+      );
+
       // 1. Retrieval
       const retStart = performance.now();
       const chunks = await this.retrievalService.search({
-        query: body.message,
+        query: userQuery,
         mode: body.mode || SearchMode.FTS,
         topK: body.topK || 5,
         category: body.category,
+        noCache: body.noCache,
       });
       const retrievalMs = Math.round(performance.now() - retStart);
 
       // 2. Prompt construction
       const systemPrompt = GroundedPromptBuilder.getSystemPrompt();
-      const userPrompt = GroundedPromptBuilder.buildUserPrompt(body.message, chunks);
+      const userPrompt = GroundedPromptBuilder.buildUserPrompt(userQuery, chunks);
 
       const messages = [
         { role: 'system', content: systemPrompt },
@@ -123,7 +137,7 @@ export class ChatController {
         (token: string) => {
           res.write(`event: token\ndata: ${JSON.stringify({ token })}\n\n`);
         },
-        1024,
+        2048,
         body.temperature ?? 0.7,
       );
       const generationMs = Math.round(performance.now() - genStart);
