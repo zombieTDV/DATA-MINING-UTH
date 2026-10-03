@@ -1,4 +1,4 @@
-"""src/config.py — Centralized Configuration Loader and Dataclasses."""
+"""src/config/pipeline_config.py — Centralized Configuration Loader and Dataclasses."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field

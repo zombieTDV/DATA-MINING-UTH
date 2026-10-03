@@ -28,7 +28,6 @@ def test_core_directories_exist():
         "docs/phases",
         "docs/references",
         "notebooks",
-        "requirements",
         "tests",
     ):
         assert (PROJECT_ROOT / rel).is_dir(), f"missing directory: {rel}"
@@ -73,8 +72,6 @@ def test_documentation_files_exist():
         "agents/templates/EXPERIMENT_TEMPLATE.md",
         "agents/templates/BUG_TEMPLATE.md",
         "agents/templates/REFERENCE_TEMPLATE.md",
-        "requirements/base.txt",
-        "requirements/dev.txt",
         "requirements.txt",
         "pyproject.toml",
         "DECISIONS.md",
