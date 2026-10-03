@@ -1,63 +1,42 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { GeometricPipelineDiagram } from './components/GeometricPipelineDiagram';
 import { GeometricTelemetryGauges } from './components/GeometricTelemetryGauges';
+import { PipelineFlow } from './components/PipelineFlow';
 import { ToolLogosGrid } from './components/ToolLogos';
 import { LiveTelemetryFeed } from './components/LiveTelemetryFeed';
+import { MetricsBento } from './components/MetricsBento';
+import { StorageInspector } from './components/StorageInspector';
+import { ScientificRagConsole } from './components/ScientificRagConsole';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'schematic' | 'gauges' | 'tools' | 'rag'>('schematic');
+  const [pipelineViewMode, setPipelineViewMode] = useState<'schematic' | 'stepper'>('schematic');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('uth-theme');
     return (saved === 'light' || saved === 'dark') ? saved : 'dark';
   });
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('uth-theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
-  const [query, setQuery] = useState<string>('What is the role of sampling z_t in conditional diffusion distillation according to CoDi paper 2310.01407?');
-  const [ragLoading, setRagLoading] = useState<boolean>(false);
-  const [ragResult, setRagResult] = useState<{
-    answer: string;
-    citations: string[];
-    simScore: string;
-    genTime: string;
-  } | null>({
-    answer: "According to the CoDi paper [Paper: 2310.01407, Section: 5 Experiments], the sampling of $z_t$ plays a crucial role in the distillation learning process. Specifically, the paper demonstrates that using a consistent time $t$ across different samples in a single batch leads to better performance compared to sampling $z_t$ in different time steps within a single batch.\n\nThis consistent sampling approach results in improved visual quality and accuracy during inference, as evidenced by the comparisons shown in Figure 8.",
-    citations: ['Paper: 2310.01407, Section: 5 Experiments'],
-    simScore: '0.8510',
-    genTime: '18.51s'
-  });
-
-  const handleRunQuery = (e: FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    setRagLoading(true);
-    setRagResult(null);
-
-    setTimeout(() => {
-      setRagLoading(false);
-      if (query.toLowerCase().includes('ocr') || query.toLowerCase().includes('gated')) {
-        setRagResult({
-          answer: "Based on the provided scientific literature, there is insufficient evidence to address the question regarding how gated distillation improves OCR faithfulness. The context focuses on conditional diffusion distillation.\n\nTherefore, the answer is:\n\nDựa trên các tài liệu khoa học được cung cấp, không có đủ thông tin để trả lời câu hỏi này.",
-          citations: ['Paper: 2310.01407, Section: 5 Experiments'],
-          simScore: '0.7268',
-          genTime: '18.55s'
-        });
-      } else {
-        setRagResult({
-          answer: "According to the CoDi paper [Paper: 2310.01407, Section: 5 Experiments], the sampling of $z_t$ plays a crucial role in the distillation learning process. Specifically, the paper demonstrates that using a consistent time $t$ across different samples in a single batch leads to better performance compared to sampling $z_t$ in different time steps within a single batch.",
-          citations: ['Paper: 2310.01407, Section: 5 Experiments'],
-          simScore: '0.8510',
-          genTime: '18.51s'
-        });
-      }
-    }, 900);
-  };
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (e.key === '1') setActiveTab('schematic');
+      if (e.key === '2') setActiveTab('gauges');
+      if (e.key === '3') setActiveTab('tools');
+      if (e.key === '4') setActiveTab('rag');
+      if (e.key === 't' || e.key === 'T') toggleTheme();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
@@ -177,6 +156,7 @@ export default function App() {
                   <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                 </svg>
                 <span>LIGHT</span>
+                <span style={{ fontSize: '10px', opacity: 0.65, fontFamily: 'var(--font-mono)' }}>[T]</span>
               </>
             ) : (
               <>
@@ -184,6 +164,7 @@ export default function App() {
                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                 </svg>
                 <span>DARK</span>
+                <span style={{ fontSize: '10px', opacity: 0.65, fontFamily: 'var(--font-mono)' }}>[T]</span>
               </>
             )}
           </button>
@@ -196,13 +177,14 @@ export default function App() {
         borderBottom: '1px solid var(--border-subtle)',
         padding: '0 28px',
         display: 'flex',
-        gap: '24px'
+        gap: '24px',
+        overflowX: 'auto'
       }}>
         {[
-          { id: 'schematic', label: '1. Pipeline Circuit Schematic' },
-          { id: 'gauges', label: '2. Telemetry Gauges & Execution Logs' },
-          { id: 'tools', label: '3. Integrated Tools & Logos' },
-          { id: 'rag', label: '4. Scientific RAG Playground' }
+          { id: 'schematic', shortcut: '1', label: 'Pipeline Circuit Schematic' },
+          { id: 'gauges', shortcut: '2', label: 'Telemetry Gauges & Execution Logs', isLive: true },
+          { id: 'tools', shortcut: '3', label: 'Integrated Tools & Logos' },
+          { id: 'rag', shortcut: '4', label: 'Scientific RAG Playground' }
         ].map((tab) => (
           <button
             key={tab.id}
@@ -213,31 +195,154 @@ export default function App() {
               borderBottom: activeTab === tab.id ? '2px solid var(--text-primary)' : '2px solid transparent',
               color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-secondary)',
               padding: '14px 2px',
-              fontSize: '13px',
+              fontSize: '12.5px',
               fontFamily: 'var(--font-mono)',
               fontWeight: 700,
               cursor: 'pointer',
               letterSpacing: '0.04em',
-              textTransform: 'uppercase'
+              textTransform: 'uppercase',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              whiteSpace: 'nowrap'
             }}
           >
-            {tab.label}
+            <span style={{
+              fontSize: '10.5px',
+              padding: '1.5px 5.5px',
+              borderRadius: '3px',
+              background: activeTab === tab.id ? 'var(--text-primary)' : 'var(--bg-surface-elevated)',
+              color: activeTab === tab.id ? 'var(--bg-canvas)' : 'var(--text-muted)',
+              border: '1px solid var(--border-subtle)',
+              fontFamily: 'var(--font-mono)',
+              fontWeight: 800
+            }}>
+              [{tab.shortcut}]
+            </span>
+            <span>{tab.label}</span>
+            {tab.isLive && (
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '10px',
+                color: 'var(--accent-emerald)',
+                background: 'rgba(16, 185, 129, 0.12)',
+                padding: '1px 6px',
+                borderRadius: '3px',
+                border: '1px solid rgba(16, 185, 129, 0.25)',
+                marginLeft: '2px'
+              }}>
+                <span style={{
+                  width: '5px',
+                  height: '5px',
+                  borderRadius: '50%',
+                  background: 'var(--accent-emerald)',
+                  display: 'inline-block'
+                }} />
+                LIVE
+              </span>
+            )}
           </button>
         ))}
       </div>
 
       {/* Main View Area */}
       <main style={{ flex: 1, padding: '24px 28px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
-        {/* TAB 1: Schematic Diagram (Pure Geometric Visual Pipeline) */}
+        {/* TAB 1: Schematic Diagram & Sequential Stepper (Medallion Overview) */}
         {activeTab === 'schematic' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* Visual Gauges Ribbon */}
-            <GeometricTelemetryGauges />
+            {/* Medallion Corpus Scale & Storage Bento */}
+            <MetricsBento />
 
-            {/* Interactive Geometric Circuit Diagram */}
-            <div>
-              <GeometricPipelineDiagram />
+            {/* Pipeline View Mode Segmented Switcher */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '6px 14px',
+              flexWrap: 'wrap',
+              gap: '10px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--accent-emerald)' }}>
+                  ARCHITECTURAL TOPOLOGY VIEW:
+                </span>
+                <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+                  Select visualization model
+                </span>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                background: 'var(--bg-canvas)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '6px',
+                padding: '2px',
+                gap: '2px'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setPipelineViewMode('schematic')}
+                  style={{
+                    background: pipelineViewMode === 'schematic' ? 'var(--text-primary)' : 'transparent',
+                    border: 'none',
+                    color: pipelineViewMode === 'schematic' ? 'var(--bg-canvas)' : 'var(--text-secondary)',
+                    padding: '6px 14px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    letterSpacing: '0.04em',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>⬡</span>
+                  <span>PARALLEL BUS SCHEMATIC (8 TRACES)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPipelineViewMode('stepper')}
+                  style={{
+                    background: pipelineViewMode === 'stepper' ? 'var(--text-primary)' : 'transparent',
+                    border: 'none',
+                    color: pipelineViewMode === 'stepper' ? 'var(--bg-canvas)' : 'var(--text-secondary)',
+                    padding: '6px 14px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    letterSpacing: '0.04em',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>▶</span>
+                  <span>4-PHASE SEQUENTIAL STEPPER</span>
+                </button>
+              </div>
             </div>
+
+            {/* Active Topology Visualizer */}
+            {pipelineViewMode === 'schematic' ? (
+              <GeometricPipelineDiagram />
+            ) : (
+              <PipelineFlow />
+            )}
+
+            {/* Medallion Storage Partition Deep-Dive */}
+            <StorageInspector />
           </div>
         )}
 
@@ -275,164 +380,9 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 4: Grounded RAG Playground */}
+        {/* TAB 4: Grounded Scientific RAG Verification Workstation */}
         {activeTab === 'rag' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px' }}>
-            <div>
-              <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginRight: '8px' }}>
-                  BENCHMARK PRESETS:
-                </span>
-                {[
-                  {
-                    label: "CoDi Diffusion (Paper 2310.01407)",
-                    q: "What is the role of sampling z_t in conditional diffusion distillation according to CoDi paper 2310.01407?"
-                  },
-                  {
-                    label: "Anti-Hallucination Gate (OCR)",
-                    q: "How does gated distillation improve OCR faithfulness?"
-                  }
-                ].map((preset, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setQuery(preset.q)}
-                    style={{
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: '4px',
-                      color: 'var(--text-secondary)',
-                      fontSize: '11px',
-                      fontFamily: 'var(--font-mono)',
-                      padding: '4px 10px',
-                      marginRight: '8px',
-                      marginBottom: '6px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Query Form */}
-              <form onSubmit={handleRunQuery} style={{ marginBottom: '20px' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Enter scientific question..."
-                    style={{
-                      flex: 1,
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-muted)',
-                      borderRadius: '4px',
-                      padding: '12px 16px',
-                      color: 'var(--text-primary)',
-                      fontSize: '13px',
-                      outline: 'none',
-                      fontFamily: 'var(--font-sans)'
-                    }}
-                  />
-                  <button
-                    type="submit"
-                    disabled={ragLoading || !query.trim()}
-                    style={{
-                      background: 'var(--text-primary)',
-                      color: 'var(--bg-canvas)',
-                      border: 'none',
-                      borderRadius: '4px',
-                      padding: '0 20px',
-                      fontWeight: 700,
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '12px',
-                      cursor: ragLoading ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    {ragLoading ? 'SEARCHING...' : 'RUN QUERY'}
-                  </button>
-                </div>
-              </form>
-
-              {/* RAG Answer Display */}
-              {ragResult && (
-                <div style={{
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '20px'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '14px',
-                    borderBottom: '1px solid var(--border-subtle)',
-                    paddingBottom: '10px'
-                  }}>
-                    <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--accent-silver)', letterSpacing: '0.05em' }}>
-                      [GROUNDED SCIENTIFIC SYNTHESIS]
-                    </span>
-                    <div style={{ display: 'flex', gap: '12px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                      <span>SIMILARITY: <strong style={{ color: 'var(--accent-emerald)' }}>{ragResult.simScore}</strong></span>
-                      <span>LATENCY: <strong style={{ color: 'var(--text-primary)' }}>{ragResult.genTime}</strong></span>
-                    </div>
-                  </div>
-
-                  <div style={{ fontSize: '13.5px', lineHeight: 1.7, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
-                    {ragResult.answer}
-                  </div>
-
-                  <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px dashed var(--border-subtle)' }}>
-                    <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                      [VERIFIED CITATIONS]:
-                    </div>
-                    {ragResult.citations.map((c, idx) => (
-                      <div key={idx} style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--accent-silver)' }}>
-                        ▪ [{c}]
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Inference Parameters */}
-            <div style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '18px',
-              height: 'fit-content'
-            }}>
-              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '14px', letterSpacing: '0.05em' }}>
-                ACTIVE INFERENCE PIPELINE
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px' }}>
-                <div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>VECTOR INDEX</div>
-                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>LanceDB (143k Chunks)</div>
-                </div>
-                <div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>EMBEDDING MODEL</div>
-                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>Nomic Embed v1.5 (768d)</div>
-                </div>
-                <div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>GENERATION LLM</div>
-                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>Qwen2.5-7B (Q4_K_M GGUF)</div>
-                </div>
-                <div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>ACCELERATION</div>
-                  <div style={{ color: 'var(--accent-emerald)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>Apple Silicon Metal GPU</div>
-                </div>
-                <div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>TEMPERATURE</div>
-                  <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>0.2 (Strict Grounding)</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ScientificRagConsole />
         )}
       </main>
     </div>

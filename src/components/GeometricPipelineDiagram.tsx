@@ -1,143 +1,5 @@
 import { useState } from 'react';
-
-export interface DiagramNode {
-  id: string;
-  code: string;
-  name: string;
-  zone: 'HARVEST' | 'BRONZE' | 'COMPUTE' | 'SILVER' | 'EMBED' | 'GOLD' | 'INFERENCE' | 'CLIENT';
-  zoneColor: string;
-  toolName: string;
-  toolCategory: string;
-  metricLabel: string;
-  metricValue: string;
-  secondaryMetric: string;
-  status: 'ONLINE' | 'SYNCED' | 'ACTIVE';
-  iconType: 'arxiv' | 'r2' | 'duckdb' | 'parquet' | 'nomic' | 'lancedb' | 'qwen' | 'terminal';
-  specList: string[];
-}
-
-export const SCHEMATIC_NODES: DiagramNode[] = [
-  {
-    id: 'node-harvest',
-    code: '01/INGEST',
-    name: 'arXiv OAI-PMH & ar5iv',
-    zone: 'HARVEST',
-    zoneColor: '#ef4444',
-    toolName: 'arXiv Harvester',
-    toolCategory: 'Source Stream',
-    metricLabel: 'TOTAL HARVESTED',
-    metricValue: '10,000 Papers',
-    secondaryMetric: 'cs.AI, cs.LG, cs.CV, cs.CL, stat.ML',
-    status: 'SYNCED',
-    iconType: 'arxiv',
-    specList: ['OAI-PMH XML v2.0', 'HTML5 Full-Text Crawler', '6.0s Rate Limiter']
-  },
-  {
-    id: 'node-bronze',
-    code: '02/LAKE',
-    name: 'Cloudflare R2 Bronze Lake',
-    zone: 'BRONZE',
-    zoneColor: '#f59e0b',
-    toolName: 'Cloudflare R2',
-    toolCategory: 'Immutable Raw Store',
-    metricLabel: 'RAW STORED',
-    metricValue: '2.841 GB',
-    secondaryMetric: '9,022 HTML5 + 12 Batches',
-    status: 'ONLINE',
-    iconType: 'r2',
-    specList: ['S3 Compatible API', 'Zero Egress Fees', 'SHA-256 Checksummed']
-  },
-  {
-    id: 'node-duckdb',
-    code: '03/TRANSFORM',
-    name: 'DuckDB & LaTeX Parser',
-    zone: 'COMPUTE',
-    zoneColor: '#fde047',
-    toolName: 'DuckDB Engine',
-    toolCategory: 'In-Process OLAP',
-    metricLabel: 'LATEX EXTRACTED',
-    metricValue: '2,224,198',
-    secondaryMetric: '8,989 Full-Section Enriched',
-    status: 'ACTIVE',
-    iconType: 'duckdb',
-    specList: ['Vectorized SIMD Execution', 'Zero-Copy Apache Arrow', 'Math Tag Normalizer']
-  },
-  {
-    id: 'node-silver',
-    code: '04/CURATED',
-    name: 'Apache Parquet Partition',
-    zone: 'SILVER',
-    zoneColor: '#60a5fa',
-    toolName: 'Apache Parquet',
-    toolCategory: 'Columnar Store',
-    metricLabel: 'CURATED TABLE',
-    metricValue: '231.73 MB',
-    secondaryMetric: 'Partition: year=2026',
-    status: 'SYNCED',
-    iconType: 'parquet',
-    specList: ['Snappy Compression', 'Nested Schema Dict', 'Canonical Section Taxonomy']
-  },
-  {
-    id: 'node-nomic',
-    code: '05/EMBED',
-    name: 'Nomic Embed v1.5 (MPS)',
-    zone: 'EMBED',
-    zoneColor: '#34d399',
-    toolName: 'Nomic AI',
-    toolCategory: 'Embedding Core',
-    metricLabel: 'DENSE DIMENSION',
-    metricValue: '768 Dimensions',
-    secondaryMetric: '8,192 Token Context Window',
-    status: 'ACTIVE',
-    iconType: 'nomic',
-    specList: ['Apple Silicon MPS (Metal)', 'Matryoshka 2D Normalizer', 'search_document: prefix']
-  },
-  {
-    id: 'node-gold',
-    code: '06/VECTOR',
-    name: 'LanceDB Gold Vector Lake',
-    zone: 'GOLD',
-    zoneColor: '#fbbf24',
-    toolName: 'LanceDB',
-    toolCategory: 'Vector Lakehouse',
-    metricLabel: 'INDEXED CHUNKS',
-    metricValue: '143,523 Rows',
-    secondaryMetric: '2.456 GB Table Size',
-    status: 'ONLINE',
-    iconType: 'lancedb',
-    specList: ['Lance Columnar Format', 'Cosine Metric ANN Index', 'Sub-50ms Approximate Lookup']
-  },
-  {
-    id: 'node-qwen',
-    code: '07/REASON',
-    name: 'Qwen 2.5 7B Instruct (GGUF)',
-    zone: 'INFERENCE',
-    zoneColor: '#a855f7',
-    toolName: 'Qwen 2.5 / llama.cpp',
-    toolCategory: 'Local Neural Core',
-    metricLabel: 'OFFLOAD ENGINE',
-    metricValue: 'Apple Metal GPU',
-    secondaryMetric: '4.4 GB (Q4_K_M Quant)',
-    status: 'ACTIVE',
-    iconType: 'qwen',
-    specList: ['llama-cpp-python Binding', 'Zero Hallucination Gate', '~6.0 tokens/s Generation']
-  },
-  {
-    id: 'node-client',
-    code: '08/OUTPUT',
-    name: 'Grounded Academic Response',
-    zone: 'CLIENT',
-    zoneColor: '#38bdf8',
-    toolName: 'Verified Citations',
-    toolCategory: 'Scientific Output',
-    metricLabel: 'CITATION ACCURACY',
-    metricValue: '100% Grounded',
-    secondaryMetric: '[Paper: ID, Section: Title]',
-    status: 'ONLINE',
-    iconType: 'terminal',
-    specList: ['Exact LaTeX Retention', 'Refusal Gate on Missing Context', 'Dual-Stream Logging']
-  }
-];
+import { SCHEMATIC_NODES, type DiagramNode } from '../data/lakehouseData';
 
 export function GeometricPipelineDiagram() {
   const [activeNodeId, setActiveNodeId] = useState<string>('node-gold');
@@ -325,6 +187,17 @@ export function GeometricPipelineDiagram() {
                 animation: 'circuitFlow 3s linear infinite'
               }}
             />
+
+            {/* Kinetic Traveling Data Packet Pulses */}
+            <circle r="4" fill="#38bdf8" opacity="0.95" filter="drop-shadow(0 0 4px #38bdf8)">
+              <animateMotion path="M 60 55 L 940 55" dur="3.6s" repeatCount="indefinite" />
+            </circle>
+            <circle r="3.5" fill="#10b981" opacity="0.95" filter="drop-shadow(0 0 4px #10b981)">
+              <animateMotion path="M 60 55 L 940 55" dur="3.6s" begin="1.2s" repeatCount="indefinite" />
+            </circle>
+            <circle r="3.5" fill="#fbbf24" opacity="0.95" filter="drop-shadow(0 0 4px #fbbf24)">
+              <animateMotion path="M 60 55 L 940 55" dur="3.6s" begin="2.4s" repeatCount="indefinite" />
+            </circle>
           </svg>
 
           {/* 8 Geometric Nodes Grid */}

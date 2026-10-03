@@ -24,9 +24,12 @@ dist-ssr
 *.sw?
 
 # Local lakehouse data & heavy weights
-data/
+/data/
+!src/data/
 models/
 .venv/
 .gemini/
 .env
 .env.*
+__pycache__/
+*.pyc
