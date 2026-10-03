@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Logger,
   Post,
   Res,
 } from '@nestjs/common';
@@ -21,6 +22,8 @@ import { LlmClientService } from '../llm-client/llm-client.service';
 @ApiTags('Chat')
 @Controller('api/chat')
 export class ChatController {
+  private readonly logger = new Logger(ChatController.name);
+
   constructor(
     @Inject(RETRIEVAL_SERVICE)
     private readonly retrievalService: RetrievalService,
@@ -37,8 +40,7 @@ export class ChatController {
     const totalStart = performance.now();
 
     const userQuery = (body.message || body.query || '').trim();
-    const logger = new Logger('ChatController');
-    logger.log(
+    this.logger.log(
       `Received chat request: "${userQuery}" (history: ${body.history?.length || 0} messages, mode: ${body.mode || 'fts'}, topK: ${body.topK || 5})`,
     );
 
@@ -104,8 +106,7 @@ export class ChatController {
 
     try {
       const userQuery = (body.message || body.query || '').trim();
-      const logger = new Logger('ChatController');
-      logger.log(
+      this.logger.log(
         `Received streaming chat request: "${userQuery}" (history: ${body.history?.length || 0} messages, mode: ${body.mode || 'fts'}, topK: ${body.topK || 5})`,
       );
 
