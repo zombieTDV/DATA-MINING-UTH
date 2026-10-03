@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { GeometricPipelineDiagram } from './components/GeometricPipelineDiagram';
 import { GeometricTelemetryGauges } from './components/GeometricTelemetryGauges';
 import { ToolLogosGrid } from './components/ToolLogos';
@@ -6,6 +6,19 @@ import { LiveTelemetryFeed } from './components/LiveTelemetryFeed';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'schematic' | 'gauges' | 'tools' | 'rag'>('schematic');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('uth-theme');
+    return (saved === 'light' || saved === 'dark') ? saved : 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('uth-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
   const [query, setQuery] = useState<string>('What is the role of sampling z_t in conditional diffusion distillation according to CoDi paper 2310.01407?');
   const [ragLoading, setRagLoading] = useState<boolean>(false);
   const [ragResult, setRagResult] = useState<{
@@ -50,7 +63,7 @@ export default function App() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
       {/* Top Architectural Banner */}
       <header style={{
-        background: 'rgba(7, 9, 14, 0.92)',
+        background: 'var(--bg-surface)',
         backdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--border-subtle)',
         padding: '14px 28px',
@@ -99,10 +112,10 @@ export default function App() {
           </div>
         </div>
 
-        {/* Tactical Status Blocks */}
-        <div style={{ display: 'flex', gap: '12px', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+        {/* Tactical Status Blocks & Theme Switcher */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
           <div style={{
-            background: 'var(--bg-surface)',
+            background: 'var(--bg-canvas)',
             border: '1px solid var(--border-subtle)',
             padding: '5px 10px',
             borderRadius: '4px',
@@ -116,7 +129,7 @@ export default function App() {
           </div>
 
           <div style={{
-            background: 'var(--bg-surface)',
+            background: 'var(--bg-canvas)',
             border: '1px solid var(--border-subtle)',
             padding: '5px 10px',
             borderRadius: '4px',
@@ -128,6 +141,51 @@ export default function App() {
             <span style={{ color: 'var(--text-muted)' }}>LANCEDB:</span>
             <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>143,523 VEC</span>
           </div>
+
+          {/* Geometric Theme Switcher */}
+          <button
+            onClick={toggleTheme}
+            style={{
+              background: 'var(--bg-canvas)',
+              border: '1px solid var(--border-muted)',
+              color: 'var(--text-primary)',
+              padding: '5px 11px',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '7px',
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              fontWeight: 600,
+              cursor: 'pointer',
+              letterSpacing: '0.04em'
+            }}
+            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+          >
+            {theme === 'dark' ? (
+              <>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="5"/>
+                  <line x1="12" y1="1" x2="12" y2="3"/>
+                  <line x1="12" y1="21" x2="12" y2="23"/>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                  <line x1="1" y1="12" x2="3" y2="12"/>
+                  <line x1="21" y1="12" x2="23" y2="12"/>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+                <span>LIGHT</span>
+              </>
+            ) : (
+              <>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+                <span>DARK</span>
+              </>
+            )}
+          </button>
         </div>
       </header>
 
