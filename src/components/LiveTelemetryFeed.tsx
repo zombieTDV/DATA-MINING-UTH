@@ -260,13 +260,13 @@ export function LiveTelemetryFeed() {
                     display: 'grid',
                     gridTemplateColumns: '190px 100px 180px 1fr 40px',
                     gap: '12px',
-                    padding: '12px 16px',
+                    padding: '13px 16px',
                     alignItems: 'center',
-                    fontSize: '12px',
+                    fontSize: '13px',
                     fontFamily: 'var(--font-mono)'
                   }}>
                     {/* Timestamp */}
-                    <div style={{ color: 'var(--text-muted)', fontSize: '11.5px' }}>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 500 }}>
                       {entry.timestamp}
                     </div>
 
@@ -274,11 +274,11 @@ export function LiveTelemetryFeed() {
                     <div>
                       <span style={{
                         display: 'inline-block',
-                        padding: '2px 6px',
-                        borderRadius: '3px',
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        background: 'var(--bg-surface)',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        background: 'var(--bg-surface-elevated)',
                         color: getLevelColor(entry.level),
                         border: '1px solid var(--border-subtle)'
                       }}>
@@ -289,10 +289,11 @@ export function LiveTelemetryFeed() {
                     {/* Source File */}
                     <div style={{
                       color: 'var(--text-secondary)',
-                      fontSize: '11px',
+                      fontSize: '12px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
+                      whiteSpace: 'nowrap',
+                      fontWeight: 500
                     }}>
                       {entry.source}
                     </div>
@@ -300,15 +301,16 @@ export function LiveTelemetryFeed() {
                     {/* Event Message */}
                     <div style={{
                       color: 'var(--text-primary)',
-                      fontSize: '12px',
+                      fontSize: '13px',
+                      fontWeight: 500,
                       wordBreak: 'break-word',
-                      lineHeight: 1.4
+                      lineHeight: 1.5
                     }}>
                       {entry.message}
                     </div>
 
                     {/* Expand Indicator */}
-                    <div style={{ textAlign: 'right', color: 'var(--text-muted)', fontSize: '11px' }}>
+                    <div style={{ textAlign: 'right', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700 }}>
                       {isExpanded ? '▼' : '▶'}
                     </div>
                   </div>
@@ -316,17 +318,17 @@ export function LiveTelemetryFeed() {
                   {/* Expanded Detail Box */}
                   {isExpanded && entry.detail && (
                     <div style={{
-                      padding: '10px 16px 14px 16px',
+                      padding: '12px 18px',
                       background: 'var(--bg-surface-elevated)',
                       borderTop: '1px dashed var(--border-subtle)',
-                      fontSize: '11.5px',
+                      fontSize: '12.5px',
                       fontFamily: 'var(--font-mono)',
-                      color: 'var(--accent-silver)',
+                      color: 'var(--text-primary)',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px'
+                      gap: '10px'
                     }}>
-                      <span style={{ color: 'var(--text-muted)' }}>METADATA:</span>
+                      <span style={{ color: 'var(--accent-silver)', fontWeight: 700 }}>METADATA:</span>
                       {entry.detail}
                     </div>
                   )}

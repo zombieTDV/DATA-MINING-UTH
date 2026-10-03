@@ -358,22 +358,22 @@ export function GeometricPipelineDiagram() {
                   {/* Step Sequence Badge */}
                   <div style={{
                     fontFamily: 'var(--font-mono)',
-                    fontSize: '9.5px',
+                    fontSize: '11px',
                     color: node.zoneColor,
                     fontWeight: 700,
                     marginBottom: '8px',
-                    letterSpacing: '0.05em'
+                    letterSpacing: '0.06em'
                   }}>
                     {node.code}
                   </div>
 
                   {/* Geometric Icon Hub */}
                   <div style={{
-                    width: '46px',
-                    height: '46px',
+                    width: '52px',
+                    height: '52px',
                     borderRadius: '8px',
                     background: 'var(--bg-surface)',
-                    border: `1px solid ${isActive ? node.zoneColor : 'var(--border-muted)'}`,
+                    border: `1.5px solid ${isActive ? node.zoneColor : 'var(--border-muted)'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -382,13 +382,13 @@ export function GeometricPipelineDiagram() {
                   }}>
                     {renderIcon(node.iconType)}
                     
-                    {/* Small Status Node Indicator */}
+                    {/* Status Node Indicator */}
                     <div style={{
                       position: 'absolute',
                       bottom: '-3px',
                       right: '-3px',
-                      width: '8px',
-                      height: '8px',
+                      width: '10px',
+                      height: '10px',
                       borderRadius: '50%',
                       background: node.zoneColor,
                       border: '2px solid var(--bg-surface)'
@@ -397,11 +397,11 @@ export function GeometricPipelineDiagram() {
 
                   {/* Tool / Node Label */}
                   <div style={{
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    color: isActive ? '#ffffff' : 'var(--text-primary)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: isActive ? node.zoneColor : 'var(--text-primary)',
                     lineHeight: 1.3,
-                    minHeight: '28px',
+                    minHeight: '34px',
                     marginBottom: '6px'
                   }}>
                     {node.toolName}
@@ -410,12 +410,12 @@ export function GeometricPipelineDiagram() {
                   {/* Core Numeric Metric */}
                   <div style={{
                     fontFamily: 'var(--font-mono)',
-                    fontSize: '10.5px',
+                    fontSize: '11.5px',
                     color: node.zoneColor,
-                    fontWeight: 600,
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    padding: '2px 5px',
-                    borderRadius: '3px',
+                    fontWeight: 700,
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    padding: '3px 6px',
+                    borderRadius: '4px',
                     width: '100%',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -468,28 +468,28 @@ export function GeometricPipelineDiagram() {
                 {renderIcon(activeNode.iconType)}
               </div>
               <div>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: activeNode.zoneColor }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: activeNode.zoneColor, fontWeight: 700 }}>
                   {activeNode.code}
                 </span>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   {activeNode.toolName}
                 </div>
               </div>
             </div>
 
             <div style={{
-              fontSize: '11px',
+              fontSize: '12px',
               fontFamily: 'var(--font-mono)',
-              color: 'var(--text-muted)',
+              color: 'var(--text-secondary)',
               marginBottom: '6px'
             }}>
-              CATEGORY: <strong style={{ color: 'var(--text-secondary)' }}>{activeNode.toolCategory}</strong>
+              CATEGORY: <strong style={{ color: 'var(--text-primary)' }}>{activeNode.toolCategory}</strong>
             </div>
 
             <div style={{
-              fontSize: '11px',
+              fontSize: '12px',
               fontFamily: 'var(--font-mono)',
-              color: 'var(--text-muted)'
+              color: 'var(--text-secondary)'
             }}>
               STATUS: <strong style={{ color: 'var(--accent-emerald)' }}>{activeNode.status}</strong>
             </div>
@@ -498,10 +498,11 @@ export function GeometricPipelineDiagram() {
           {/* Bay Column 2: Architecture Specifications */}
           <div>
             <div style={{
-              fontSize: '11px',
+              fontSize: '12px',
               fontFamily: 'var(--font-mono)',
-              color: 'var(--text-muted)',
-              marginBottom: '8px',
+              color: 'var(--text-secondary)',
+              fontWeight: 600,
+              marginBottom: '10px',
               letterSpacing: '0.05em'
             }}>
               ACTIVE SPECIFICATIONS & PROTOCOLS
@@ -513,15 +514,16 @@ export function GeometricPipelineDiagram() {
                   background: 'var(--bg-surface)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: '4px',
-                  padding: '8px 12px',
-                  fontSize: '12px',
+                  padding: '9px 13px',
+                  fontSize: '13px',
                   fontFamily: 'var(--font-mono)',
                   color: 'var(--text-primary)',
+                  fontWeight: 500,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <span style={{ color: activeNode.zoneColor, fontSize: '12px' }}>⬡</span>
+                  <span style={{ color: activeNode.zoneColor, fontSize: '14px' }}>⬡</span>
                   {spec}
                 </div>
               ))}
@@ -533,21 +535,22 @@ export function GeometricPipelineDiagram() {
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-subtle)',
             borderRadius: '6px',
-            padding: '14px',
+            padding: '16px',
             textAlign: 'center'
           }}>
             <div style={{
-              fontSize: '10px',
+              fontSize: '11px',
               fontFamily: 'var(--font-mono)',
-              color: 'var(--text-muted)',
+              color: 'var(--text-secondary)',
+              fontWeight: 700,
               letterSpacing: '0.08em',
               marginBottom: '4px'
             }}>
               {activeNode.metricLabel}
             </div>
             <div style={{
-              fontSize: '22px',
-              fontWeight: 700,
+              fontSize: '26px',
+              fontWeight: 800,
               fontFamily: 'var(--font-mono)',
               color: activeNode.zoneColor,
               letterSpacing: '-0.02em',
@@ -556,9 +559,10 @@ export function GeometricPipelineDiagram() {
               {activeNode.metricValue}
             </div>
             <div style={{
-              fontSize: '11px',
+              fontSize: '12px',
               color: 'var(--text-secondary)',
-              fontFamily: 'var(--font-mono)'
+              fontFamily: 'var(--font-mono)',
+              fontWeight: 500
             }}>
               {activeNode.secondaryMetric}
             </div>

@@ -17,7 +17,8 @@ export function GeometricTelemetryGauges() {
         background: 'var(--bg-surface)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
-        padding: '20px',
+        boxShadow: 'var(--card-shadow)',
+        padding: '22px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -25,23 +26,24 @@ export function GeometricTelemetryGauges() {
       }}>
         <div>
           <div style={{
-            fontSize: '10px',
+            fontSize: '11px',
             fontFamily: 'var(--font-mono)',
-            color: 'var(--text-muted)',
+            color: 'var(--text-secondary)',
+            fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             marginBottom: '4px'
           }}>
             [METRIC 01] // STORAGE CAPACITY
           </div>
-          <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+          <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
             Cloudflare R2 Lake
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
             Free Tier Quota Utilization
           </div>
-          <div style={{ marginTop: '12px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-            REMAINING: <strong style={{ color: 'var(--accent-emerald)' }}>4.476 GB</strong>
+          <div style={{ marginTop: '14px', fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+            REMAINING: <strong style={{ color: 'var(--accent-emerald)', fontSize: '13px' }}>4.476 GB</strong>
           </div>
         </div>
 
@@ -54,8 +56,8 @@ export function GeometricTelemetryGauges() {
               cy="65"
               r={radius}
               fill="none"
-              stroke="rgba(255, 255, 255, 0.08)"
-              strokeWidth="9"
+              stroke="rgba(255, 255, 255, 0.12)"
+              strokeWidth="10"
             />
             {/* Value Arc */}
             <circle
@@ -64,7 +66,7 @@ export function GeometricTelemetryGauges() {
               r={radius}
               fill="none"
               stroke="var(--accent-bronze)"
-              strokeWidth="9"
+              strokeWidth="10"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
@@ -79,10 +81,10 @@ export function GeometricTelemetryGauges() {
             flexDirection: 'column',
             alignItems: 'center'
           }}>
-            <span style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
+            <span style={{ fontSize: '20px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
               55.2%
             </span>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', fontWeight: 600 }}>
               5.52 / 10 GB
             </span>
           </div>
@@ -94,7 +96,8 @@ export function GeometricTelemetryGauges() {
         background: 'var(--bg-surface)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
-        padding: '20px',
+        boxShadow: 'var(--card-shadow)',
+        padding: '22px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -102,33 +105,34 @@ export function GeometricTelemetryGauges() {
       }}>
         <div>
           <div style={{
-            fontSize: '10px',
+            fontSize: '11px',
             fontFamily: 'var(--font-mono)',
-            color: 'var(--text-muted)',
+            color: 'var(--text-secondary)',
+            fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             marginBottom: '4px'
           }}>
             [METRIC 02] // VECTOR GEOMETRY
           </div>
-          <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+          <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
             Nomic Embed v1.5
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
             768-Dim Normalized Hyper-Sphere
           </div>
-          <div style={{ marginTop: '12px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-            INDEX METRIC: <strong style={{ color: 'var(--accent-gold)' }}>COSINE ANN</strong>
+          <div style={{ marginTop: '14px', fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+            INDEX METRIC: <strong style={{ color: 'var(--accent-gold)', fontSize: '13px' }}>COSINE ANN</strong>
           </div>
         </div>
 
         {/* 12x12 Geometric Latent Cell Matrix */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(12, 6px)',
-          gap: '3px',
+          gridTemplateColumns: 'repeat(12, 7px)',
+          gap: '3.5px',
           background: 'var(--bg-canvas)',
-          padding: '8px',
+          padding: '10px',
           borderRadius: '6px',
           border: '1px solid var(--border-subtle)'
         }}>
@@ -139,14 +143,14 @@ export function GeometricTelemetryGauges() {
               <div
                 key={idx}
                 style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '1px',
+                  width: '7px',
+                  height: '7px',
+                  borderRadius: '1.5px',
                   background: isLit
-                    ? '#34d399'
+                    ? '#10b981'
                     : isMedium
-                    ? 'rgba(52, 211, 153, 0.35)'
-                    : 'rgba(255, 255, 255, 0.06)',
+                    ? 'rgba(16, 185, 129, 0.45)'
+                    : 'rgba(255, 255, 255, 0.1)',
                 }}
               />
             );
@@ -159,7 +163,8 @@ export function GeometricTelemetryGauges() {
         background: 'var(--bg-surface)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
-        padding: '20px',
+        boxShadow: 'var(--card-shadow)',
+        padding: '22px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -167,23 +172,24 @@ export function GeometricTelemetryGauges() {
       }}>
         <div>
           <div style={{
-            fontSize: '10px',
+            fontSize: '11px',
             fontFamily: 'var(--font-mono)',
-            color: 'var(--text-muted)',
+            color: 'var(--text-secondary)',
+            fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             marginBottom: '4px'
           }}>
             [METRIC 03] // HARDWARE LATENCY
           </div>
-          <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+          <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
             Apple Silicon Metal GPU
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
             Inference Waveform Frequency
           </div>
-          <div style={{ marginTop: '12px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-            THROUGHPUT: <strong style={{ color: 'var(--accent-silver)' }}>~6.0 TOKENS/S</strong>
+          <div style={{ marginTop: '14px', fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+            THROUGHPUT: <strong style={{ color: 'var(--accent-silver)', fontSize: '13px' }}>~6.0 TOKENS/S</strong>
           </div>
         </div>
 
@@ -192,7 +198,7 @@ export function GeometricTelemetryGauges() {
           display: 'flex',
           alignItems: 'flex-end',
           gap: '4px',
-          height: '60px',
+          height: '65px',
           background: 'var(--bg-canvas)',
           padding: '8px 12px',
           borderRadius: '6px',
@@ -202,11 +208,11 @@ export function GeometricTelemetryGauges() {
             <div
               key={i}
               style={{
-                width: '4px',
+                width: '5px',
                 height: `${height}%`,
                 background: i % 2 === 0 ? '#a855f7' : '#c084fc',
-                borderRadius: '1px',
-                opacity: 0.85
+                borderRadius: '1.5px',
+                opacity: 0.9
               }}
             />
           ))}
