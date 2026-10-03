@@ -18,7 +18,7 @@ export function StorageInspector() {
 
   return (
     <div style={{
-      background: 'var(--bg-surface)',
+      background: 'var(--bg-card-shell)',
       border: '1px solid var(--border-subtle)',
       borderRadius: 'var(--radius-lg)',
       padding: '4px',
@@ -27,7 +27,7 @@ export function StorageInspector() {
     }}>
       {/* Inner Core */}
       <div style={{
-        background: 'var(--bg-canvas)',
+        background: 'var(--bg-card-core)',
         borderRadius: 'calc(var(--radius-lg) - 2px)',
         padding: '22px 24px'
       }}>
@@ -88,7 +88,7 @@ export function StorageInspector() {
                   style={{
                     background: activeZone === z ? 'var(--text-primary)' : 'transparent',
                     border: 'none',
-                    color: activeZone === z ? 'var(--bg-canvas)' : 'var(--text-secondary)',
+                    color: activeZone === z ? 'var(--bg-surface)' : 'var(--text-secondary)',
                     padding: '4px 8px',
                     borderRadius: '3px',
                     fontSize: '10px',

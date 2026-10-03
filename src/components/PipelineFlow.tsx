@@ -59,7 +59,7 @@ export function PipelineFlow() {
                   fontFamily: 'var(--font-mono)',
                   padding: '2px 7px',
                   borderRadius: '3px',
-                  background: 'var(--bg-canvas)',
+                  background: 'var(--bg-card-shell)',
                   color: phase.zoneColor,
                   border: '1px solid var(--border-subtle)',
                   fontWeight: 700,
@@ -93,14 +93,14 @@ export function PipelineFlow() {
 
       {/* Selected Phase Deep Inspection (Double-Bezel Hardware Architecture) */}
       <div style={{
-        background: 'var(--bg-surface)',
+        background: 'var(--bg-card-shell)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
         padding: '4px',
         boxShadow: 'var(--card-shadow)'
       }}>
         <div style={{
-          background: 'var(--bg-canvas)',
+          background: 'var(--bg-card-core)',
           border: '1px solid var(--border-muted)',
           borderRadius: 'calc(var(--radius-lg) - 2px)',
           padding: '24px'

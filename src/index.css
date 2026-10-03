@@ -10,6 +10,9 @@
   --bg-surface-elevated: #162035;
   --bg-surface-hover: #1e2b47;
   
+  --bg-card-shell: #0e1422;
+  --bg-card-core: #04060a;
+
   --border-subtle: rgba(255, 255, 255, 0.12);
   --border-muted: rgba(255, 255, 255, 0.22);
   --border-highlight: rgba(255, 255, 255, 0.40);
@@ -20,11 +23,13 @@
 
   --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.4);
 
+  --accent-red: #ef4444;
   --accent-bronze: #f59e0b;
   --accent-silver: #60a5fa;
-  --accent-gold: #fbbf24;
+  --accent-gold: #fde047;
   --accent-emerald: #10b981;
   --accent-violet: #c084fc;
+  --accent-cyan: #38bdf8;
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -32,28 +37,33 @@
   --radius-xl: 18px;
 }
 
-/* Light Mode: High Contrast Swiss Engineering Print */
+/* Light Mode: Calibrated High Contrast Swiss Engineering Print */
 [data-theme="light"] {
-  --bg-canvas: #eae7dd;
+  --bg-canvas: #f6f5f0;
   --bg-surface: #ffffff;
-  --bg-surface-elevated: #ded9cd;
-  --bg-surface-hover: #d2cdc0;
+  --bg-surface-elevated: #eceae3;
+  --bg-surface-hover: #e2e0d5;
 
-  --border-subtle: rgba(0, 0, 0, 0.14);
-  --border-muted: rgba(0, 0, 0, 0.24);
-  --border-highlight: rgba(0, 0, 0, 0.45);
+  --bg-card-shell: #eceae3;
+  --bg-card-core: #ffffff;
 
-  --text-primary: #05070a;
-  --text-secondary: #1e293b;
-  --text-muted: #475569;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-muted: rgba(0, 0, 0, 0.16);
+  --border-highlight: rgba(0, 0, 0, 0.36);
 
-  --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  --text-primary: #090c10;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
 
-  --accent-bronze: #d97706;
-  --accent-silver: #2563eb;
-  --accent-gold: #b45309;
-  --accent-emerald: #059669;
-  --accent-violet: #7e22ce;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.03);
+
+  --accent-red: #dc2626;
+  --accent-bronze: #b45309;
+  --accent-silver: #1d4ed8;
+  --accent-gold: #92400e;
+  --accent-emerald: #047857;
+  --accent-violet: #6d28d9;
+  --accent-cyan: #0284c7;
 }
 
 * {
@@ -84,9 +94,13 @@ body::before {
     linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
     linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
   background-size: 40px 40px;
-  opacity: 0.5;
+  opacity: 0.4;
   pointer-events: none;
   z-index: 0;
+}
+
+[data-theme="light"] body::before {
+  opacity: 0.22;
 }
 
 code, pre, .mono {

@@ -10,69 +10,69 @@ export function GeometricPipelineDiagram() {
       case 'arxiv':
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="3" width="18" height="18" rx="2" stroke="#ef4444" strokeWidth="2" strokeDasharray="3 3"/>
-            <path d="M7 8h10M7 12h7M7 16h5" stroke="#fca5a5" strokeWidth="2" strokeLinecap="round"/>
+            <rect x="3" y="3" width="18" height="18" rx="2" stroke="var(--accent-red)" strokeWidth="2" strokeDasharray="3 3"/>
+            <path d="M7 8h10M7 12h7M7 16h5" stroke="var(--accent-red)" strokeWidth="1.8" strokeLinecap="round"/>
           </svg>
         );
       case 'r2':
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <ellipse cx="12" cy="7" rx="8" ry="4" stroke="#f59e0b" strokeWidth="2"/>
-            <path d="M4 7v10c0 2.2 3.6 4 8 4s8-1.8 8-4V7" stroke="#f59e0b" strokeWidth="2"/>
-            <path d="M4 12c0 2.2 3.6 4 8 4s8-1.8 8-4" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="2 2"/>
+            <ellipse cx="12" cy="7" rx="8" ry="4" stroke="var(--accent-bronze)" strokeWidth="2"/>
+            <path d="M4 7v10c0 2.2 3.6 4 8 4s8-1.8 8-4V7" stroke="var(--accent-bronze)" strokeWidth="2"/>
+            <path d="M4 12c0 2.2 3.6 4 8 4s8-1.8 8-4" stroke="var(--accent-gold)" strokeWidth="1.5" strokeDasharray="2 2"/>
           </svg>
         );
       case 'duckdb':
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <rect x="4" y="4" width="16" height="16" rx="4" stroke="#fde047" strokeWidth="2"/>
-            <circle cx="10" cy="10" r="2.5" fill="#fde047"/>
-            <path d="M14 10c0 2-2 3.5-5 3.5M9 16c4 0 7-1.5 7-4.5" stroke="#fde047" strokeWidth="2" strokeLinecap="round"/>
+            <rect x="4" y="4" width="16" height="16" rx="4" stroke="var(--accent-gold)" strokeWidth="2"/>
+            <circle cx="10" cy="10" r="2.5" fill="var(--accent-gold)"/>
+            <path d="M14 10c0 2-2 3.5-5 3.5M9 16c4 0 7-1.5 7-4.5" stroke="var(--accent-gold)" strokeWidth="2" strokeLinecap="round"/>
           </svg>
         );
       case 'parquet':
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <rect x="4" y="4" width="7" height="7" stroke="#60a5fa" strokeWidth="2"/>
-            <rect x="13" y="4" width="7" height="7" stroke="#60a5fa" strokeWidth="2"/>
-            <rect x="4" y="13" width="7" height="7" stroke="#60a5fa" strokeWidth="2"/>
-            <rect x="13" y="13" width="7" height="7" stroke="#60a5fa" strokeWidth="2"/>
+            <rect x="4" y="4" width="7" height="7" stroke="var(--accent-silver)" strokeWidth="2"/>
+            <rect x="13" y="4" width="7" height="7" stroke="var(--accent-silver)" strokeWidth="2"/>
+            <rect x="4" y="13" width="7" height="7" stroke="var(--accent-silver)" strokeWidth="2"/>
+            <rect x="13" y="13" width="7" height="7" stroke="var(--accent-silver)" strokeWidth="2"/>
           </svg>
         );
       case 'nomic':
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="8" stroke="#34d399" strokeWidth="2"/>
-            <line x1="12" y1="4" x2="12" y2="20" stroke="#34d399" strokeWidth="1.5"/>
-            <line x1="4" y1="12" x2="20" stroke="#34d399" strokeWidth="1.5"/>
-            <circle cx="12" cy="12" r="3" fill="#10b981"/>
+            <circle cx="12" cy="12" r="8" stroke="var(--accent-emerald)" strokeWidth="2"/>
+            <line x1="12" y1="4" x2="12" y2="20" stroke="var(--accent-emerald)" strokeWidth="1.5"/>
+            <line x1="4" y1="12" x2="20" stroke="var(--accent-emerald)" strokeWidth="1.5"/>
+            <circle cx="12" cy="12" r="3" fill="var(--accent-emerald)"/>
           </svg>
         );
       case 'lancedb':
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <polygon points="12 2 22 7 22 17 12 22 2 17 2 7" stroke="#fbbf24" strokeWidth="2"/>
-            <line x1="12" y1="2" x2="12" y2="22" stroke="#fbbf24" strokeWidth="1.5"/>
-            <line x1="2" y1="7" x2="22" y2="17" stroke="#fef08a" strokeWidth="1"/>
-            <line x1="2" y1="17" x2="22" y2="7" stroke="#fef08a" strokeWidth="1"/>
+            <polygon points="12 2 22 7 22 17 12 22 2 17 2 7" stroke="var(--accent-gold)" strokeWidth="2"/>
+            <line x1="12" y1="2" x2="12" y2="22" stroke="var(--accent-gold)" strokeWidth="1.5"/>
+            <line x1="2" y1="7" x2="22" y2="17" stroke="var(--accent-gold)" strokeWidth="1"/>
+            <line x1="2" y1="17" x2="22" y2="7" stroke="var(--accent-gold)" strokeWidth="1"/>
           </svg>
         );
       case 'qwen':
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="3" width="18" height="18" rx="5" stroke="#a855f7" strokeWidth="2"/>
-            <circle cx="12" cy="12" r="5" stroke="#c084fc" strokeWidth="1.5"/>
-            <line x1="3" y1="12" x2="7" y2="12" stroke="#e879f9" strokeWidth="2"/>
-            <line x1="17" y1="12" x2="21" y2="12" stroke="#e879f9" strokeWidth="2"/>
-            <line x1="12" y1="3" x2="12" y2="7" stroke="#e879f9" strokeWidth="2"/>
-            <line x1="12" y1="17" x2="12" y2="21" stroke="#e879f9" strokeWidth="2"/>
+            <rect x="3" y="3" width="18" height="18" rx="5" stroke="var(--accent-violet)" strokeWidth="2"/>
+            <circle cx="12" cy="12" r="5" stroke="var(--accent-violet)" strokeWidth="1.5"/>
+            <line x1="3" y1="12" x2="7" y2="12" stroke="var(--accent-violet)" strokeWidth="2"/>
+            <line x1="17" y1="12" x2="21" y2="12" stroke="var(--accent-violet)" strokeWidth="2"/>
+            <line x1="12" y1="3" x2="12" y2="7" stroke="var(--accent-violet)" strokeWidth="2"/>
+            <line x1="12" y1="17" x2="12" y2="21" stroke="var(--accent-violet)" strokeWidth="2"/>
           </svg>
         );
       case 'terminal':
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="4" width="18" height="16" rx="2" stroke="#38bdf8" strokeWidth="2"/>
-            <path d="M7 9l3 3-3 3M13 15h4" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round"/>
+            <rect x="3" y="4" width="18" height="16" rx="2" stroke="var(--accent-cyan)" strokeWidth="2"/>
+            <path d="M7 9l3 3-3 3M13 15h4" stroke="var(--accent-cyan)" strokeWidth="2" strokeLinecap="round"/>
           </svg>
         );
     }
@@ -164,7 +164,7 @@ export function GeometricPipelineDiagram() {
 
               {/* Arrow Marker */}
               <marker id="circuitArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 8 5 L 0 9 z" fill="rgba(255,255,255,0.4)" />
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--text-muted)" />
               </marker>
             </defs>
 
@@ -215,7 +215,7 @@ export function GeometricPipelineDiagram() {
                   key={node.id}
                   onClick={() => setActiveNodeId(node.id)}
                   style={{
-                    background: isActive ? 'var(--bg-surface-elevated)' : 'var(--bg-canvas)',
+                    background: isActive ? 'var(--bg-card-core)' : 'var(--bg-card-shell)',
                     border: isActive ? `2px solid ${node.zoneColor}` : '1px solid var(--border-subtle)',
                     borderRadius: '8px',
                     padding: '14px 10px',
@@ -286,7 +286,8 @@ export function GeometricPipelineDiagram() {
                     fontSize: '11.5px',
                     color: node.zoneColor,
                     fontWeight: 700,
-                    background: 'rgba(255, 255, 255, 0.06)',
+                    background: 'var(--bg-surface-elevated)',
+                    border: '1px solid var(--border-subtle)',
                     padding: '3px 6px',
                     borderRadius: '4px',
                     width: '100%',
@@ -305,13 +306,13 @@ export function GeometricPipelineDiagram() {
 
       {/* INTERACTIVE SCHEMATIC INSPECTION BAY (Hardware Doppelrand Container) */}
       <div style={{
-        background: 'rgba(255, 255, 255, 0.02)',
+        background: 'var(--bg-card-shell)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
         padding: '5px'
       }}>
         <div style={{
-          background: 'var(--bg-canvas)',
+          background: 'var(--bg-card-core)',
           border: '1px solid var(--border-muted)',
           borderRadius: 'calc(var(--radius-md) - 5px)',
           padding: '20px',

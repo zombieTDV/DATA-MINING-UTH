@@ -11,7 +11,7 @@ export function MetricsBento() {
         onMouseLeave={() => setHoveredCard(null)}
         style={{
           gridColumn: 'span 4',
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
@@ -21,7 +21,7 @@ export function MetricsBento() {
         }}
       >
         <div style={{
-          background: 'var(--bg-canvas)',
+          background: 'var(--bg-card-core)',
           borderRadius: 'calc(var(--radius-md) - 2px)',
           padding: '16px 18px',
           height: '100%',
@@ -95,7 +95,7 @@ export function MetricsBento() {
         onMouseLeave={() => setHoveredCard(null)}
         style={{
           gridColumn: 'span 4',
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
@@ -105,7 +105,7 @@ export function MetricsBento() {
         }}
       >
         <div style={{
-          background: 'var(--bg-canvas)',
+          background: 'var(--bg-card-core)',
           borderRadius: 'calc(var(--radius-md) - 2px)',
           padding: '16px 18px',
           height: '100%',
@@ -179,7 +179,7 @@ export function MetricsBento() {
         onMouseLeave={() => setHoveredCard(null)}
         style={{
           gridColumn: 'span 4',
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
@@ -189,7 +189,7 @@ export function MetricsBento() {
         }}
       >
         <div style={{
-          background: 'var(--bg-canvas)',
+          background: 'var(--bg-card-core)',
           borderRadius: 'calc(var(--radius-md) - 2px)',
           padding: '16px 18px',
           height: '100%',
@@ -271,7 +271,7 @@ export function MetricsBento() {
         onMouseLeave={() => setHoveredCard(null)}
         style={{
           gridColumn: 'span 6',
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
@@ -281,7 +281,7 @@ export function MetricsBento() {
         }}
       >
         <div style={{
-          background: 'var(--bg-canvas)',
+          background: 'var(--bg-card-core)',
           borderRadius: 'calc(var(--radius-md) - 2px)',
           padding: '16px 18px',
           height: '100%',
@@ -329,7 +329,7 @@ export function MetricsBento() {
         onMouseLeave={() => setHoveredCard(null)}
         style={{
           gridColumn: 'span 6',
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
@@ -339,7 +339,7 @@ export function MetricsBento() {
         }}
       >
         <div style={{
-          background: 'var(--bg-canvas)',
+          background: 'var(--bg-card-core)',
           borderRadius: 'calc(var(--radius-md) - 2px)',
           padding: '16px 18px',
           height: '100%',

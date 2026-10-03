@@ -14,14 +14,14 @@ export function GeometricTelemetryGauges() {
     }}>
       {/* GAUGE 1: Circular Radial Storage Arc */}
       <div style={{
-        background: 'var(--bg-surface)',
+        background: 'var(--bg-card-shell)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
         boxShadow: 'var(--card-shadow)',
         padding: '4px'
       }}>
         <div style={{
-          background: 'var(--bg-canvas)',
+          background: 'var(--bg-card-core)',
           borderRadius: 'calc(var(--radius-md) - 2px)',
           padding: '18px 20px',
           height: '100%',
@@ -100,14 +100,14 @@ export function GeometricTelemetryGauges() {
 
       {/* GAUGE 2: 768-Dim Latent Tensor Matrix Visualizer */}
       <div style={{
-        background: 'var(--bg-surface)',
+        background: 'var(--bg-card-shell)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
         boxShadow: 'var(--card-shadow)',
         padding: '4px'
       }}>
         <div style={{
-          background: 'var(--bg-canvas)',
+          background: 'var(--bg-card-core)',
           borderRadius: 'calc(var(--radius-md) - 2px)',
           padding: '18px 20px',
           height: '100%',
@@ -159,11 +159,8 @@ export function GeometricTelemetryGauges() {
                     width: '7px',
                     height: '7px',
                     borderRadius: '1.5px',
-                    background: isLit
-                      ? 'var(--accent-emerald)'
-                      : isMedium
-                      ? 'rgba(16, 185, 129, 0.45)'
-                      : 'var(--border-subtle)',
+                    background: isLit || isMedium ? 'var(--accent-emerald)' : 'var(--border-subtle)',
+                    opacity: isLit ? 1 : isMedium ? 0.45 : 0.6,
                   }}
                 />
               );
@@ -174,14 +171,14 @@ export function GeometricTelemetryGauges() {
 
       {/* GAUGE 3: Hardware Inference Frequency & Throughput */}
       <div style={{
-        background: 'var(--bg-surface)',
+        background: 'var(--bg-card-shell)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
         boxShadow: 'var(--card-shadow)',
         padding: '4px'
       }}>
         <div style={{
-          background: 'var(--bg-canvas)',
+          background: 'var(--bg-card-core)',
           borderRadius: 'calc(var(--radius-md) - 2px)',
           padding: '18px 20px',
           height: '100%',

@@ -57,7 +57,7 @@ export default function App() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
             background: 'var(--text-primary)',
-            color: 'var(--bg-canvas)',
+            color: 'var(--bg-surface)',
             fontWeight: 800,
             fontSize: '12px',
             fontFamily: 'var(--font-mono)',
@@ -95,7 +95,7 @@ export default function App() {
         {/* Tactical Status Blocks & Theme Switcher */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
           <div style={{
-            background: 'var(--bg-canvas)',
+            background: 'var(--bg-card-shell)',
             border: '1px solid var(--border-subtle)',
             padding: '6px 12px',
             borderRadius: '4px',
@@ -109,7 +109,7 @@ export default function App() {
           </div>
 
           <div style={{
-            background: 'var(--bg-canvas)',
+            background: 'var(--bg-card-shell)',
             border: '1px solid var(--border-subtle)',
             padding: '6px 12px',
             borderRadius: '4px',
@@ -126,7 +126,7 @@ export default function App() {
           <button
             onClick={toggleTheme}
             style={{
-              background: 'var(--bg-canvas)',
+              background: 'var(--bg-card-shell)',
               border: '1.5px solid var(--border-muted)',
               color: 'var(--text-primary)',
               padding: '6px 13px',
@@ -173,7 +173,7 @@ export default function App() {
 
       {/* Navigation Tabs Bar */}
       <div style={{
-        background: 'var(--bg-canvas)',
+        background: 'var(--bg-surface)',
         borderBottom: '1px solid var(--border-subtle)',
         padding: '0 28px',
         display: 'flex',
@@ -212,7 +212,7 @@ export default function App() {
               padding: '1.5px 5.5px',
               borderRadius: '3px',
               background: activeTab === tab.id ? 'var(--text-primary)' : 'var(--bg-surface-elevated)',
-              color: activeTab === tab.id ? 'var(--bg-canvas)' : 'var(--text-muted)',
+              color: activeTab === tab.id ? 'var(--bg-surface)' : 'var(--text-muted)',
               border: '1px solid var(--border-subtle)',
               fontFamily: 'var(--font-mono)',
               fontWeight: 800
@@ -278,7 +278,7 @@ export default function App() {
 
               <div style={{
                 display: 'flex',
-                background: 'var(--bg-canvas)',
+                background: 'var(--bg-card-shell)',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: '6px',
                 padding: '2px',
@@ -290,7 +290,7 @@ export default function App() {
                   style={{
                     background: pipelineViewMode === 'schematic' ? 'var(--text-primary)' : 'transparent',
                     border: 'none',
-                    color: pipelineViewMode === 'schematic' ? 'var(--bg-canvas)' : 'var(--text-secondary)',
+                    color: pipelineViewMode === 'schematic' ? 'var(--bg-surface)' : 'var(--text-secondary)',
                     padding: '6px 14px',
                     borderRadius: '4px',
                     fontSize: '11px',
@@ -314,7 +314,7 @@ export default function App() {
                   style={{
                     background: pipelineViewMode === 'stepper' ? 'var(--text-primary)' : 'transparent',
                     border: 'none',
-                    color: pipelineViewMode === 'stepper' ? 'var(--bg-canvas)' : 'var(--text-secondary)',
+                    color: pipelineViewMode === 'stepper' ? 'var(--bg-surface)' : 'var(--text-secondary)',
                     padding: '6px 14px',
                     borderRadius: '4px',
                     fontSize: '11px',

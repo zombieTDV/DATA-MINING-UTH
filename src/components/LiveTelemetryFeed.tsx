@@ -61,7 +61,7 @@ export function LiveTelemetryFeed() {
   return (
     <div style={{
       width: '100%',
-      background: 'var(--bg-surface)',
+      background: 'var(--bg-card-shell)',
       border: '1px solid var(--border-subtle)',
       borderRadius: 'var(--radius-lg)',
       boxShadow: 'var(--card-shadow)',
@@ -70,7 +70,7 @@ export function LiveTelemetryFeed() {
     }}>
       {/* Double-Bezel Inner Core */}
       <div style={{
-        background: 'var(--bg-canvas)',
+        background: 'var(--bg-card-core)',
         borderRadius: 'calc(var(--radius-lg) - 2px)',
         padding: '22px 24px'
       }}>
@@ -172,7 +172,7 @@ export function LiveTelemetryFeed() {
                   style={{
                     background: filterLevel === lvl ? 'var(--text-primary)' : 'transparent',
                     border: 'none',
-                    color: filterLevel === lvl ? 'var(--bg-canvas)' : 'var(--text-secondary)',
+                    color: filterLevel === lvl ? 'var(--bg-surface)' : 'var(--text-secondary)',
                     padding: '4px 9px',
                     borderRadius: '3px',
                     fontSize: '10px',
@@ -324,7 +324,7 @@ export function LiveTelemetryFeed() {
                     {isExpanded && entry.detail && (
                       <div style={{
                         padding: '12px 18px',
-                        background: 'var(--bg-canvas)',
+                        background: 'var(--bg-card-shell)',
                         borderTop: '1px dashed var(--border-subtle)',
                         fontSize: '12px',
                         fontFamily: 'var(--font-mono)',

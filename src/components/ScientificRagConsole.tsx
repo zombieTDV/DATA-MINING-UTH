@@ -194,14 +194,14 @@ export function ScientificRagConsole() {
 
         {/* Query Input Bar: Double-Bezel Box */}
         <div style={{
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
           boxShadow: 'var(--card-shadow)'
         }}>
           <form onSubmit={handleRunQuery} style={{
-            background: 'var(--bg-canvas)',
+            background: 'var(--bg-card-core)',
             borderRadius: 'calc(var(--radius-md) - 2px)',
             padding: '8px 10px',
             display: 'flex',
@@ -240,7 +240,7 @@ export function ScientificRagConsole() {
               disabled={ragLoading || !query.trim()}
               style={{
                 background: 'var(--text-primary)',
-                color: 'var(--bg-canvas)',
+                color: 'var(--bg-surface)',
                 border: 'none',
                 borderRadius: '4px',
                 padding: '8px 18px',
@@ -261,7 +261,7 @@ export function ScientificRagConsole() {
                 width: '16px',
                 height: '16px',
                 borderRadius: '50%',
-                background: 'var(--bg-canvas)',
+                background: 'var(--bg-surface)',
                 color: 'var(--text-primary)',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -277,14 +277,14 @@ export function ScientificRagConsole() {
 
         {/* Verification Synthesis Console: Double-Bezel Architecture */}
         <div style={{
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-lg)',
           padding: '4px',
           boxShadow: 'var(--card-shadow)'
         }}>
           <div style={{
-            background: 'var(--bg-canvas)',
+            background: 'var(--bg-card-core)',
             borderRadius: 'calc(var(--radius-lg) - 2px)',
             padding: '22px 24px'
           }}>
@@ -520,7 +520,7 @@ export function ScientificRagConsole() {
                 type="button"
                 onClick={() => setSelectedCitation(null)}
                 style={{
-                  background: 'var(--bg-canvas)',
+                  background: 'var(--bg-card-shell)',
                   border: '1px solid var(--border-muted)',
                   color: 'var(--text-secondary)',
                   width: '26px',
@@ -538,13 +538,13 @@ export function ScientificRagConsole() {
               </button>
             </div>
 
-            <div style={{ fontSize: '12.5px', lineHeight: 1.6, color: 'var(--text-primary)', marginBottom: '14px', background: 'var(--bg-canvas)', padding: '12px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '12.5px', lineHeight: 1.6, color: 'var(--text-primary)', marginBottom: '14px', background: 'var(--bg-card-shell)', padding: '12px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
               <strong>Abstract Snippet:</strong> {selectedCitation.abstractSnippet}
             </div>
 
             {selectedCitation.latexEquation && (
               <div style={{
-                background: 'var(--bg-canvas)',
+                background: 'var(--bg-card-shell)',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: '4px',
                 padding: '10px 14px',
@@ -583,14 +583,14 @@ export function ScientificRagConsole() {
         
         {/* Pipeline Specs Box: Double-Bezel */}
         <div style={{
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
           boxShadow: 'var(--card-shadow)'
         }}>
           <div style={{
-            background: 'var(--bg-canvas)',
+            background: 'var(--bg-card-core)',
             borderRadius: 'calc(var(--radius-md) - 2px)',
             padding: '18px 20px'
           }}>
@@ -649,14 +649,14 @@ export function ScientificRagConsole() {
 
         {/* Confidence Radar Gauge Box */}
         <div style={{
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '4px',
           boxShadow: 'var(--card-shadow)'
         }}>
           <div style={{
-            background: 'var(--bg-canvas)',
+            background: 'var(--bg-card-core)',
             borderRadius: 'calc(var(--radius-md) - 2px)',
             padding: '18px 20px'
           }}>

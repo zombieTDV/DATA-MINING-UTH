@@ -187,7 +187,7 @@ export function ToolLogosGrid() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{
           display: 'flex',
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '3px',
@@ -201,7 +201,7 @@ export function ToolLogosGrid() {
               style={{
                 background: activeCategory === cat ? 'var(--text-primary)' : 'transparent',
                 border: 'none',
-                color: activeCategory === cat ? 'var(--bg-canvas)' : 'var(--text-secondary)',
+                color: activeCategory === cat ? 'var(--bg-surface)' : 'var(--text-secondary)',
                 padding: '6px 12px',
                 borderRadius: '4px',
                 fontSize: '11px',
@@ -245,7 +245,7 @@ export function ToolLogosGrid() {
               key={tool.id}
               onClick={() => setSelectedToolId(tool.id)}
               style={{
-                background: 'var(--bg-surface)',
+                background: 'var(--bg-card-shell)',
                 border: `1px solid ${isSelected ? 'var(--border-highlight)' : 'var(--border-subtle)'}`,
                 borderRadius: 'var(--radius-md)',
                 padding: '3px',
@@ -256,7 +256,7 @@ export function ToolLogosGrid() {
               }}
             >
               <div style={{
-                background: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-canvas)',
+                background: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-card-core)',
                 borderRadius: 'calc(var(--radius-md) - 2px)',
                 padding: '14px 16px',
                 display: 'flex',
@@ -269,7 +269,7 @@ export function ToolLogosGrid() {
                   width: '40px',
                   height: '40px',
                   borderRadius: '6px',
-                  background: 'var(--bg-surface)',
+                  background: 'var(--bg-card-shell)',
                   border: '1px solid var(--border-muted)',
                   display: 'flex',
                   alignItems: 'center',
@@ -325,7 +325,7 @@ export function ToolLogosGrid() {
       {/* Selected Engine Deep Inspection Console: Double-Bezel Architecture */}
       {selectedTool && (
         <div style={{
-          background: 'var(--bg-surface)',
+          background: 'var(--bg-card-shell)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-lg)',
           padding: '4px',
@@ -333,7 +333,7 @@ export function ToolLogosGrid() {
           marginTop: '6px'
         }}>
           <div style={{
-            background: 'var(--bg-canvas)',
+            background: 'var(--bg-card-core)',
             borderRadius: 'calc(var(--radius-lg) - 2px)',
             padding: '22px 24px'
           }}>
