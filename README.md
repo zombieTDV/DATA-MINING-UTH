@@ -11,7 +11,14 @@ Dự án được chuẩn hóa thành kiến trúc Monorepo phân tách rõ ràn
 ```text
 UTH-Data-Mining-Real-Time-Scientific-Data-Mining-Advanced-RAG-System-for-AI-DS/
 │
-├── backend/                       # [1] Phân hệ Backend API & Serving (NestJS / TypeScript)
+├── frontend/                      # [1] Phân hệ Giao diện Dashboard (React 19 / Vite / Tailwind)
+│   ├── src/
+│   │   ├── components/            # Pipeline Diagram, Gauges, Live Telemetry
+│   │   └── App.tsx                # Dashboard điều khiển & giám sát thời gian thực
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── backend/                       # [2] Phân hệ Backend API & Serving (NestJS / TypeScript)
 │   ├── apps/
 │   │   ├── api-gateway/          # Cổng API cho Frontend (Port 8000)
 │   │   └── llm-service/          # Dịch vụ suy luận AI Qwen2.5 GGUF (Port 9001)
@@ -21,7 +28,7 @@ UTH-Data-Mining-Real-Time-Scientific-Data-Mining-Advanced-RAG-System-for-AI-DS/
 │   ├── nest-cli.json
 │   └── tsconfig.json
 │
-├── data_mining/                   # [2] Phân hệ Data Mining & Lakehouse (Python)
+├── data_mining/                   # [3] Phân hệ Data Mining & Lakehouse (Python)
 │   ├── src/
 │   │   ├── config/               # Cấu hình hệ thống & môi trường
 │   │   ├── ingestion/            # Thu thập arXiv OAI-PMH & cào HTML5
@@ -95,6 +102,25 @@ npm run dev
 # 5. Xem Swagger API Documentation:
 # - API Gateway: http://localhost:8000/api/docs
 # - LLM Service: http://localhost:9001/docs
+```
+
+---
+
+### C. Phân hệ Giao diện Dashboard (`frontend/`)
+
+Sử dụng React 19 + Vite:
+
+```bash
+# 1. Chuyển vào thư mục frontend
+cd frontend
+
+# 2. Cài đặt thư viện
+npm install
+
+# 3. Khởi chạy giao diện phát triển (Dev server)
+npm run dev
+
+# 4. Mở trình duyệt tại: http://localhost:5173
 ```
 
 ---
