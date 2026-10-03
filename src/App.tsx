@@ -447,7 +447,7 @@ export default function App() {
         color: 'var(--text-secondary)',
       }}>
         <div>
-          <span>UNIVERSITY OF TRANSPORT AND COMMUNICATIONS // SCIENTIFIC DATA MINING LAB 2026</span>
+          <span>UNIVERSITY OF TRANSPORT HO CHI MINH CITY // SCIENTIFIC DATA MINING LAB 2026</span>
         </div>
         <div style={{ display: 'flex', gap: '16px' }}>
           <span>10,000 PAPERS PARQUET</span>
