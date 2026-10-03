@@ -21,7 +21,7 @@ const CITATION_DATABASE: Record<string, CitationData> = {
     authors: 'Z. Ying, H. Zhao, R. Gao, et al. (Stanford & MIT CSAIL)',
     categories: ['cs.AI', 'cs.CV', 'cs.LG'],
     section: 'Section 5: Experiments & Ablation Studies',
-    abstractSnippet: 'We propose conditional diffusion distillation (CoDi) to synthesize high-fidelity multi-modal content in 1-4 inference steps. Consistent time step sampling across batches minimizes the distillation loss L_{distill} = ||z_t - z_hat_s||^2 without mode collapse.',
+    abstractSnippet: 'We propose conditional diffusion distillation (CoDi) to synthesize high-fidelity multi-modal content in 1-4 inference steps. Consistent time step sampling across batches minimizes the distillation loss $L_{\\text{distill}} = \\|z_t - \\hat{z}_s\\|^2$ without mode collapse.',
     latexEquation: '\\mathcal{L}_{\\text{distill}} = \\mathbb{E}_{t, z_t} \\left[ \\left\\| z_t - \\hat{z}_s(x, c, t) \\right\\|^2 \\right]',
     lanceChunkId: 'lance-gold-chunk-084921',
     goldParquetKey: 's3://uth-scientific-lakehouse/gold/year=2026/part-004.parquet'
@@ -537,7 +537,7 @@ export function ScientificRagConsole() {
             </div>
 
             <div style={{ fontSize: '12.5px', lineHeight: 1.6, color: 'var(--text-primary)', marginBottom: '14px', background: 'var(--bg-card-shell)', padding: '12px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
-              <strong>Abstract Snippet:</strong> {selectedCitation.abstractSnippet}
+              <strong>Abstract Snippet:</strong> <FormattedTextWithMath text={selectedCitation.abstractSnippet} />
             </div>
 
             {selectedCitation.latexEquation && (

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MathRenderer } from './MathRenderer';
 
 export function MetricsBento() {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
@@ -309,16 +310,17 @@ export function MetricsBento() {
             </div>
           </div>
           <div style={{
-            padding: '8px 12px',
+            padding: '6px 12px',
             borderRadius: 'var(--radius-sm)',
             background: 'rgba(192, 132, 252, 0.10)',
             border: '1px solid rgba(192, 132, 252, 0.25)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '12px',
+            fontSize: '13px',
             color: 'var(--accent-violet)',
-            fontWeight: 600
+            fontWeight: 600,
+            display: 'inline-flex',
+            alignItems: 'center'
           }}>
-            {'$L_{distill} = \\|z_t - \\hat{z}_s\\|^2$'}
+            <MathRenderer math="L_{\text{distill}} = \|z_t - \hat{z}_s\|^2" displayMode={false} />
           </div>
         </div>
       </div>

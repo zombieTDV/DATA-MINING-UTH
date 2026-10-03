@@ -1,16 +1,6 @@
-import { useEffect, useState, type FC } from 'react';
-
-// Global KaTeX definition for optional CDN acceleration
-declare global {
-  interface Window {
-    katex?: {
-      renderToString: (
-        tex: string,
-        options?: { displayMode?: boolean; throwOnError?: boolean }
-      ) => string;
-    };
-  }
-}
+import type { FC } from 'react';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 
 interface MathRendererProps {
   math: string;
@@ -48,7 +38,8 @@ function renderFallbackMath(latex: string, displayMode: boolean) {
     .replace(/\^2/g, '²')
     .replace(/\^T/g, 'ᵀ')
     .replace(/_t\b/g, 'ₜ')
-    .replace(/_s\b/g, 'ₛ');
+    .replace(/_s\b/g, 'ₛ')
+    .replace(/_\{?distill\}?/g, '₍distill₎');
 
   return (
     <span
@@ -65,54 +56,31 @@ function renderFallbackMath(latex: string, displayMode: boolean) {
 }
 
 function getKaTeXHtml(latex: string, displayMode: boolean): string | null {
-  if (typeof window !== 'undefined' && window.katex) {
-    try {
-      const cleanMath = latex
-        .trim()
-        .replace(/^\\\[|\\\]$/g, '')
-        .replace(/^\$\$|\$\$$/g, '')
-        .replace(/^\$|\$$/g, '');
-      return window.katex.renderToString(cleanMath, {
-        displayMode,
-        throwOnError: false,
-      });
-    } catch {
-      return null;
-    }
+  try {
+    const cleanMath = latex
+      .trim()
+      .replace(/^\\\[|\\\]$/g, '')
+      .replace(/^\$\$|\$\$$/g, '')
+      .replace(/^\$|\$$/g, '');
+    return katex.renderToString(cleanMath, {
+      displayMode,
+      throwOnError: false,
+    });
+  } catch {
+    return null;
   }
-  return null;
 }
 
 /**
- * Robust MathRenderer: Uses KaTeX if available in window,
- * otherwise renders via graceful semantic Unicode fallback.
+ * Robust MathRenderer: Synchronously renders standard LaTeX via KaTeX,
+ * falling back to semantic Unicode formatting on parse exceptions.
  */
 export const MathRenderer: FC<MathRendererProps> = ({
   math,
   displayMode = false,
   className,
 }) => {
-  const [katexAvailable, setKatexAvailable] = useState<boolean>(() => {
-    return typeof window !== 'undefined' && Boolean(window.katex);
-  });
-
-  useEffect(() => {
-    if (!katexAvailable && typeof window !== 'undefined') {
-      const checkInterval = setInterval(() => {
-        if (window.katex) {
-          setKatexAvailable(true);
-          clearInterval(checkInterval);
-        }
-      }, 200);
-      const timer = setTimeout(() => clearInterval(checkInterval), 3000);
-      return () => {
-        clearInterval(checkInterval);
-        clearTimeout(timer);
-      };
-    }
-  }, [katexAvailable]);
-
-  const html = katexAvailable ? getKaTeXHtml(math, displayMode) : null;
+  const html = getKaTeXHtml(math, displayMode);
 
   if (html) {
     return (
