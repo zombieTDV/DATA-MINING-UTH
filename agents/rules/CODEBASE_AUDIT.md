@@ -6,7 +6,7 @@
 - **Detailed Plan**: §1 Audit Scope; §2 Five-Step Inspection Checklist; §3 Output Format; §4 Hard Acceptance Gate; §5 Audit Lifecycle & Logging.
 - **References**: `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`, `agents/templates/CODEBASE_AUDIT_TEMPLATE.md`.
 - **Created**: 2026-07-25T00:00:00+07:00
-- **Last Updated**: 2026-09-06T21:15:00+07:00
+- **Last Updated**: 2026-10-02T22:52:40+07:00
 
 ---
 
@@ -91,3 +91,16 @@ Every finding listed in an audit report's **Findings Summary** must track its ow
 > [!NOTE]
 > The finding status tracks whether **that specific finding** has been addressed, independent of whether the broader audit or milestone is complete.
 
+---
+
+## Codex — Xác nhận đã đọc và cam kết áp dụng
+
+- **Người ký**: Codex, agent chính `/root`.
+- **Thời điểm ký**: 2026-10-02T22:52:40+07:00.
+- **Tài liệu đã đọc**: [CODEBASE_AUDIT.md](CODEBASE_AUDIT.md), toàn bộ nội dung, từng mục và checklist.
+- **SHA-256 bản đã đọc trước khi thêm chữ ký và cập nhật thời gian**: `2fba482ce75f133a06057803cff1bcf891098dbcf131fc2b8f57f52bf4bff8fb`.
+- **Cam kết**: Tôi đã đọc, hiểu và sẽ áp dụng các yêu cầu của tài liệu này trong các tác vụ thuộc phạm vi của nó. Tôi sẽ đối chiếu rule trước khi hành động, báo rõ xung đột hoặc điểm chưa xác định, và không tự ý bỏ qua hay sửa quy tắc. Việc áp dụng tuân theo thứ tự ưu tiên của chỉ dẫn hệ thống, developer và yêu cầu người dùng.
+- **Phạm vi xác nhận**: Chữ ký văn bản ghi nhận việc đã đọc trong phiên hiện tại; không phải chữ ký số, chứng nhận mọi thay đổi trước đây đã tuân thủ, hoặc bảo đảm không bao giờ có sai sót. Việc ghi nhớ ở phiên sau dựa trên tài liệu lưu trong repository và yêu cầu đọc lại.
+- **Truyền đạt**: Agent được giao việc phải đọc trực tiếp toàn bộ rule và xác nhận trước khi thực hiện; xem [hướng dẫn khởi đầu](../../AGENTS.md) và [biên bản tiếp nhận](../../docs/shared/RULES_ACKNOWLEDGMENT.md).
+
+**Đã ký: Codex — `/root`**

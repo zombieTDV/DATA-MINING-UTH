@@ -36,8 +36,10 @@ class NomicEmbedder:
             self.device = torch.device(device)
 
         # Khởi tạo Tokenizer và Model
-        self.tokenizer = AutoTokenizer.from_pretrained(str(self.model_path))
-        self.model = AutoModel.from_pretrained(str(self.model_path), trust_remote_code=True)
+        self.tokenizer = AutoTokenizer.from_pretrained(str(self.model_path), local_files_only=True)
+        self.model = AutoModel.from_pretrained(
+            str(self.model_path), trust_remote_code=True, local_files_only=True
+        )
         self.model.to(self.device)
         self.model.eval()
 
@@ -51,6 +53,8 @@ class NomicEmbedder:
 
     def embed_documents(self, texts: List[str], batch_size: int = 16) -> List[List[float]]:
         """Sinh vector nhúng cho danh sách tài liệu/chunks (tự động gắn tiền tố search_document:)."""
+        if batch_size < 1:
+            raise ValueError("batch_size must be positive")
         all_embeddings = []
 
         # Chuẩn bị văn bản theo chuẩn của Nomic

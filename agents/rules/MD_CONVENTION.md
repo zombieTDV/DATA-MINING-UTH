@@ -6,7 +6,7 @@
 - **Detailed Plan**: §1 Required Header Specification; §2 Markdown Update-Timestamp Standard; §3 Document Lifecycle Statuses; §4 Mandatory Cross-Reference Links; §5 Conventions Table; §6 Self-Review Checklist.
 - **References**: `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`, `agents/rules/MD_CONVENTION.md`.
 - **Created**: 2026-07-25T00:00:00+07:00
-- **Last Updated**: 2026-09-06T20:55:00+07:00
+- **Last Updated**: 2026-10-02T22:52:40+07:00
 
 ---
 
@@ -102,3 +102,17 @@ For documents that track plans, audits, bug fixes, or phase specifications, incl
 - [ ] Every file, notebook, script, and directory mention is an active, working relative link.
 - [ ] Document lifecycle status indicated if applicable (e.g. active vs superseded).
 - [ ] No stale, hardcoded paths copied from other projects.
+
+---
+
+## Codex — Xác nhận đã đọc và cam kết áp dụng
+
+- **Người ký**: Codex, agent chính `/root`.
+- **Thời điểm ký**: 2026-10-02T22:52:40+07:00.
+- **Tài liệu đã đọc**: [MD_CONVENTION.md](MD_CONVENTION.md), toàn bộ nội dung, từng mục và checklist.
+- **SHA-256 bản đã đọc trước khi thêm chữ ký và cập nhật thời gian**: `570868d001235fcd244cf382b0f65678ef1843980c9b33e4b909a77b95dca83d`.
+- **Cam kết**: Tôi đã đọc, hiểu và sẽ áp dụng các yêu cầu của tài liệu này trong các tác vụ thuộc phạm vi của nó. Tôi sẽ đối chiếu rule trước khi hành động, báo rõ xung đột hoặc điểm chưa xác định, và không tự ý bỏ qua hay sửa quy tắc. Việc áp dụng tuân theo thứ tự ưu tiên của chỉ dẫn hệ thống, developer và yêu cầu người dùng.
+- **Phạm vi xác nhận**: Chữ ký văn bản ghi nhận việc đã đọc trong phiên hiện tại; không phải chữ ký số, chứng nhận mọi thay đổi trước đây đã tuân thủ, hoặc bảo đảm không bao giờ có sai sót. Việc ghi nhớ ở phiên sau dựa trên tài liệu lưu trong repository và yêu cầu đọc lại.
+- **Truyền đạt**: Agent được giao việc phải đọc trực tiếp toàn bộ rule và xác nhận trước khi thực hiện; xem [hướng dẫn khởi đầu](../../AGENTS.md) và [biên bản tiếp nhận](../../docs/shared/RULES_ACKNOWLEDGMENT.md).
+
+**Đã ký: Codex — `/root`**

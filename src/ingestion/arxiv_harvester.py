@@ -7,8 +7,8 @@ with cryptographic SHA-256 integrity hashes.
 
 import datetime
 import re
+import logging
 import time
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 import feedparser
 import httpx
@@ -22,8 +22,8 @@ from src.utils.hasher import compute_sha256
 class ArxivHarvester:
     """Automated harvester for arXiv preprints."""
 
-    BASE_RSS_URL = "http://export.arxiv.org/rss"
-    BASE_API_URL = "http://export.arxiv.org/api/query"
+    BASE_RSS_URL = "https://rss.arxiv.org/rss"
+    BASE_API_URL = "https://export.arxiv.org/api/query"
     BASE_HTML_URL = "https://arxiv.org/html"
 
     def __init__(
@@ -34,7 +34,9 @@ class ArxivHarvester:
     ):
         self.r2 = r2_client or R2Client()
         self.categories = categories or settings.ARXIV_CATEGORIES
-        self.request_delay = request_delay or settings.ARXIV_REQUEST_DELAY_SECONDS
+        self.request_delay = (
+            settings.ARXIV_REQUEST_DELAY_SECONDS if request_delay is None else request_delay
+        )
         self.http_client = httpx.Client(
             headers={
                 "User-Agent": "UTH-Scientific-DataMining-Harvester/1.0 (academic research; contact: data-mining@uth.edu.vn)"
@@ -53,7 +55,15 @@ class ArxivHarvester:
     def fetch_rss_feed(self, category: str) -> List[Dict[str, Any]]:
         """Lấy danh sách các bài báo mới nhất trong ngày từ arXiv RSS feed."""
         url = f"{self.BASE_RSS_URL}/{category}"
-        feed = feedparser.parse(url)
+        response = self.http_client.get(url)
+        response.raise_for_status()
+        raw_feed = response.content
+        raw_key = f"bronze/arxiv/rss/raw/{compute_sha256(raw_feed)}.xml"
+        if not self.r2.object_exists(raw_key):
+            self.r2.upload_bytes(raw_feed, raw_key, content_type="application/xml")
+        feed = feedparser.parse(raw_feed)
+        if feed.bozo:
+            raise ValueError("Invalid arXiv RSS feed")
         papers = []
 
         for entry in feed.entries:
@@ -84,7 +94,9 @@ class ArxivHarvester:
                     "link": entry.link,
                     "pdf_url": f"https://arxiv.org/pdf/{clean_id}.pdf",
                     "html_url": f"{self.BASE_HTML_URL}/{clean_id}",
-                    "published_date": getattr(entry, "published", datetime.datetime.now(datetime.timezone.utc).isoformat()),
+                    "published_date": getattr(
+                        entry, "published", datetime.datetime.now(datetime.timezone.utc).isoformat()
+                    ),
                     "crawled_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
                 }
             )
@@ -109,8 +121,11 @@ class ArxivHarvester:
             return text
         return None
 
-    def ingest_paper(self, paper_meta: Dict[str, Any], download_html: bool = True) -> Dict[str, Any]:
+    def ingest_paper(
+        self, paper_meta: Dict[str, Any], download_html: bool = True
+    ) -> Dict[str, Any]:
         """Thu thập 1 bài báo và đẩy thẳng vào kho Bronze trên Cloudflare R2."""
+        paper_meta = dict(paper_meta)
         paper_id = paper_meta["paper_id"]
         # Phân loại thư mục theo năm: 2401 -> 2024
         year_prefix = f"20{paper_id[:2]}" if paper_id[:2].isdigit() else "unknown"
@@ -145,8 +160,9 @@ class ArxivHarvester:
                     html_uri = html_res["uri"]
                     html_sha256 = html_res["sha256"]
             except Exception as e:
-                # Nếu không lấy được HTML vẫn tiếp tục lưu metadata
-                pass
+                logging.getLogger(__name__).warning(
+                    "HTML unavailable for %s: %s", paper_id, type(e).__name__
+                )
 
         # 3. Làm giàu metadata và lưu vào Bronze
         paper_meta["has_html"] = html_saved
@@ -183,3 +199,6 @@ class ArxivHarvester:
                 time.sleep(self.request_delay)
 
         return all_results
+
+    def close(self):
+        self.http_client.close()

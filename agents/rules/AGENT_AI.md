@@ -6,7 +6,7 @@
 - **Detailed Plan**: §1 Core Agent Philosophy; §2 Six-Stage Engineering Workflow (AUDIT → PLAN → IMPLEMENT → VERIFY → COMMIT → MERGE); §3 Inter-Agent Handoff Standards; §4 Hard Operational Constraints.
 - **References**: `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`, `agents/rules/CODEBASE_AUDIT.md`, `agents/rules/MD_CONVENTION.md`.
 - **Created**: 2026-07-25T00:00:00+07:00
-- **Last Updated**: 2026-09-06T20:55:00+07:00
+- **Last Updated**: 2026-10-02T22:52:40+07:00
 
 ---
 
@@ -91,3 +91,17 @@ When work is paused, interrupted, or handed off between sessions/agents:
 2. **Never Overwrite Raw Data:** `data/raw/` is strictly read-only.
 3. **No Unbounded Package Versions:** Avoid unpinned wildcards in core deep learning dependencies.
 4. **No Destructive Operations Without Confirmation:** Never reset Git history, delete checkpoints, or purge runs directories without explicit human authorization.
+
+---
+
+## Codex — Xác nhận đã đọc và cam kết áp dụng
+
+- **Người ký**: Codex, agent chính `/root`.
+- **Thời điểm ký**: 2026-10-02T22:52:40+07:00.
+- **Tài liệu đã đọc**: [AGENT_AI.md](AGENT_AI.md), toàn bộ nội dung, từng mục và checklist.
+- **SHA-256 bản đã đọc trước khi thêm chữ ký và cập nhật thời gian**: `5bb210bbcaa1a5090a2d8896361066cf1312d1569857bc7e71f177db38f1cccf`.
+- **Cam kết**: Tôi đã đọc, hiểu và sẽ áp dụng các yêu cầu của tài liệu này trong các tác vụ thuộc phạm vi của nó. Tôi sẽ đối chiếu rule trước khi hành động, báo rõ xung đột hoặc điểm chưa xác định, và không tự ý bỏ qua hay sửa quy tắc. Việc áp dụng tuân theo thứ tự ưu tiên của chỉ dẫn hệ thống, developer và yêu cầu người dùng.
+- **Phạm vi xác nhận**: Chữ ký văn bản ghi nhận việc đã đọc trong phiên hiện tại; không phải chữ ký số, chứng nhận mọi thay đổi trước đây đã tuân thủ, hoặc bảo đảm không bao giờ có sai sót. Việc ghi nhớ ở phiên sau dựa trên tài liệu lưu trong repository và yêu cầu đọc lại.
+- **Truyền đạt**: Agent được giao việc phải đọc trực tiếp toàn bộ rule và xác nhận trước khi thực hiện; xem [hướng dẫn khởi đầu](../../AGENTS.md) và [biên bản tiếp nhận](../../docs/shared/RULES_ACKNOWLEDGMENT.md).
+
+**Đã ký: Codex — `/root`**

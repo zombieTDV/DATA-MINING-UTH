@@ -66,3 +66,7 @@ logs/
 .env
 .env.*
 *.tar.gz
+
+/data/local/
+.pytest_cache/
+.ruff_cache/

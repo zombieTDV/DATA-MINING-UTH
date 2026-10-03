@@ -9,14 +9,17 @@ jobs:
   test:
     name: Lint & Test Suite (CPU)
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
 
       - name: Upgrade pip
@@ -24,7 +27,7 @@ jobs:
 
       - name: Install dependencies (CPU)
         run: |
-          pip install -r requirements.txt
+          pip install -e ".[dev,indexing]"
           pip install ruff
 
       - name: Install package editable
@@ -37,4 +40,4 @@ jobs:
 
       - name: Run test suite
         run: |
-          pytest -v -m "not gpu"
+          pytest -v -m "not gpu and not integration"

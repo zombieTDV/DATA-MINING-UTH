@@ -27,9 +27,7 @@ class R2Client:
         self.bucket_name = bucket_name or settings.R2_BUCKET_NAME
 
         if not self.endpoint_url or not self.access_key_id or not self.secret_access_key:
-            raise ValueError(
-                "Thiếu thông tin xác thực Cloudflare R2. Vui lòng kiểm tra file .env"
-            )
+            raise ValueError("Thiếu thông tin xác thực Cloudflare R2. Vui lòng kiểm tra file .env")
 
         self.s3 = boto3.client(
             service_name="s3",
@@ -64,7 +62,7 @@ class R2Client:
     ) -> Dict[str, Any]:
         """Tải dữ liệu bytes trực tiếp lên R2."""
         sha256 = compute_sha256(data)
-        meta = metadata or {}
+        meta = dict(metadata or {})
         meta["sha256"] = sha256
 
         self.s3.put_object(
@@ -123,7 +121,8 @@ class R2Client:
         if not path.is_file():
             raise FileNotFoundError(f"File không tồn tại: {path}")
 
-        extra_args = {}
+        sha256 = compute_sha256(path)
+        extra_args = {"Metadata": {"sha256": sha256}}
         if content_type:
             extra_args["ContentType"] = content_type
 
@@ -151,14 +150,16 @@ class R2Client:
         """Đọc và parse JSON từ R2 object."""
         return json.loads(self.get_text(key))
 
-    def list_objects(self, prefix: str = "", max_keys: int = 1000) -> List[Dict[str, Any]]:
+    def list_objects(
+        self, prefix: str = "", max_keys: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         """Liệt kê danh sách objects theo prefix."""
         paginator = self.s3.get_paginator("list_objects_v2")
         results = []
         for page in paginator.paginate(
             Bucket=self.bucket_name,
             Prefix=prefix,
-            PaginationConfig={"MaxItems": max_keys},
+            PaginationConfig={"MaxItems": max_keys} if max_keys is not None else {},
         ):
             for item in page.get("Contents", []):
                 results.append(

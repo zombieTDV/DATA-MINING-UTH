@@ -6,7 +6,7 @@
 - **Detailed Plan**: §1 Conventional Commit Message Anatomy; §2 The Companion Markdown Document Rule; §3 Tiered Documentation Scope Matrix; §4 Standard Git Trailer Specification (`Companion-Doc:`); §5 Machine Parseability & Audit Automation; §6 Concrete Good vs. Bad Examples; §7 Pre-Commit Quality Checklist.
 - **References**: `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`, `agents/rules/MD_CONVENTION.md`, `agents/rules/AGENT_AI.md`, `docs/references/GIT_AND_RELEASE_BEST_PRACTICES.md`.
 - **Created**: 2026-09-08T11:05:00+07:00
-- **Last Updated**: 2026-09-08T11:05:00+07:00
+- **Last Updated**: 2026-10-02T22:52:40+07:00
 
 ---
 
@@ -194,3 +194,17 @@ Before running `git commit`, verify:
 - [ ] The commit message contains the `Companion-Doc: docs/<path>.md` Git trailer.
 - [ ] The companion document adheres to the 7-field header standard defined in `agents/rules/MD_CONVENTION.md`.
 - [ ] No temporary files, credentials, or large binary weights are staged.
+
+---
+
+## Codex — Xác nhận đã đọc và cam kết áp dụng
+
+- **Người ký**: Codex, agent chính `/root`.
+- **Thời điểm ký**: 2026-10-02T22:52:40+07:00.
+- **Tài liệu đã đọc**: [COMMIT_CONVENTION.md](COMMIT_CONVENTION.md), toàn bộ nội dung, từng mục và checklist.
+- **SHA-256 bản đã đọc trước khi thêm chữ ký và cập nhật thời gian**: `01e08614640957daff7ca16f3d1de00a6c2482a68ba93e35a4744cc8689e1e5d`.
+- **Cam kết**: Tôi đã đọc, hiểu và sẽ áp dụng các yêu cầu của tài liệu này trong các tác vụ thuộc phạm vi của nó. Tôi sẽ đối chiếu rule trước khi hành động, báo rõ xung đột hoặc điểm chưa xác định, và không tự ý bỏ qua hay sửa quy tắc. Việc áp dụng tuân theo thứ tự ưu tiên của chỉ dẫn hệ thống, developer và yêu cầu người dùng.
+- **Phạm vi xác nhận**: Chữ ký văn bản ghi nhận việc đã đọc trong phiên hiện tại; không phải chữ ký số, chứng nhận mọi thay đổi trước đây đã tuân thủ, hoặc bảo đảm không bao giờ có sai sót. Việc ghi nhớ ở phiên sau dựa trên tài liệu lưu trong repository và yêu cầu đọc lại.
+- **Truyền đạt**: Agent được giao việc phải đọc trực tiếp toàn bộ rule và xác nhận trước khi thực hiện; xem [hướng dẫn khởi đầu](../../AGENTS.md) và [biên bản tiếp nhận](../../docs/shared/RULES_ACKNOWLEDGMENT.md).
+
+**Đã ký: Codex — `/root`**

@@ -1,183 +1,114 @@
-# UTH Data Mining: AI/ML/Data Science Paper Mining & Analysis
+# UTH Scientific Data Mining & Lakehouse
 
-- **Motivation/Background**: This repository hosts the coursework and research pipeline for the UTH Data Mining curriculum, ported from deep learning and machine learning engineering templates into an end-to-end data mining architecture.
-- **Purpose**: Serve as the central entry point, architecture map, collection strategy, and execution manual for crawling, preparing, and analyzing scientific literature in AI, Machine Learning, and Data Science.
-- **Overview Pipeline**: Adheres to CRISP-DM and KDD methodologies spanning automated paper harvesting/crawling, immutable raw storage, 6-dimension data quality audits, feature engineering, and exploratory data mining.
-- **Detailed Plan**: §1 Project Topic & Scope; §2 Architecture Overview; §3 Repository Structure; §4 Installation & Setup; §5 Testing; §6 Governance & Rules.
-- **References**: [agents/rules/AGENT_AI.md](agents/rules/AGENT_AI.md), [agents/rules/MD_CONVENTION.md](agents/rules/MD_CONVENTION.md), [docs/references/ML_PIPELINE_REFERENCE_v4.md](docs/references/ML_PIPELINE_REFERENCE_v4.md).
+- **Motivation/Background**: Thu thập và khai phá tài liệu khoa học AI, ML và Data Science cho học phần UTH Data Mining.
+- **Purpose**: Hướng dẫn cấu hình, chạy và kiểm chứng pipeline hiện có.
+- **Overview Pipeline**: arXiv → Bronze nguyên bản → Silver Parquet → DuckDB → chunking → Gold LanceDB.
+- **Detailed Plan**: Cài đặt, chạy local, cấu hình R2/embedding và kiểm thử.
+- **References**: [SETUP.md](SETUP.md), [kiến trúc nguồn](src/README.md), [trạng thái kiểm chứng](docs/progress/REFACTOR_STATUS.md).
 - **Created**: 2026-07-25T00:00:00+07:00
-- **Last Updated**: 2026-09-30T12:10:47+07:00
+- **Last Updated**: 2026-10-03T13:30:56+07:00
 
 ---
 
-## 🎯 Project Topic & Scope: AI/ML/Data Science Paper Mining
-
-This project focuses on **crawling, harvesting, and mining scientific paper data** across the domains of Artificial Intelligence (AI), Machine Learning (ML), and Data Science:
-
-- **Data Acquisition & Harvesting:**
-  - Automated crawling and ingestion of academic paper metadata, titles, abstracts, author networks, publication timestamps, and category tags from open scientific preprint archives and scholarly APIs (e.g. arXiv, OpenAlex, Semantic Scholar).
-  - Enforcing the **Immutable Raw Invariant**: All crawled payloads are vaulted directly into `data/raw/` with cryptographic SHA-256 provenance manifests before any processing.
-- **Downstream Data Mining & Analysis (In Progress / Open Scope):**
-  - Following the [Data Mining Pipeline Reference (v4.0)](docs/references/ML_PIPELINE_REFERENCE_v4.md), collected literature will be audited for quality, preprocessed, and analyzed.
-  - The precise downstream analytic tasks remain open and flexible—ranging from topic modeling (LDA/BERTopic), keyword co-occurrence and association rule mining, author/citation network graph mining, to temporal research trend discovery.
-  - Detailed task formulations and experiment specifications will be formalized incrementally in `docs/phases/` and `docs/experiments/`.
-
-## 🏗️ Architecture Overview
-
-Layered deep learning pipeline; each layer is a maintained `src/` package:
+## Kiến trúc đang có
 
 ```mermaid
 flowchart LR
-    subgraph DATA["Data Layer (src/data)"]
-        A1["transforms.py"] --> A2["dataloader.py"]
-    end
-
-    subgraph MODEL["Model Layer (src/models)"]
-        B1["build_model.py"]
-    end
-
-    subgraph TRAIN["Training Layer (src/training) — scripts only"]
-        C1["<task>_train.py (CLI entry point)"]
-        C2["train_model.py (loop, full-state checkpoints, resume)"]
-        C3["run_logger.py (real-time progress, logs, JSONL)"]
-    end
-
-    subgraph EVAL["Evaluation Layer (src/eval)"]
-        D1["evaluate_model.py"]
-    end
-
-    subgraph EXP["Experiment Layer (src/experiments)"]
-        E1["experiment runners + analysis"]
-    end
-
-    subgraph OUT["Artifacts (experiments/)"]
-        F1["runs/<ts>_<run>/ checkpoints + logs + metrics"]
-        F2["results/ (JSON, NPZ) + plots/"]
-    end
-
-    subgraph NB["Analysis (notebooks/) — demos & viz only"]
-        G1["<analysis>.ipynb"]
-    end
-
-    A2 --> B1 --> C1 --> C2 --> C3
-    C1 -->|"best/last checkpoints"| F1
-    C2 -->|"history JSONL + config"| F1
-    E1 -->|"loads checkpoints"| F1
-    E1 -->|"artifacts"| F2
-    D1 -->|"test metrics"| F2
-    NB -->|"reads artifacts"| F1
-    NB -->|"reads artifacts"| F2
-    NB -->|"references"| GOV["agents/ (constitutional rules)"]
+    A[arXiv RSS / OAI-PMH] --> B[Bronze: XML / JSON / HTML + SHA-256]
+    B --> C[Silver: Parquet theo năm]
+    C --> D[DuckDB analytics]
+    C --> E[Section chunking]
+    E --> F[Nomic embedding local]
+    F --> G[Gold: LanceDB cosine search]
 ```
 
-Key engineering guarantees:
-- **Script-Only Training:** All training loops live in `src/training/*.py` or `src/experiments/*.py`. Notebooks never train.
-- **Full-State Resumability:** Runs persist model, optimizer, scheduler, RNG state, config, and metrics per [agents/rules/LOGGING_CHECKPOINT_RULES.md](agents/rules/LOGGING_CHECKPOINT_RULES.md).
-- **5W1H Empirical Context:** Every reported metric carries full 5W1H context per [agents/rules/RESULTS_REPORTING.md](agents/rules/RESULTS_REPORTING.md).
-- **Strict Separation of Governance vs Memory:** Immutable constitutional rules live in [`agents/`](agents/), while evolving research notes, phase specifications, and experiment logs live in [`docs/`](docs/).
+[Ingestion](src/ingestion/), [transformation](src/transformation/), [indexing](src/indexing/) và [storage](src/storage/) có implementation. [Quality](src/quality/), [mining](src/mining/) và [RAG](src/rag/) hiện là package khung; chưa có bộ audit 6 chiều, topic mining, hybrid retrieval, reranker hay LLM generation.
 
----
+Bronze local lưu tại `data/local/bronze/`, manifest SHA-256 tại `data/local/_manifests/`; payload RSS/OAI gốc được lưu trước khi chuẩn hóa. Bronze local từ chối ghi đè nội dung khác. R2 lưu payload gốc ở các key theo hash và SHA-256 trong object metadata. `data/raw/` không bị sửa. Silver định tuyến paper ID hiện có vào partition cũ và upsert theo `paper_id`; paper mới phân vùng theo năm. Giữ các cột enrichment và full text khi cập nhật metadata-only. Gold upsert theo `chunk_id`.
 
-## 📁 Repository Structure
+## Cài đặt
 
-The template supports both **Single-Track** (default monolithic layout shown below) and **Multi-Track / Feature-Modular** layouts (for multi-lab coursework or modular research tracks). See [agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md](agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md) for full principles and placement rules.
-
-```text
-Uth-Data-Mining/
-├── agents/                    # Constitutional AI Governance (Immutable rules & templates)
-│   ├── README.md              # Governance navigation guide
-│   ├── rules/                 # Binding standards (AGENT_AI, FOLDER_STRUCTURE, MD, etc.)
-│   └── templates/             # Reusable skeletons (BUG, AUDIT, EXP, PHASE, PROGRESS)
-│
-├── docs/                      # Evolving Project Research & Memory (Global)
-│   ├── README.md              # Master research index
-│   ├── PURPOSE.md             # Project brief & locked success criteria
-│   ├── OVERVIEW.md            # Living roadmap indexing all tracks/phases
-│   ├── shared/                # Universal SOPs (HOW_TO_SETUP_AI_AGENT, HANDOFF_TEMPLATE)
-│   ├── phases/                # Pipeline phase technical specifications
-│   ├── progress/              # Live phase status tracking (*_STATUS.md)
-│   ├── experiments/           # Experiment plans and comparative writeups
-│   ├── bugs/                  # Resolved and active bug reports
-│   └── references/            # Reusable technical guides (Git, Optuna, etc.)
-│
-├── configs/                   # Configuration files (YAML)
-│   └── config.yaml.example    # Configuration skeleton
-│
-├── data/                      # Dataset assets (ignored in git)
-│   ├── raw/                   # Immutable raw inputs (never written by scripts)
-│   └── processed/             # Cleaned splits and extracted features
-│
-├── src/                       # Maintained Python packages (or partitioned into tracks/)
-│   ├── data/                  # Loading, transforms, dataloaders
-│   ├── models/                # Neural network architectures
-│   ├── training/              # Script-only training entry points
-│   ├── eval/                  # Evaluation metrics & benchmark tables
-│   ├── experiments/           # One-shot experiment runners
-│   └── utils/                 # Logging, checkpoints, telemetry
-│
-├── notebooks/                 # Exploratory analysis & demo notebooks (NEVER train)
-│
-├── experiments/               # Experiment runtime outputs (runs/ & results/ gitignored)
-│   ├── runs/<ts>_<run>/       # checkpoints/ logs/ metrics/ tensorboard/
-│   └── results/               # Consolidated metrics & export plots
-│
-├── requirements/              # Multi-tier dependency specs (base.txt, dev.txt)
-├── requirements.txt           # Unified dependency proxy (-r requirements/dev.txt)
-├── pyproject.toml             # Build system & package discovery config
-└── tests/                     # Unit and integration test suite
-```
-
-> [!TIP]
-> **Multi-Track / Feature-Modular Projects:** When work naturally divides into distinct labs, features, or research questions, code, tests, configs, and experiment specs can be **colocated** within that unit (e.g. `tracks/<name>/` or `labs/<name>/`), while keeping `/agents`, global roadmap (`docs/OVERVIEW.md`), and base dependencies centralized.
-
-
----
-
-## ⚙️ Installation & Setup
-
-### 1. Environment Creation
+Python hỗ trợ: **3.10–3.12**. Python 3.12 dành cho môi trường mới; môi trường hiện có `venv` dùng Python 3.10.11 và đã được kiểm chứng cho pipeline này.
 
 ```bash
-# Windows
-python -m venv .venv
-.\.venv\Scripts\activate
-
-# Linux / macOS
 python3 -m venv .venv
 source .venv/bin/activate
+python -m pip install -e '.[dev,indexing]'
+cp .env_example .env
+python -m src.pipelines.doctor
 ```
 
-### 2. Dependency Installation
+Chỉ ingestion/transformation: `python -m pip install -e '.[dev]'`. Dependencies mining tùy chọn: `python -m pip install -e '.[mining]'`. Dependencies được khai báo tập trung tại [pyproject.toml](pyproject.toml); [requirements.txt](requirements.txt) cài core + dev. Khoảng phiên bản có giới hạn, chưa phải lockfile tái lập chính xác mọi dependency.
+
+## Chạy local với dữ liệu thật
+
+Nếu đang dùng môi trường có sẵn, chạy `source venv/bin/activate`.
 
 ```bash
-# Upgrade pip
-python -m pip install --upgrade pip
-
-# Standard / CPU Installation
-pip install -r requirements.txt
-pip install -e .
-
-# Optional: NVIDIA GPU Workstations (CUDA 13.0 wheels)
-# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
-# pip install -r requirements.txt
-# pip install -e .
+python -m src.pipelines.run_ingest --local --metadata-only --category cs.AI --limit 1
+python -m src.pipelines.run_transform --local
 ```
 
----
+Bỏ `--metadata-only` để thử tải HTML. Bài chưa có HTML vẫn được lưu metadata. Silver chuẩn hóa ngày ISO và bỏ prefix thông báo trong abstract. Ngày trong RSS là ngày thông báo; phân tích thời gian xuất bản chính xác nên dùng metadata OAI `created`.
 
-## 🧪 Testing & Verification
+Chạy thử toàn bộ đường lưu/tìm kiếm mà không cần mạng, credentials hoặc model:
 
-Run the test battery:
 ```bash
-pytest tests/ -v -m "not gpu"
-ruff check src tests
-python -c "import src; print('Package import verified!')"
+python -m src.pipelines.run_demo
 ```
 
----
+Demo tạo hai bài tổng hợp, Parquet, chunks và LanceDB tại một thư mục mới trong `experiments/runs/`, kèm `report.json`. Vector demo là hash từ vựng để kiểm tra kỹ thuật; kết quả không đo chất lượng semantic search hay RAG.
 
-## 📜 Governance & Workflow
+## R2 và semantic indexing
 
-- AI agents adhere to the 6-stage lifecycle: `AUDIT → PLAN → IMPLEMENT → VERIFY → COMMIT → MERGE` ([agents/rules/AGENT_AI.md](agents/rules/AGENT_AI.md)).
-- Setup procedures are codified in [docs/shared/HOW_TO_SETUP_AI_AGENT.md](docs/shared/HOW_TO_SETUP_AI_AGENT.md).
-- Inter-agent checkpoints follow [docs/shared/HANDOFF_TEMPLATE.md](docs/shared/HANDOFF_TEMPLATE.md).
+Điền `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT_URL`, `R2_BUCKET_NAME` vào `.env` trên máy. Settings đọc `.env` rồi ưu tiên biến môi trường; không in secret và không sửa `.env` hiện có.
+
+```bash
+python -m src.pipelines.doctor --online
+python -m src.pipelines.run_ingest --category cs.AI --limit 1
+python -m src.pipelines.run_transform
+```
+
+`doctor --online` chỉ đọc: kiểm tra bucket và RSS. Khi đã tải đầy đủ mô hình Nomic vào thư mục `EMBEDDING_MODEL_PATH` (gồm tokenizer, weights và mã model cần thiết):
+
+```bash
+python -m src.pipelines.run_indexing --local
+# Bỏ --local để đồng bộ Gold lên R2
+```
+
+Indexer đọc Silver local, dùng model local, rồi tìm kiếm cosine trong LanceDB. Mô hình Nomic có thể yêu cầu dependency riêng của mã model; chưa kiểm chứng semantic embedding nếu model chưa được cung cấp. Đồng bộ LanceDB lên R2 hiện là copy files; không có writer đồng thời hoặc cơ chế snapshot transaction cho object storage.
+
+## Batch và resume
+
+R2 đã được cấu hình và kiểm chứng read/write trong phiên setup; xem [R2_CRAWL_STATUS.md](docs/progress/R2_CRAWL_STATUS.md). Launcher dùng virtualenv của project, không cần activate thủ công:
+
+```bash
+./scripts/crawl_r2.sh --target 10000 --batch-size 100 --from-date 2024-01-01 --delay 10
+```
+
+Khi tiếp tục, giữ nguyên bucket, ngày và categories của checkpoint; giữ Silver local để hợp nhất với corpus cũ. Target tính số bản ghi xử lý của harvest, không phải số bài mới.
+
+```bash
+python -m src.pipelines.run_batch_ingest --local --target 100 --batch-size 20 --from-date 2026-10-01 --delay 10
+```
+
+`--target` là tổng tiến độ mong muốn của checkpoint, không phải số bài mới mỗi lần. `--batch-size` điều khiển flush Silver; server quyết định kích thước trang OAI. Bộ lọc giữ đúng `ARXIV_CATEGORIES`. `--from-date` là ngày cập nhật metadata theo OAI datestamp, không phải ngày xuất bản. Endpoint theo [arXiv OAI-PMH](https://info.arxiv.org/help/oa/index.html); RSS theo [arXiv RSS](https://info.arxiv.org/help/rss.html).
+
+Checkpoint chỉ tiến sau khi lưu Bronze/Silver thành công. Trang đọc dở lưu offset và chữ ký nội dung; resume dừng rõ ràng nếu trang thay đổi. Checkpoint local và R2 tách riêng trong `MANIFEST_DIR`. Token OAI hết hạn hằng ngày; khi hết hạn cần chọn kế hoạch harvest lại và reset có chủ đích. Checkpoint cũ không có offset bị từ chối để tránh mất dữ liệu. Pipeline hỗ trợ một writer tại một thời điểm.
+
+## Kiểm chứng
+
+```bash
+python -m pytest tests -q
+python -m ruff check src tests
+python -m pip check
+python -c 'import src'
+```
+
+Unit suite dùng fixture, chạy không cần mạng/R2/model. Có LanceDB thì chạy thêm demo integration local; thiếu optional dependency này thì test tương ứng skip. Kiểm tra dịch vụ thật bật riêng:
+
+```bash
+RUN_INTEGRATION_TESTS=1 python -m pytest tests/test_connection.py -v
+```
+
+Kết quả thực thi và phần chưa kiểm chứng nằm trong [REFACTOR_STATUS.md](docs/progress/REFACTOR_STATUS.md).

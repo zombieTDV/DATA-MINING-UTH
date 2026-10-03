@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 import lancedb
 import pandas as pd
-import pyarrow as pa
 
 from src.config.settings import settings
 from src.storage.r2_client import R2Client
@@ -20,14 +19,22 @@ class LanceDBManager:
     DEFAULT_TABLE_NAME = "scientific_papers_gold"
 
     def __init__(self, db_path: Optional[Path] = None, r2_client: Optional[R2Client] = None):
-        self.db_path = db_path or (settings.ROOT_DIR / "data" / "gold" / "lancedb")
+        self.db_path = Path(db_path or settings.GOLD_DIR).resolve()
         self.db_path.mkdir(parents=True, exist_ok=True)
         self.db = lancedb.connect(str(self.db_path))
         self.r2 = r2_client
 
-    def get_or_create_table(self, table_name: str = DEFAULT_TABLE_NAME, data_sample: Optional[List[Dict[str, Any]]] = None):
+    def get_or_create_table(
+        self,
+        table_name: str = DEFAULT_TABLE_NAME,
+        data_sample: Optional[List[Dict[str, Any]]] = None,
+    ):
         """Mở table đã có hoặc khởi tạo table mới nếu chưa tồn tại."""
-        existing_tables = self.db.table_names()
+        existing_tables = (
+            self.db.list_tables().tables
+            if hasattr(self.db, "list_tables")
+            else self.db.table_names()
+        )
         if table_name in existing_tables:
             return self.db.open_table(table_name)
 
@@ -39,7 +46,9 @@ class LanceDBManager:
         df = pd.DataFrame(data_sample)
         return self.db.create_table(table_name, data=df, mode="overwrite")
 
-    def insert_chunks(self, chunks: List[Dict[str, Any]], table_name: str = DEFAULT_TABLE_NAME) -> int:
+    def insert_chunks(
+        self, chunks: List[Dict[str, Any]], table_name: str = DEFAULT_TABLE_NAME
+    ) -> int:
         """Ghi hoặc cập nhật danh sách chunks kèm vector vào LanceDB."""
         if not chunks:
             return 0
@@ -88,4 +97,7 @@ class LanceDBManager:
                 r2.upload_file(file_path=file_path, key=r2_key)
                 synced_count += 1
 
-        return {"synced_files": synced_count, "r2_destination": f"s3://{r2.bucket_name}/{r2_prefix}"}
+        return {
+            "synced_files": synced_count,
+            "r2_destination": f"s3://{r2.bucket_name}/{r2_prefix}",
+        }

@@ -5,7 +5,7 @@ ready for the Silver Lakehouse layer and Advanced RAG chunking.
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 from bs4 import BeautifulSoup
 
 
@@ -16,11 +16,23 @@ class AcademicHTMLParser:
     SECTION_TYPE_PATTERNS = {
         "abstract": re.compile(r"abstract", re.IGNORECASE),
         "introduction": re.compile(r"^\s*(\d+(\.\d+)*\s+)?(intro|introduction)", re.IGNORECASE),
-        "related_work": re.compile(r"^\s*(\d+(\.\d+)*\s+)?(related|background|prior)", re.IGNORECASE),
-        "methodology": re.compile(r"^\s*(\d+(\.\d+)*\s+)?(method|approach|proposed|architecture|model|formulation|algorithm)", re.IGNORECASE),
-        "experiments": re.compile(r"^\s*(\d+(\.\d+)*\s+)?(experiment|eval|evaluation|result|ablation|benchmark)", re.IGNORECASE),
-        "discussion": re.compile(r"^\s*(\d+(\.\d+)*\s+)?(discussion|analysis|limitation)", re.IGNORECASE),
-        "conclusion": re.compile(r"^\s*(\d+(\.\d+)*\s+)?(conclu|future work|summary)", re.IGNORECASE),
+        "related_work": re.compile(
+            r"^\s*(\d+(\.\d+)*\s+)?(related|background|prior)", re.IGNORECASE
+        ),
+        "methodology": re.compile(
+            r"^\s*(\d+(\.\d+)*\s+)?(method|approach|proposed|architecture|model|formulation|algorithm)",
+            re.IGNORECASE,
+        ),
+        "experiments": re.compile(
+            r"^\s*(\d+(\.\d+)*\s+)?(experiment|eval|evaluation|result|ablation|benchmark)",
+            re.IGNORECASE,
+        ),
+        "discussion": re.compile(
+            r"^\s*(\d+(\.\d+)*\s+)?(discussion|analysis|limitation)", re.IGNORECASE
+        ),
+        "conclusion": re.compile(
+            r"^\s*(\d+(\.\d+)*\s+)?(conclu|future work|summary)", re.IGNORECASE
+        ),
         "references": re.compile(r"^\s*(reference|bibliography)", re.IGNORECASE),
         "appendix": re.compile(r"^\s*(appendix|supplementary)", re.IGNORECASE),
     }
@@ -41,7 +53,7 @@ class AcademicHTMLParser:
 
     def parse(self, html_content: str) -> Dict[str, Any]:
         """Bóc tách toàn bộ tài liệu HTML thành đối tượng có cấu trúc."""
-        soup = BeautifulSoup(html_content, "lxml")
+        soup = BeautifulSoup(html_content, "html.parser")
 
         # 1. Tiêu đề bài báo
         title = ""
@@ -51,7 +63,9 @@ class AcademicHTMLParser:
 
         # 2. Tóm tắt (Abstract)
         abstract = ""
-        abstract_sec = soup.find("div", class_="ltx_abstract") or soup.find("section", class_="ltx_abstract")
+        abstract_sec = soup.find("div", class_="ltx_abstract") or soup.find(
+            "section", class_="ltx_abstract"
+        )
         if abstract_sec:
             abstract_p = abstract_sec.find_all("p")
             if abstract_p:
@@ -71,14 +85,14 @@ class AcademicHTMLParser:
         # 4. Trích xuất các Section cấu trúc
         sections = []
         section_tags = soup.find_all("section", class_="ltx_section")
-        
+
         # Nếu không có thẻ section chuyên dụng, fallback sang các heading h2
         if not section_tags:
             section_tags = soup.find_all(["section", "article"])
 
         for sec in section_tags:
             sec_id = sec.get("id", "")
-            
+
             # Bỏ qua section abstract nếu nó bị lặp lại ở đây
             if "abstract" in sec_id.lower() or "ltx_abstract" in sec.get("class", []):
                 continue

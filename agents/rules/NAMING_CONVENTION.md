@@ -6,7 +6,7 @@
 - **Detailed Plan**: §1 File & Directory Naming; §2 Code Identifiers; §3 Experiment & Run Identifiers; §4 Prohibited Practices.
 - **References**: `agents/rules/CREATE_FOLDER_STRUCTURE_TEMPLATE.md`.
 - **Created**: 2026-07-25T00:00:00+07:00
-- **Last Updated**: 2026-09-06T20:55:00+07:00
+- **Last Updated**: 2026-10-02T22:52:40+07:00
 
 ---
 
@@ -52,3 +52,17 @@
 - Never invent ad-hoc naming conventions mid-project.
 - Never rename existing public interfaces or modules without human approval.
 - Never overwrite previous run directories; always mint a new timestamped directory.
+
+---
+
+## Codex — Xác nhận đã đọc và cam kết áp dụng
+
+- **Người ký**: Codex, agent chính `/root`.
+- **Thời điểm ký**: 2026-10-02T22:52:40+07:00.
+- **Tài liệu đã đọc**: [NAMING_CONVENTION.md](NAMING_CONVENTION.md), toàn bộ nội dung, từng mục và checklist.
+- **SHA-256 bản đã đọc trước khi thêm chữ ký và cập nhật thời gian**: `f3f3473be80cea517241467737aa7e57a00b5c6e67d194f3a24b1d85c8cb3bdd`.
+- **Cam kết**: Tôi đã đọc, hiểu và sẽ áp dụng các yêu cầu của tài liệu này trong các tác vụ thuộc phạm vi của nó. Tôi sẽ đối chiếu rule trước khi hành động, báo rõ xung đột hoặc điểm chưa xác định, và không tự ý bỏ qua hay sửa quy tắc. Việc áp dụng tuân theo thứ tự ưu tiên của chỉ dẫn hệ thống, developer và yêu cầu người dùng.
+- **Phạm vi xác nhận**: Chữ ký văn bản ghi nhận việc đã đọc trong phiên hiện tại; không phải chữ ký số, chứng nhận mọi thay đổi trước đây đã tuân thủ, hoặc bảo đảm không bao giờ có sai sót. Việc ghi nhớ ở phiên sau dựa trên tài liệu lưu trong repository và yêu cầu đọc lại.
+- **Truyền đạt**: Agent được giao việc phải đọc trực tiếp toàn bộ rule và xác nhận trước khi thực hiện; xem [hướng dẫn khởi đầu](../../AGENTS.md) và [biên bản tiếp nhận](../../docs/shared/RULES_ACKNOWLEDGMENT.md).
+
+**Đã ký: Codex — `/root`**

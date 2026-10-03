@@ -6,7 +6,6 @@ and streams messages simultaneously to both Console (stdout) and File.
 
 import datetime
 import logging
-import os
 import sys
 from pathlib import Path
 from typing import Optional, Tuple

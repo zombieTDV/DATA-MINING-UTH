@@ -3,6 +3,7 @@
 Allows CI (and fresh checkouts) to run the synthetic unit suite without the
 dataset present.
 """
+
 from pathlib import Path
 
 import pytest

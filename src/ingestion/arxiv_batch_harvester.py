@@ -27,7 +27,7 @@ from src.transformation.silver_writer import SilverLakehouseWriter
 class ArxivBatchHarvester:
     """Manages resilient bulk harvesting using the official arXiv OAI-PMH protocol."""
 
-    OAI_ENDPOINT = "https://export.arxiv.org/oai2"
+    OAI_ENDPOINT = "https://oaipmh.arxiv.org/oai"
 
     def __init__(
         self,
@@ -37,7 +37,7 @@ class ArxivBatchHarvester:
     ):
         self.r2 = r2_client or R2Client()
         self.request_delay = request_delay
-        self.checkpoint_dir = checkpoint_dir or (settings.ROOT_DIR / "data" / "manifests")
+        self.checkpoint_dir = checkpoint_dir or settings.MANIFEST_DIR
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.checkpoint_file = self.checkpoint_dir / "batch_checkpoint.json"
 
@@ -55,8 +55,10 @@ class ArxivBatchHarvester:
             try:
                 with open(self.checkpoint_file, "r", encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except (OSError, json.JSONDecodeError) as exc:
+                raise RuntimeError(
+                    "Invalid batch checkpoint; restore it or explicitly reset"
+                ) from exc
         return {
             "resumption_token": None,
             "page_num": 0,
@@ -64,7 +66,9 @@ class ArxivBatchHarvester:
             "last_updated": None,
         }
 
-    def save_checkpoint(self, resumption_token: Optional[str], page_num: int, total_ingested: int):
+    def save_checkpoint(
+        self, resumption_token: Optional[str], page_num: int, total_ingested: int, **state
+    ):
         """Luu lai tien do kem resumptionToken de tiep tuc neu gap su co mang."""
         checkpoint_data = {
             "resumption_token": resumption_token,
@@ -72,8 +76,10 @@ class ArxivBatchHarvester:
             "total_ingested": total_ingested,
             "last_updated": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
-        with open(self.checkpoint_file, "w", encoding="utf-8") as f:
-            json.dump(checkpoint_data, f, indent=2)
+        checkpoint_data.update(state)
+        temporary = self.checkpoint_file.with_suffix(".tmp")
+        temporary.write_text(json.dumps(checkpoint_data, indent=2), encoding="utf-8")
+        temporary.replace(self.checkpoint_file)
 
     def normalize_oai_record(self, record: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Chuyen doi ban ghi OAI-PMH sang schema tieu chuan cua he thong."""
@@ -126,6 +132,8 @@ class ArxivBatchHarvester:
 
         return {
             "paper_id": paper_id,
+            "doi": arxiv_meta.get("doi") or "",
+            "journal_ref": arxiv_meta.get("journal-ref") or "",
             "title": title,
             "abstract": abstract,
             "authors": authors,
@@ -155,9 +163,10 @@ class ArxivBatchHarvester:
             params = {
                 "verb": "ListRecords",
                 "metadataPrefix": "arXiv",
-                "set": set_spec,
                 "from": from_date,
             }
+            if set_spec:
+                params["set"] = set_spec
 
         for attempt in range(1, max_retries + 1):
             try:
@@ -166,7 +175,9 @@ class ArxivBatchHarvester:
                 # arXiv OAI-PMH su dung 503 khi can thoi gian tao token tiep theo
                 if resp.status_code == 503:
                     retry_after = int(resp.headers.get("Retry-After", 15))
-                    print(f"[RETRY_AFTER] arXiv OAI-PMH dang chuan bi trang tiep theo. Cho {retry_after}s...")
+                    print(
+                        f"[RETRY_AFTER] arXiv OAI-PMH dang chuan bi trang tiep theo. Cho {retry_after}s..."
+                    )
                     time.sleep(retry_after + 2)
                     continue
 
@@ -184,6 +195,8 @@ class ArxivBatchHarvester:
                 if "error" in oai_root:
                     err = oai_root["error"]
                     err_msg = err.get("#text", str(err)) if isinstance(err, dict) else str(err)
+                    if isinstance(err, dict) and err.get("@code") == "noRecordsMatch":
+                        return {"records_raw": [], "resumption_token": None, "raw_xml": resp.text}
                     raise RuntimeError(f"Loi OAI-PMH tu arXiv: {err_msg}")
 
                 list_records = oai_root.get("ListRecords", {})
@@ -202,11 +215,14 @@ class ArxivBatchHarvester:
                 return {
                     "records_raw": records_raw,
                     "resumption_token": next_token,
+                    "raw_xml": resp.text,
                 }
 
             except (httpx.RequestError, httpx.HTTPStatusError) as e:
                 wait_sec = attempt * 8
-                print(f"[RETRY] Request loi ({e}). Thu lai lan {attempt}/{max_retries} sau {wait_sec}s...")
+                print(
+                    f"[RETRY] Request loi ({e}). Thu lai lan {attempt}/{max_retries} sau {wait_sec}s..."
+                )
                 time.sleep(wait_sec)
 
         raise RuntimeError(f"Khong the lay du lieu OAI-PMH sau {max_retries} lan thu.")
@@ -214,172 +230,90 @@ class ArxivBatchHarvester:
     def harvest_large_corpus(
         self,
         total_target: int = 10000,
-        batch_size: int = 100,  # Giu tuong thich interface CLI
+        batch_size: int = 100,
         categories: Optional[List[str]] = None,
         reset_checkpoint: bool = False,
         sync_silver_every_n_batches: int = 5,
         from_date: str = "2024-01-01",
     ) -> int:
-        """Thu thap du lieu quy mo lon su dung arXiv OAI-PMH va luu vao Lakehouse."""
-        # Chuyen muc AI/DS muc tieu
+        """Persist Bronze and Silver before advancing a resumable page cursor.
+
+        batch_size controls Silver flush size; OAI controls the HTTP page size.
+        A partially consumed page is replayed with its original request token.
+        """
+        from src.utils.hasher import compute_sha256
+
+        if total_target < 1 or batch_size < 1 or sync_silver_every_n_batches < 1:
+            raise ValueError("target, batch_size and sync interval must be positive")
+        datetime.date.fromisoformat(from_date)
         target_cats: Set[str] = set(categories or settings.ARXIV_CATEGORIES)
-        # Mo rong them cac category thuoc mien AI/DS lien quan
-        target_cats.update({"cs.AI", "cs.LG", "cs.CV", "cs.CL", "stat.ML", "cs.NE", "cs.IR", "cs.RO"})
-
+        config = {"from_date": from_date, "categories": sorted(target_cats)}
         writer = SilverLakehouseWriter(r2_client=self.r2)
-
-        checkpoint = (
-            {"resumption_token": None, "page_num": 0, "total_ingested": 0}
-            if reset_checkpoint
-            else self.load_checkpoint()
-        )
-        resumption_token = checkpoint.get("resumption_token")
+        checkpoint = {} if reset_checkpoint else self.load_checkpoint()
+        if checkpoint.get("config") and checkpoint["config"] != config:
+            raise ValueError(
+                "Checkpoint filters differ; use a separate checkpoint or explicitly reset"
+            )
+        if checkpoint.get("page_num", 0) and "page_offset" not in checkpoint:
+            raise ValueError("Legacy checkpoint cannot guarantee lossless resume; explicitly reset")
+        token = checkpoint.get("resumption_token")
         page_num = checkpoint.get("page_num", 0)
-        total_ingested = checkpoint.get("total_ingested", 0)
+        offset = checkpoint.get("page_offset", 0)
+        total = checkpoint.get("total_ingested", 0)
+        if checkpoint.get("exhausted"):
+            return total
 
-        print("-" * 80)
-        print("[CONFIG] Giao thuc: arXiv OAI-PMH Bulk Harvesting (export.arxiv.org/oai2)")
-        print(f"[CONFIG] Muc tieu tong: {total_target:,} bai bao")
-        print(f"[CONFIG] Bo loc chuyen muc AI/DS: {', '.join(sorted(target_cats))}")
-        print(f"[CONFIG] Thoi gian nghi giua cac trang OAI: {self.request_delay}s")
-        if total_ingested > 0 and resumption_token:
-            print(f"[RESUME] Tiep tuc tu Checkpoint: Da co={total_ingested:,} bai (Trang={page_num})")
-        else:
-            print(f"[START] Bat dau phien cào moi tu ngay {from_date}")
-        print("-" * 80)
-
-        buffered_silver_records = []
-
-        while total_ingested < total_target:
+        while total < total_target:
+            page = self.fetch_oai_page(resumption_token=token, set_spec="", from_date=from_date)
+            page_signature = compute_sha256(
+                json.dumps(page["records_raw"], sort_keys=True).encode()
+            )
+            if offset and checkpoint.get("page_signature") != page_signature:
+                raise RuntimeError("Resumed page changed; cannot safely apply saved offset")
+            raw_xml = page["raw_xml"]
+            digest = compute_sha256(raw_xml.encode("utf-8"))
+            raw_key = f"bronze/arxiv/oai/raw/{digest}.xml"
+            if not self.r2.object_exists(raw_key):
+                self.r2.upload_text(raw_xml, raw_key, content_type="application/xml")
+            papers = []
+            for raw in page["records_raw"]:
+                paper = self.normalize_oai_record(raw)
+                if paper and set(paper["categories"]).intersection(target_cats):
+                    papers.append(paper)
+            if offset > len(papers):
+                raise RuntimeError("Resumed page changed; checkpoint offset is no longer valid")
+            stop = min(len(papers), offset + total_target - total)
+            flush_size = batch_size * sync_silver_every_n_batches
+            while offset < stop:
+                end = min(stop, offset + flush_size)
+                rows = [writer.prepare_record(p, {}) for p in papers[offset:end]]
+                writer.save_and_upload_parquet(rows)
+                total += end - offset
+                offset = end
+                self.save_checkpoint(
+                    token,
+                    page_num,
+                    total,
+                    page_offset=offset,
+                    config=config,
+                    exhausted=False,
+                    page_signature=page_signature,
+                )
+                print(f"[PROGRESS] Persisted {total}/{total_target} papers")
+            if offset < len(papers):
+                break
+            token = page["resumption_token"]
             page_num += 1
-            print(f"\n[PAGE] Dang lay du lieu Trang {page_num} tu arXiv OAI-PMH...")
-
-            try:
-                page_data = self.fetch_oai_page(
-                    resumption_token=resumption_token,
-                    set_spec="cs",
-                    from_date=from_date,
-                )
-            except Exception as e:
-                print(f"[ERROR] Dung tien trinh do loi ket noi OAI-PMH: {e}")
+            offset = 0
+            checkpoint = {}
+            self.save_checkpoint(
+                token, page_num, total, page_offset=0, config=config, exhausted=not token
+            )
+            if not token:
                 break
-
-            records_raw = page_data.get("records_raw", [])
-            resumption_token = page_data.get("resumption_token")
-
-            if not records_raw:
-                print("[INFO] Khong con ban ghi nao trong phan hoi OAI-PMH.")
-                break
-
-            print(f"[BATCH] Trang {page_num} tra ve {len(records_raw):,} ban ghi tu arXiv.")
-
-            # Chuan hoa va loc cac bai bao thuoc mien AI/DS
-            parsed_papers = []
-            for r in records_raw:
-                p = self.normalize_oai_record(r)
-                if not p:
-                    continue
-
-                # Loc theo chuyen muc AI/DS
-                paper_cats = set(p.get("categories", []))
-                if not paper_cats.intersection(target_cats):
-                    continue
-
-                parsed_papers.append(p)
-
-            print(f"[FILTER] Giu lai {len(parsed_papers):,} bai bao thuoc mien AI/DS tu trang nay.")
-
-            # 1. Luu goi batch JSON vao R2 Bronze
-            batch_key = f"bronze/arxiv/batches/oai/batch_page_{page_num:04d}.json"
-            try:
-                self.r2.upload_json(
-                    payload={
-                        "protocol": "oai-pmh",
-                        "page": page_num,
-                        "count": len(parsed_papers),
-                        "papers": parsed_papers,
-                    },
-                    key=batch_key,
-                    metadata={"page": str(page_num), "count": str(len(parsed_papers))},
-                )
-            except Exception as e:
-                print(f"[WARNING] Loi upload R2 Bronze bundle: {e}")
-
-            # 2. Log chi tiet tung bai bao va chuan bi ban ghi cho Silver
-            for p in parsed_papers:
-                if total_ingested >= total_target:
-                    break
-
-                total_ingested += 1
-                paper_id = p["paper_id"]
-                title = p["title"]
-                authors_list = p.get("authors", [])
-                authors_str = ", ".join(authors_list[:4])
-                if len(authors_list) > 4:
-                    authors_str += f" va {len(authors_list) - 4} tac gia khac"
-                pub_date = p.get("published_date", "")[:10]
-                abstract_snippet = (
-                    p.get("abstract", "")[:130] + "..."
-                    if len(p.get("abstract", "")) > 130
-                    else p.get("abstract", "")
-                )
-
-                # In chi tiet thong tin tung bai bao (khong dung icon)
-                print(f"  [PAPER {total_ingested:,}/{total_target:,}] ID: {paper_id} | Chuyen muc: {p.get('primary_category')} | Ngay: {pub_date}")
-                print(f"    Tieu de: {title}")
-                print(f"    Tac gia: {authors_str if authors_str else 'N/A'}")
-                print(f"    Tom tat: {abstract_snippet}")
-
-                # Chuan bi cau truc ban ghi Silver
-                parsed_dummy = {
-                    "parsed_title": p["title"],
-                    "parsed_abstract": p["abstract"],
-                    "sections": [
-                        {
-                            "section_id": "abstract",
-                            "section_title": "Abstract",
-                            "section_type": "abstract",
-                            "content": p["abstract"],
-                            "paragraphs": [p["abstract"]],
-                            "paragraph_count": 1,
-                            "math_count": 0,
-                            "word_count": len(p["abstract"].split()),
-                        }
-                    ],
-                    "total_sections": 1,
-                    "total_math_count": 0,
-                    "total_words": len(p["abstract"].split()),
-                }
-                silver_rec = writer.prepare_record(raw_meta=p, parsed_html=parsed_dummy)
-                buffered_silver_records.append(silver_rec)
-
-            # Luu Checkpoint
-            self.save_checkpoint(resumption_token, page_num, total_ingested)
-            pct = (total_ingested / total_target) * 100
-            print(f"[TIEN DO] Da hoan thanh {total_ingested:,}/{total_target:,} bai ({pct:.1f}%)\n")
-
-            # Luu Silver Parquet dinh ky (cu moi >= 500 ban ghi hoac khi xong muc tieu)
-            if len(buffered_silver_records) >= 500 or total_ingested >= total_target:
-                print(f"[STORAGE] Luu {len(buffered_silver_records)} ban ghi vao Silver Parquet va dong bo R2...")
-                writer.save_and_upload_parquet(buffered_silver_records, year="2026")
-                buffered_silver_records = []
-                print("[STORAGE] Hoan tat dong bo Tang Silver Parquet.\n")
-
-            if not resumption_token:
-                print("[INFO] Da thu thap het toan bo danh muc tu arXiv OAI-PMH.")
-                break
-
-            # Nghi giua cac trang OAI theo khuyen nghi cua arXiv
-            if total_ingested < total_target:
-                print(f"[WAIT] Nghi {self.request_delay}s de arXiv khoi tao trang tiep theo...")
+            if total < total_target:
                 time.sleep(self.request_delay)
+        return total
 
-        # Ghi not so ban ghi con lai vao Silver Parquet neu con
-        if buffered_silver_records:
-            print(f"[STORAGE] Ghi not {len(buffered_silver_records)} ban ghi vao Silver Parquet...")
-            writer.save_and_upload_parquet(buffered_silver_records, year="2026")
-
-        print("=" * 80)
-        print(f"[HOAN TAT] Thu thap thanh cong tong cong {total_ingested:,} bai bao vao Bronze & Silver.")
-        print("=" * 80)
-        return total_ingested
+    def close(self):
+        self.http_client.close()
