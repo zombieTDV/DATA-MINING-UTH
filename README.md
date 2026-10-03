@@ -18,15 +18,16 @@ UTH-Data-Mining-Real-Time-Scientific-Data-Mining-Advanced-RAG-System-for-AI-DS/
 │   ├── package.json
 │   └── vite.config.ts
 │
-├── backend/                       # [2] Phân hệ Backend API & Serving (NestJS / TypeScript)
-│   ├── apps/
-│   │   ├── api-gateway/          # Cổng API cho Frontend (Port 8000)
-│   │   └── llm-service/          # Dịch vụ suy luận AI Qwen2.5 GGUF (Port 9001)
-│   ├── libs/
-│   │   └── shared/               # DTO, Schema Zod, Config dùng chung
-│   ├── package.json
-│   ├── nest-cli.json
-│   └── tsconfig.json
+├── backend/                       # [2] Phân hệ Backend API & Serving (Python / FastAPI)
+│   ├── app/
+│   │   ├── api/endpoints/        # Endpoints: search, chat, papers, storage, mining
+│   │   ├── core/config.py        # Cấu hình Pydantic đọc từ file .env
+│   │   ├── schemas/              # Pydantic Schemas (Request/Response)
+│   │   ├── services/             # Retrieval, RAG, Storage, Mining services
+│   │   └── main.py               # Điểm khởi chạy FastAPI, CORS, SSE, Swagger
+│   ├── tests/                    # Integration TestClient test suite
+│   ├── requirements.txt
+│   └── README.md
 │
 ├── data_mining/                   # [3] Phân hệ Data Mining & Lakehouse (Python)
 │   ├── src/
@@ -82,26 +83,23 @@ python data_mining/main.py --target-papers 10000 --enrich-html-limit 100 --gold-
 
 ---
 
-### B. Phân hệ Backend API & Serving (`backend/`)
+### B. Phân hệ Backend API & Serving (`backend/` - FastAPI)
 
-Sử dụng Node.js >= 22.0.0:
+Sử dụng môi trường ảo Python 3.9+:
 
 ```bash
-# 1. Chuyển vào thư mục backend
-cd backend
+# 1. Kích hoạt môi trường ảo
+source .venv/bin/activate
 
-# 2. Cài đặt thư viện
-npm install
+# 2. Khởi chạy máy chủ FastAPI (Port 8000)
+python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
 
-# 3. Chạy kiểm thử
-npm test
+# 3. Chạy toàn bộ kiểm thử tích hợp (TestClient)
+pytest backend/tests/test_api.py -v
 
-# 4. Khởi chạy đồng thời API Gateway (:8000) và LLM Service (:9001)
-npm run dev
-
-# 5. Xem Swagger API Documentation:
-# - API Gateway: http://localhost:8000/api/docs
-# - LLM Service: http://localhost:9001/docs
+# 4. Xem tài liệu tương tác Swagger & ReDoc:
+# - Swagger UI: http://localhost:8000/docs
+# - ReDoc:      http://localhost:8000/redoc
 ```
 
 ---

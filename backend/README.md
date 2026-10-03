@@ -1,106 +1,54 @@
-# UTH Data Mining: Backend API & RAG Serving Monorepo
+# UTH Scientific Data Mining & Real-Time RAG API (FastAPI)
 
-Welcome to the backend service monorepo for the UTH Scientific Paper Mining and Literature Review platform. This branch (`feature/backend-api`) contains a clean, standalone TypeScript/NestJS monorepo designed to power real-time scientific exploration, hybrid retrieval over Cloudflare R2 Lakehouse, and grounded LLM generation for frontend applications.
+High-performance asynchronous backend powering the Scientific Data Lakehouse, Real-Time Exploratory Data Analysis (EDA), 4 Pillars of Data Mining & Modeling, and Grounded Scientific RAG.
 
 ---
 
-## 🏛️ System Architecture
+## 1. Quick Start
 
-```
-                       ┌───────────────────────────────┐
-                       │   React Frontend Application   │
-                       │   (e.g., Vite on port 5173)   │
-                       └───────────────┬───────────────┘
-                                       │
-                      REST & SSE Stream│
-                                       ▼
-                       ┌───────────────────────────────┐
-                       │      API Gateway (:8000)      │
-                       │   Swagger UI: /api/docs       │
-                       │   Swagger JSON: /api/docs-json│
-                       └───────┬───────────────┬───────┘
-                               │               │
-        @lancedb/lancedb (S3)  │               │ HTTP /v1/chat/completions (SSE)
-                               ▼               ▼
-      ┌──────────────────────────┐    ┌──────────────────────────┐
-      │   Cloudflare R2 Bucket   │    │    LLM Service (:9001)   │
-      │   uth-scientific-lakehouse   │    │    Swagger UI: /docs     │
-      │ 143k chunks (IVF-PQ + FTS│    │ node-llama-cpp + Qwen2.5 │
-      └──────────────────────────┘    └─────────────┬────────────┘
-                                                    │ loads local GGUF
-                                                    ▼
-                                      ┌──────────────────────────┐
-                                      │ models/qwen2.5-7b-*.gguf │
-                                      └──────────────────────────┘
+### Khởi chạy FastAPI Server
+
+Từ thư mục gốc dự án:
+
+```bash
+# 1. Kích hoạt môi trường ảo Python
+source .venv/bin/activate
+
+# 2. Khởi chạy Uvicorn Server tại cổng 8000
+python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ---
 
-## 🚀 Quick Start Guide
+## 2. Interactive API Documentation
 
-### Prerequisites
-- **Node.js >= 22.0.0** (required by `@lancedb/lancedb` and `node-llama-cpp`)
-- **nvm** (Node Version Manager) recommended
-
-```powershell
-# Activate Node 22 using nvm-windows
-nvm use 22.23.3
-node --version
-# Expected: v22.23.3
-```
-
-### Installation
-```powershell
-npm ci
-```
-
-### Environment Setup
-Copy `.env.example` to `.env` and fill in your Cloudflare R2 credentials (if running against real lakehouse data):
-```powershell
-cp .env.example .env
-```
-
-Key environment options:
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `GATEWAY_PORT` | `8000` | Port for frontend-facing API Gateway |
-| `LLM_PORT` | `9001` | Port for internal/dedicated LLM service |
-| `RETRIEVAL_MODE` | `lancedb` | `lancedb` (queries Cloudflare R2) or `mock` (in-memory test data) |
-| `LLM_MODE` | `gguf` | `gguf` (loads local Qwen GGUF via `node-llama-cpp`) or `mock` |
-| `LLM_MODEL_PATH` | `./models/...` | Path to local GGUF weights |
-| `FRONTEND_ORIGIN`| `http://localhost:5173` | Allowed CORS origin for React/Vite |
-
-### Running the Services
-```powershell
-# Run both API Gateway (:8000) and LLM Service (:9001) concurrently in dev mode:
-npm run dev
-
-# Expose API Gateway (:8000) over free public HTTPS tunnel for remote frontend teammates:
-npm run tunnel
-
-# Or run services individually:
-npm run start:gateway
-npm run start:llm
-```
-
-### Running Tests
-```powershell
-# Unit tests (prompt builders, citation parser, zod schema validation)
-npm test
-
-# End-to-end integration tests (mock mode: no GPU or R2 secrets required)
-npm run test:e2e
-
-# Build production artifacts
-npm run build
-```
+Truy cập tài liệu Swagger UI & ReDoc:
+- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
 ---
 
-## 📖 API Documentation & Swagger
+## 3. Endpoints Overview
 
-- **API Gateway Swagger UI**: [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
-- **API Gateway OpenAPI JSON Spec**: [http://localhost:8000/api/docs-json](http://localhost:8000/api/docs-json)
-- **LLM Service Swagger UI**: [http://localhost:9001/docs](http://localhost:9001/docs)
+| Category | Method | Path | Description |
+| :--- | :--- | :--- | :--- |
+| **Health** | `GET` | `/health` | Kiểm tra trạng thái hệ thống, LanceDB & Parquet |
+| **Storage** | `GET` | `/api/storage/stats` | Thống kê dung lượng Cloudflare R2 & Lakehouse |
+| **Search** | `POST` | `/api/search` | Tìm kiếm FTS & Vector trên 143k chunks |
+| **Chat** | `POST` | `/api/chat` | RAG Answer Generation kèm trích dẫn khoa học |
+| **Papers** | `GET` | `/api/papers/{paper_id}` | Lấy chi tiết bài báo và các chunks |
+| **Mining: EDA** | `GET` | `/api/mining/eda` | Thống kê phân bố 10k bài, LaTeX, top tác giả |
+| **Mining: P1** | `GET` | `/api/mining/pillars/association-rules` | Luật kết hợp FP-Growth (Lift > 1.2) |
+| **Mining: P2** | `GET` | `/api/mining/pillars/clusters` | Phân cụm K-Means/DBSCAN + tọa độ 2D |
+| **Mining: P3** | `GET` | `/api/mining/pillars/graph` | Mạng đồng tác giả 35k nodes + PageRank |
+| **Mining: P4** | `GET` | `/api/mining/pillars/trends` | Phát hiện bất thường & tốc độ tăng trưởng |
+| **Mining: Telemetry** | `GET` | `/api/mining/telemetry/stream` | Server-Sent Events (SSE) realtime pulse |
+| **Mining: Trigger** | `POST` | `/api/mining/trigger` | Kích hoạt chạy lại Data Mining trong nền |
 
-For detailed endpoint contracts and Server-Sent Event (SSE) specs, refer to [docs/backend/API.md](file:///C:/document/Study%20documents/Uth-Data-Mining/docs/backend/API.md).
+---
+
+## 4. Kiểm thử tự động (Unit & Integration Tests)
+
+```bash
+pytest backend/tests/test_api.py -v
+```
