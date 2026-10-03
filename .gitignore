@@ -7,14 +7,18 @@ dist/
 build/
 .eggs/
 .kilo
+/lib/
 
-# Data — raw/processed/external data stays local
+# Data — bronze/raw/processed/external data stays local (except eval questions)
+/data/bronze/
 /data/raw/
 /data/silver/
 /data/gold/
 /data/manifests/
 /data/processed/
 /data/external/
+/data/eval/runs/
+!/data/eval/questions.jsonl
 /data/*.tar.gz
 /data/*.zip
 /data/*.pt

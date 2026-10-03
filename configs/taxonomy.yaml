@@ -1,0 +1,88 @@
+# Normalized label taxonomy for trend analysis
+# See DECISIONS.md #5 for graph-first methodology rationale
+#
+# Phase 3: Used for keyword grouping and association rule mining
+# Phase 5+: Would be used for LLM extraction if needed
+#
+# Usage:
+#   - Map OpenAlex keywords to canonical labels in this taxonomy
+#   - Use as itemsets for FP-Growth association rule mining
+#   - Periodically review "other" clusters to extend categories
+
+method_families:
+  - transformer
+  - attention_mechanism
+  - self_attention
+  - multi_head_attention
+  - encoder_decoder
+  - autoregressive
+  - masked_language_model
+  - rlhf
+  - dpo
+  - ppo
+  - instruction_tuning
+  - supervised_fine_tuning
+  - in_context_learning
+  - few_shot_learning
+  - zero_shot_learning
+  - chain_of_thought
+  - retrieval_augmented_generation
+  - prompt_engineering
+  - knowledge_distillation
+  - mixture_of_experts
+  - parameter_efficient_fine_tuning
+  - lora
+  - quantization
+  - other
+
+tasks:
+  - text_generation
+  - question_answering
+  - summarization
+  - translation
+  - code_generation
+  - reasoning
+  - mathematical_reasoning
+  - commonsense_reasoning
+  - alignment
+  - safety
+  - dialogue
+  - information_extraction
+  - sentiment_analysis
+  - multimodal
+  - text_classification
+  - other
+
+datasets:
+  - mmlu
+  - humaneval
+  - gsm8k
+  - hellaswag
+  - winogrande
+  - arc
+  - truthfulqa
+  - mt_bench
+  - alpaca_eval
+  - squad
+  - glue
+  - superglue
+  - imagenet
+  - coco
+  - other
+
+metrics:
+  - accuracy
+  - f1_score
+  - bleu
+  - rouge
+  - perplexity
+  - pass_at_k
+  - win_rate
+  - elo_rating
+  - human_preference
+  - other
+
+# Maintenance:
+#   When "other" accumulates >10 entries in a category, review and
+#   promote frequent items to named canonical labels.
+#   Version this file and re-run any extraction that depends on it.

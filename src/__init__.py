@@ -1,1 +1,1 @@
-"""Core package for the deep-learning pipeline."""
+"""Core package for the LLM research paper mining & graph trend analysis pipeline."""

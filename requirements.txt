@@ -1,7 +1,7 @@
 # ==============================================================================
-# UTH Data Mining & Real-Time Scientific Advanced RAG Pipeline — Requirements
+# UTH Data Mining: Unified Lakehouse, Graph Mining & Hybrid Graph-RAG
 # ==============================================================================
-# Architecture: ELT + Medallion Data Lakehouse (R2, DuckDB, LanceDB, Hybrid RAG)
+# Architecture: ELT + Medallion Data Lakehouse (R2, DuckDB, LanceDB, Graph & RAG)
 # Python Compatibility: >=3.11, <3.13
 # ==============================================================================
 
@@ -39,6 +39,8 @@ tqdm>=4.66.0
 # ------------------------------------------------------------------------------
 pymupdf>=1.24.0          # PyMuPDF (fitz) - high-speed academic PDF section & layout extractor
 pypdf>=4.2.0
+pdfplumber>=0.11.0
+pillow>=10.0.0
 
 # ------------------------------------------------------------------------------
 # 5. Vector Lakehouse & Search (LanceDB + BM25)
@@ -54,22 +56,21 @@ torch>=2.2.0
 torchvision>=0.17.0
 scikit-learn>=1.4.0
 transformers>=4.40.0
-# sentence-transformers>=3.0.0  # Dense bi-encoders (e.g. BGE-M3) and Cross-Encoder Rerankers
-# fastembed>=0.3.0              # Fast local ONNX-based embedding options
+sentence-transformers>=3.0.0
 
 # ------------------------------------------------------------------------------
 # 7. RAG Serving & LLM Framework
 # ------------------------------------------------------------------------------
-# openai>=1.30.0           # OpenAI SDK (supports Groq, OpenRouter, DeepSeek, Ollama)
-# langchain>=0.2.0
-# langchain-community>=0.2.0
-# tiktoken>=0.7.0
+google-genai>=1.0.0
 
 # ------------------------------------------------------------------------------
-# 8. Data Mining & Network Graph Mining
+# 8. Data Mining, Graph Analytics & Association Rules
 # ------------------------------------------------------------------------------
 bertopic>=0.16.0         # Topic Modeling on research paper abstracts & texts
 networkx>=3.2.0          # Citation graph & co-authorship network analysis
+pyvis>=0.3.2             # Interactive HTML network graphs
+mlxtend>=0.23.0          # FP-Growth & Association Rules mining
+seaborn>=0.13.0
 
 # ------------------------------------------------------------------------------
 # 9. Configuration, Validation, Logging & Utilities

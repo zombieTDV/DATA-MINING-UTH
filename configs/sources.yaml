@@ -1,0 +1,50 @@
+# OpenAlex collection configuration
+# See DECISIONS.md #10 for source selection rationale
+# Master settings are also mirrored in configs/config.yaml
+
+openalex:
+  base_url: "https://api.openalex.org/works"
+  user_agent: "UTH-DataMining-Student/1.0 (mailto:student@uth.edu.vn)"
+  mailto: "student@uth.edu.vn"
+  rate_limit_delay_seconds: 0.5  # OpenAlex polite pool is generous with mailto header
+  timeout_seconds: 20
+  page_size: 200
+  max_papers: 10000
+  pilot_size: 200
+
+  # Curated OpenAlex primary topic IDs:
+  # - T10181: Natural Language Processing Techniques
+  # - T10028: Topic Modeling (Transformers, BERT, GPT, LLaMA)
+  # - T11550: Text and Document Classification Technologies
+  # - T12031: Speech and Dialogue Systems
+  primary_topic_ids:
+    - "T10181"
+    - "T10028"
+    - "T11550"
+    - "T12031"
+
+  filters:
+    from_publication_date: "2017-06-01"  # "Attention Is All You Need" paper (June 2017)
+    to_publication_date: "2026-12-31"
+    language: "en"
+    sort_by: "cited_by_count:desc"
+    topics:
+      - "large language model"
+      - "transformer"
+      - "attention mechanism"
+      - "natural language processing"
+      - "reinforcement learning from human feedback"
+      - "parameter-efficient fine-tuning"
+
+# Sampling strategy (DECISIONS.md #13)
+sampling:
+  stratify_by_year: true
+  min_papers_per_year: 100
+  start_year: 2017
+  end_year: 2026
+  per_year_limit: 1000
+  pilot_per_year_limit: 22
+  note: >
+    OpenAlex covers broader venues than arXiv-only.
+    Still biased toward English-language, peer-reviewed publications.
+    Report sampling method and caveats with all trend outputs.

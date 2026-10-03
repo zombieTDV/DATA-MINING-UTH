@@ -1,0 +1,133 @@
+# ==============================================================================
+# UTH Data Mining: Pipeline Master Configuration Template
+# ==============================================================================
+# Copy this file to configs/config.yaml and adapt parameters as needed.
+# ==============================================================================
+
+collection:
+  active_mode: "scale"
+  pilot_size: 200
+  target_papers: 10000
+  start_year: 2017
+  end_year: 2026
+  stratify_by_year: true
+  min_papers_per_year: 100
+  per_year_limit: 1000
+  pilot_per_year_limit: 22
+  language: "en"
+  sort_by: "cited_by_count:desc"
+
+data_sources:
+  primary:
+    name: "OpenAlex Works API"
+    base_url: "https://api.openalex.org/works"
+    user_agent: "UTH-DataMining-Student/1.0 (mailto:student@uth.edu.vn)"
+    mailto: "student@uth.edu.vn"
+    rate_limit_delay_seconds: 0.5
+    max_retries: 3
+    timeout_seconds: 20
+    page_size: 200
+
+  pdf_vaulting:
+    enabled: true
+    skip_pdf: false
+    overwrite_existing: false
+    timeout_seconds: 30
+    max_file_size_mb: 35
+    max_pages_per_pdf: 25
+
+topics_and_tags:
+  openalex_topic_ids:
+    - id: "T10181"
+      name: "Natural Language Processing Techniques"
+    - id: "T10028"
+      name: "Topic Modeling, Transformers, BERT, GPT, LLaMA"
+    - id: "T11550"
+      name: "Text and Document Classification Technologies"
+    - id: "T12031"
+      name: "Speech and Dialogue Systems"
+
+  target_tags:
+    - "large language model"
+    - "llm"
+    - "transformer"
+    - "attention mechanism"
+    - "reinforcement learning from human feedback (rlhf)"
+    - "direct preference optimization (dpo)"
+    - "parameter-efficient fine-tuning (peft)"
+    - "low-rank adaptation (lora)"
+    - "retrieval-augmented generation (rag)"
+    - "chain-of-thought"
+    - "prompt engineering"
+    - "in-context learning"
+    - "mixture of experts (moe)"
+    - "reasoning"
+    - "autonomous agents"
+
+  taxonomy_file: "configs/taxonomy.yaml"
+
+storage:
+  bronze:
+    root: "data/bronze"
+    raw_json_dir: "data/bronze/papers"
+    pdf_dir: "data/bronze/pdf_raw"
+    manifest: "data/bronze/manifest.parquet"
+  silver:
+    root: "data/silver"
+    papers: "data/silver/papers.parquet"
+    citations: "data/silver/citations.parquet"
+    keywords: "data/silver/keywords.parquet"
+    sections: "data/silver/sections.parquet"
+    chunks: "data/silver/chunks.parquet"
+  gold:
+    root: "data/gold"
+    graphs_dir: "data/gold/graphs"
+    trends_dir: "data/gold/trends"
+    lancedb_dir: "data/gold/lancedb"
+
+graph_analytics:
+  pagerank:
+    alpha: 0.85
+    max_iter: 100
+    weight: "weight"
+  association_rules:
+    algorithm: "fpgrowth"
+    min_support: 0.02
+    metric: "lift"
+    min_threshold: 0.3
+  pyvis_visualization:
+    height: "750px"
+    width: "100%"
+    max_rendered_nodes: 1000
+    physics_enabled: false
+
+rag_pipeline:
+  embedding:
+    model_name: "sentence-transformers/all-MiniLM-L6-v2"
+    dimension: 384
+    device: "cpu"
+  chunking:
+    max_chunk_size: 512
+    chunk_overlap: 64
+    granularities:
+      - "abstract"
+      - "section"
+  retrieval:
+    table_name: "academic_chunks"
+    default_top_k: 5
+    default_graph_boost: 0.25
+    use_bm25_tantivy: true
+    use_dense_vector: true
+  serving:
+    default_backend: "mock"
+    gemini_model: "gemini-2.5-flash"
+    temperature: 0.2
+    strict_citation_verification: true
+
+logging:
+  root_dir: "logs"
+  level: "INFO"
+  rotation_max_bytes: 10485760
+  backup_count: 5
+  audit_file: "logs/audit.jsonl"
+
